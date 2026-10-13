@@ -1,16 +1,17 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { isSupabaseAdminConfigured } from "@/lib/supabase/env"
 import { getAllTickers, getExecutionTicker, type Ticker } from "./prices"
 import { MAKER_FEE, TAKER_FEE, getMarket, quoteToUsd, roundToStep, type FuturesMarket } from "./markets"
 import type { Fill, Order, PlaceOrderInput, Position } from "./types"
 
-export class TradingError extends Error {
-  status: number
-  constructor(message: string, status = 400) {
-    super(message)
-    this.status = status
-  }
-}
+import { TradingError } from "./errors"
+import * as testEngine from "./demo-engine"
+import { TEST_USER_ID } from "./demo-session"
+
+export { TradingError }
+
+const isTestUser = (userId?: string) => userId === TEST_USER_ID
 
 const num = (v: unknown): number | null => (v == null ? null : Number(v))
 
@@ -133,6 +134,7 @@ function validateTpSl(side: "buy" | "sell", ref: number, tp?: number | null, sl?
 }
 
 export async function placeOrder(userId: string, input: PlaceOrderInput) {
+  if (isTestUser(userId)) return testEngine.placeOrder(input)
   const market = getMarket(input.symbol)
   if (!market) throw new TradingError("Mercado inválido")
 
@@ -268,6 +270,7 @@ export async function placeOrder(userId: string, input: PlaceOrderInput) {
 }
 
 export async function cancelOrder(userId: string, orderId: string, reason?: string) {
+  if (isTestUser(userId)) return testEngine.cancelOrder(orderId, reason)
   const admin = createAdminClient()
   const { data, error } = await admin.rpc("futures_cancel_order", {
     p_user: userId,
@@ -280,6 +283,7 @@ export async function cancelOrder(userId: string, orderId: string, reason?: stri
 }
 
 export async function cancelAllOrders(userId: string, isDemo: boolean, symbol?: string) {
+  if (isTestUser(userId)) return testEngine.cancelAllOrders(isDemo, symbol)
   const admin = createAdminClient()
   let query = admin.from("futures_orders").select("id").eq("user_id", userId).eq("is_demo", isDemo).eq("status", "open")
   if (symbol) query = query.eq("symbol", symbol)
@@ -289,6 +293,7 @@ export async function cancelAllOrders(userId: string, isDemo: boolean, symbol?: 
 }
 
 export async function closePosition(userId: string, positionId: string, qty?: number, limitPrice?: number) {
+  if (isTestUser(userId)) return testEngine.closePosition(positionId, qty, limitPrice)
   const admin = createAdminClient()
   const { data } = await admin
     .from("futures_positions")
@@ -340,6 +345,7 @@ export async function closePosition(userId: string, positionId: string, qty?: nu
 }
 
 export async function setTpSl(userId: string, positionId: string, tp: number | null, sl: number | null) {
+  if (isTestUser(userId)) return testEngine.setTpSl(positionId, tp, sl)
   const admin = createAdminClient()
   const { data } = await admin
     .from("futures_positions")
@@ -369,6 +375,9 @@ export async function setTpSl(userId: string, positionId: string, tp: number | n
  * Sem userId processa todas as contas (usado pelo cron).
  */
 export async function sweep(userId?: string) {
+  if (isTestUser(userId)) return testEngine.sweep()
+  if (!userId) await testEngine.sweep().catch(() => {})
+  if (!isSupabaseAdminConfigured()) return { processed: 0 }
   const admin = createAdminClient()
 
   let ordersQ = admin.from("futures_orders").select("*").eq("status", "open").limit(500)
@@ -488,6 +497,7 @@ export async function sweep(userId?: string) {
 }
 
 export async function loadState(userId: string, isDemo: boolean) {
+  if (isTestUser(userId)) return testEngine.loadState(isDemo)
   const admin = createAdminClient()
   const [bal, positions, openOrders, orderHistory, fills, closed] = await Promise.all([
     admin.from("user_balances").select("balance, balance_demo").eq("user_id", userId).maybeSingle(),

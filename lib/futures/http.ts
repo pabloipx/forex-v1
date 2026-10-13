@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server"
+import { cookies } from "next/headers"
 import { isSupabaseAdminConfigured, isSupabaseConfigured } from "@/lib/supabase/env"
-import { TradingError } from "./engine"
+import { TradingError } from "./errors"
+import { TEST_EMAIL, TEST_SESSION_COOKIE, TEST_USER_ID, verifyTestSessionToken } from "./demo-session"
 
-export async function requireUser() {
+export async function requireUser(): Promise<{ id: string; email?: string }> {
   if (!isSupabaseConfigured() || !isSupabaseAdminConfigured()) {
-    throw new TradingError(
-      "Banco de dados não configurado. Defina NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY e SUPABASE_SECRET_KEY.",
-      503,
-    )
+    const cookieStore = await cookies()
+    if (verifyTestSessionToken(cookieStore.get(TEST_SESSION_COOKIE)?.value)) {
+      return { id: TEST_USER_ID, email: TEST_EMAIL }
+    }
+    throw new TradingError("Faça login para operar", 401)
   }
   const { createClient } = await import("@/lib/supabase/server")
   const supabase = await createClient()
