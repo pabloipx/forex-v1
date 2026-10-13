@@ -5,8 +5,6 @@ import { randomUUID } from "node:crypto"
 import { TradingError } from "./errors"
 import { getAllTickers, getExecutionTicker } from "./prices"
 import {
-  MAKER_FEE,
-  TAKER_FEE,
   getMarket,
   liquidationPrice,
   quoteToUsd,
@@ -14,6 +12,7 @@ import {
   type FuturesMarket,
 } from "./markets"
 import type { AccountMode, Fill, Order, PlaceOrderInput, Position } from "./types"
+import { ensureMarketSettings, paramsFor, withSpread } from "./market-settings"
 
 const INITIAL_BALANCE = 10000
 const EPS = 1e-12
@@ -220,13 +219,17 @@ export async function placeOrder(input: PlaceOrderInput) {
 
   const isDemo = input.account === "demo"
   const account = acc(isDemo)
-  const ticker = await getExecutionTicker(market.symbol)
-  if (!ticker) throw new TradingError("Cotação indisponível no momento. Tente novamente.", 503)
+  await ensureMarketSettings()
+  const params = paramsFor(market.symbol)
+  if (!params.enabled && !input.reduceOnly) throw new TradingError("Mercado suspenso para novas posições")
+  const raw = await getExecutionTicker(market.symbol)
+  if (!raw) throw new TradingError("Cotação indisponível no momento. Tente novamente.", 503)
+  const ticker = withSpread(raw, params.spreadBps)
 
   const existing = account.positions.find((p) => p.symbol === market.symbol)
   const leverage = Math.min(
     Math.max(1, Math.floor(existing && !input.reduceOnly ? existing.leverage : input.leverage)),
-    market.maxLeverage,
+    params.maxLeverage,
   )
   const marginMode = existing ? existing.margin_mode : input.marginMode
   if (input.reduceOnly) {
@@ -239,7 +242,7 @@ export async function placeOrder(input: PlaceOrderInput) {
 
   if (input.orderType === "market") {
     validateTpSl(input.side, execPrice, input.takeProfit, input.stopLoss)
-    return fill({ ...base, qty: fillQty, price: execPrice, feeRate: TAKER_FEE, takeProfit: input.takeProfit, stopLoss: input.stopLoss })
+    return fill({ ...base, qty: fillQty, price: execPrice, feeRate: paramsFor(market.symbol).takerFee, takeProfit: input.takeProfit, stopLoss: input.stopLoss })
   }
 
   let price: number | null = null
@@ -259,7 +262,7 @@ export async function placeOrder(input: PlaceOrderInput) {
         ...base,
         qty: fillQty,
         price: execPrice,
-        feeRate: TAKER_FEE,
+        feeRate: paramsFor(market.symbol).takerFee,
         takeProfit: input.takeProfit,
         stopLoss: input.stopLoss,
         orderType: "limit",
@@ -277,7 +280,7 @@ export async function placeOrder(input: PlaceOrderInput) {
   }
 
   const refPrice = (price ?? trigger) as number
-  const feeRate = input.orderType === "limit" ? MAKER_FEE : TAKER_FEE
+  const feeRate = input.orderType === "limit" ? paramsFor(market.symbol).makerFee : paramsFor(market.symbol).takerFee
   const reserve = input.reduceOnly
     ? 0
     : qty * market.contractSize * refPrice * quoteToUsd(market, refPrice) * (1 / leverage + feeRate)
@@ -369,8 +372,10 @@ export async function closePosition(positionId: string, qty?: number, limitPrice
       reduceOnly: true,
     })
   }
-  const ticker = await getExecutionTicker(pos.symbol)
-  if (!ticker) throw new TradingError("Cotação indisponível no momento. Tente novamente.", 503)
+  await ensureMarketSettings()
+  const raw = await getExecutionTicker(pos.symbol)
+  if (!raw) throw new TradingError("Cotação indisponível no momento. Tente novamente.", 503)
+  const ticker = withSpread(raw, paramsFor(pos.symbol).spreadBps)
   const price = side === "buy" ? ticker.ask || ticker.price : ticker.bid || ticker.price
   return fill({
     isDemo: pos.is_demo,
@@ -380,7 +385,7 @@ export async function closePosition(positionId: string, qty?: number, limitPrice
     price,
     leverage: pos.leverage,
     marginMode: pos.margin_mode,
-    feeRate: TAKER_FEE,
+    feeRate: paramsFor(market.symbol).takerFee,
     reduceOnly: true,
     execType: "close",
   })
@@ -401,6 +406,7 @@ export async function sweep() {
   const hasWork = [s.real, s.demo].some((a) => a.positions.length > 0 || a.orders.some((o) => o.status === "open"))
   if (!hasWork) return { processed: 0 }
   const tickers = await getAllTickers()
+  await ensureMarketSettings()
   let processed = 0
 
   for (const isDemo of [false, true]) {
@@ -412,12 +418,12 @@ export async function sweep() {
       const last = t.price
       let fillPrice: number | null = null
       let isMaker = false
-      let feeRate = TAKER_FEE
+      let feeRate = paramsFor(market.symbol).takerFee
       if (o.order_type === "limit" && o.price != null) {
         if (o.side === "buy" ? last <= o.price : last >= o.price) {
           fillPrice = o.price
           isMaker = true
-          feeRate = MAKER_FEE
+          feeRate = paramsFor(market.symbol).makerFee
         }
       } else if (o.order_type === "conditional" && o.trigger_price != null) {
         if (o.trigger_direction === "rise" ? last >= o.trigger_price : last <= o.trigger_price) {
@@ -466,7 +472,7 @@ export async function sweep() {
       const isLong = p.side === "long"
       let price: number | null = null
       let execType = "trade"
-      let feeRate = TAKER_FEE
+      let feeRate = paramsFor(market.symbol).takerFee
       if (p.liquidation_price != null && (isLong ? last <= p.liquidation_price : last >= p.liquidation_price)) {
         price = p.liquidation_price
         execType = "liquidation"
@@ -495,6 +501,19 @@ export async function sweep() {
     }
   }
   return { processed }
+}
+
+/** Acesso somente leitura para o painel admin no modo teste. */
+export function getTestAccounts() {
+  const s = store()
+  return { real: s.real, demo: s.demo }
+}
+
+export function adjustTestBalance(isDemo: boolean, delta: number) {
+  const account = acc(isDemo)
+  if (account.balance + delta < 0) throw new TradingError("Saldo resultante não pode ser negativo")
+  account.balance += delta
+  return account.balance
 }
 
 export async function loadState(isDemo: boolean) {

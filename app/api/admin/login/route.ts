@@ -3,6 +3,7 @@ import {
   ADMIN_COOKIE,
   adminCookieOptions,
   createAdminSessionValue,
+  getAdminCredentials,
   isAdminAuthConfigured,
 } from "@/lib/admin/session"
 
@@ -31,8 +32,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "Requisicao invalida", success: false }, { status: 400 })
   }
 
-  const expectedEmail = (process.env.ADMIN_EMAIL || "").trim().toLowerCase()
-  const expectedPassword = process.env.ADMIN_PASSWORD || ""
+  const { email: expectedEmail, password: expectedPassword } = getAdminCredentials()
 
   const emailOk = email.trim().toLowerCase() === expectedEmail
   const passwordOk = password === expectedPassword

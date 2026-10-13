@@ -2,12 +2,13 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { isSupabaseAdminConfigured } from "@/lib/supabase/env"
 import { getAllTickers, getExecutionTicker, type Ticker } from "./prices"
-import { MAKER_FEE, TAKER_FEE, getMarket, quoteToUsd, roundToStep, type FuturesMarket } from "./markets"
+import { getMarket, quoteToUsd, roundToStep, type FuturesMarket } from "./markets"
 import type { Fill, Order, PlaceOrderInput, Position } from "./types"
 
 import { TradingError } from "./errors"
 import * as testEngine from "./demo-engine"
 import { TEST_USER_ID } from "./demo-session"
+import { ensureMarketSettings, paramsFor, withSpread } from "./market-settings"
 
 export { TradingError }
 
@@ -144,14 +145,18 @@ export async function placeOrder(userId: string, input: PlaceOrderInput) {
 
   const isDemo = input.account === "demo"
   const admin = createAdminClient()
-  const ticker = await getExecutionTicker(market.symbol)
-  if (!ticker) throw new TradingError("Cotação indisponível no momento. Tente novamente.", 503)
+  await ensureMarketSettings()
+  const params = paramsFor(market.symbol)
+  if (!params.enabled && !input.reduceOnly) throw new TradingError("Mercado suspenso para novas posições")
+  const raw = await getExecutionTicker(market.symbol)
+  if (!raw) throw new TradingError("Cotação indisponível no momento. Tente novamente.", 503)
+  const ticker = withSpread(raw, params.spreadBps)
 
   // A alavancagem e definida por simbolo: ao aumentar uma posicao usa a dela.
   const existing = await getOpenPosition(admin, userId, market.symbol, isDemo)
   const leverage = Math.min(
     Math.max(1, Math.floor(existing && !input.reduceOnly ? existing.leverage : input.leverage)),
-    market.maxLeverage,
+    params.maxLeverage,
   )
   const marginMode = existing ? existing.margin_mode : input.marginMode
 
@@ -174,7 +179,7 @@ export async function placeOrder(userId: string, input: PlaceOrderInput) {
       price: execPrice,
       leverage,
       marginMode,
-      feeRate: TAKER_FEE,
+      feeRate: paramsFor(market.symbol).takerFee,
       reduceOnly: input.reduceOnly,
       takeProfit: input.takeProfit,
       stopLoss: input.stopLoss,
@@ -200,7 +205,7 @@ export async function placeOrder(userId: string, input: PlaceOrderInput) {
         price: execPrice,
         leverage,
         marginMode,
-        feeRate: TAKER_FEE,
+        feeRate: paramsFor(market.symbol).takerFee,
         reduceOnly: input.reduceOnly,
         takeProfit: input.takeProfit,
         stopLoss: input.stopLoss,
@@ -224,7 +229,7 @@ export async function placeOrder(userId: string, input: PlaceOrderInput) {
       p_margin_mode: marginMode,
       p_contract_size: market.contractSize,
       p_quote_usd: quoteToUsd(market, price),
-      p_fee_rate: MAKER_FEE,
+      p_fee_rate: paramsFor(market.symbol).makerFee,
       p_reduce_only: input.reduceOnly ?? false,
       p_post_only: tif === "PostOnly",
       p_time_in_force: tif,
@@ -258,7 +263,7 @@ export async function placeOrder(userId: string, input: PlaceOrderInput) {
     p_margin_mode: marginMode,
     p_contract_size: market.contractSize,
     p_quote_usd: quoteToUsd(market, trigger),
-    p_fee_rate: TAKER_FEE,
+    p_fee_rate: paramsFor(market.symbol).takerFee,
     p_reduce_only: input.reduceOnly ?? false,
     p_post_only: false,
     p_time_in_force: "GTC",
@@ -325,8 +330,10 @@ export async function closePosition(userId: string, positionId: string, qty?: nu
     })
   }
 
-  const ticker = await getExecutionTicker(pos.symbol)
-  if (!ticker) throw new TradingError("Cotação indisponível no momento. Tente novamente.", 503)
+  await ensureMarketSettings()
+  const raw = await getExecutionTicker(pos.symbol)
+  if (!raw) throw new TradingError("Cotação indisponível no momento. Tente novamente.", 503)
+  const ticker = withSpread(raw, paramsFor(pos.symbol).spreadBps)
   const price = side === "buy" ? ticker.ask || ticker.price : ticker.bid || ticker.price
 
   return rpcFill(admin, {
@@ -338,7 +345,7 @@ export async function closePosition(userId: string, positionId: string, qty?: nu
     price,
     leverage: pos.leverage,
     marginMode: pos.margin_mode,
-    feeRate: TAKER_FEE,
+    feeRate: paramsFor(market.symbol).takerFee,
     reduceOnly: true,
     execType: "close",
   })
@@ -392,6 +399,7 @@ export async function sweep(userId?: string) {
   if (orders.length === 0 && positions.length === 0) return { processed: 0 }
 
   const tickers: Record<string, Ticker> = await getAllTickers()
+  await ensureMarketSettings()
   let processed = 0
 
   for (const o of orders) {
@@ -402,13 +410,13 @@ export async function sweep(userId?: string) {
 
     let fillPrice: number | null = null
     let isMaker = false
-    let feeRate = TAKER_FEE
+    let feeRate = paramsFor(market.symbol).takerFee
     if (o.order_type === "limit" && o.price != null) {
       const hit = o.side === "buy" ? last <= o.price : last >= o.price
       if (hit) {
         fillPrice = o.price
         isMaker = true
-        feeRate = MAKER_FEE
+        feeRate = paramsFor(market.symbol).makerFee
       }
     } else if (o.order_type === "conditional" && o.trigger_price != null) {
       const hit = o.trigger_direction === "rise" ? last >= o.trigger_price : last <= o.trigger_price
@@ -456,7 +464,7 @@ export async function sweep(userId?: string) {
 
     let price: number | null = null
     let execType = "trade"
-    let feeRate = TAKER_FEE
+    let feeRate = paramsFor(market.symbol).takerFee
     if (p.liquidation_price != null && (isLong ? last <= p.liquidation_price : last >= p.liquidation_price)) {
       price = p.liquidation_price
       execType = "liquidation"

@@ -29,6 +29,20 @@ export function useFuturesState(account: AccountMode) {
   return { state: data, error, isLoading, refresh: mutate }
 }
 
+export interface ClientTradingPrefs {
+  defaultLeverage: number
+  defaultMarginMode: "cross" | "isolated"
+  confirmOrders: boolean
+  defaultAccount: "real" | "demo"
+}
+
+export function useTradingPrefs(enabled: boolean) {
+  const { data } = useSWR<{ profile?: { preferences: ClientTradingPrefs } }>(enabled ? "/api/futures/profile" : null, fetcher, {
+    revalidateOnFocus: false,
+  })
+  return data?.profile?.preferences ?? null
+}
+
 async function send(url: string, method: string, body?: unknown) {
   const res = await fetch(url, {
     method,

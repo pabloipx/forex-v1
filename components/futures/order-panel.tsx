@@ -18,7 +18,7 @@ import {
   type FuturesMarket,
 } from "@/lib/futures/markets"
 import type { AccountMode, MarginMode, OrderSide, OrderType, TimeInForce } from "@/lib/futures/types"
-import { futuresApi } from "@/hooks/use-futures"
+import { futuresApi, type ClientTradingPrefs } from "@/hooks/use-futures"
 
 interface OrderPanelProps {
   market: FuturesMarket
@@ -148,10 +148,11 @@ export function OrderPanel({
   price,
   onPriceChange,
   onSubmitted,
-}: OrderPanelProps) {
+  prefs,
+}: OrderPanelProps & { prefs?: ClientTradingPrefs | null }) {
   const [orderType, setOrderType] = useState<OrderType>("limit")
-  const [marginMode, setMarginMode] = useState<MarginMode>("cross")
-  const [leverage, setLeverage] = useState(Math.min(10, market.maxLeverage))
+  const [marginMode, setMarginMode] = useState<MarginMode>(prefs?.defaultMarginMode ?? "cross")
+  const [leverage, setLeverage] = useState(Math.min(prefs?.defaultLeverage ?? 10, market.maxLeverage))
   const [leverageOpen, setLeverageOpen] = useState(false)
   const [qty, setQty] = useState("")
   const [percent, setPercent] = useState(0)
@@ -188,6 +189,16 @@ export function OrderPanel({
     if (!authenticated) return
     if (qtyNum < market.minQty) {
       toast.error(`Quantidade mínima: ${market.minQty} ${market.qtyUnit}`)
+      return
+    }
+    if (
+      prefs?.confirmOrders &&
+      !window.confirm(
+        `Confirmar ${side === "buy" ? "LONG" : "SHORT"} ${qtyNum} ${market.qtyUnit} de ${market.symbol} a ${
+          orderType === "market" ? "mercado" : price || triggerPrice
+        } com ${leverage}x?`,
+      )
+    ) {
       return
     }
     setSubmitting(side)

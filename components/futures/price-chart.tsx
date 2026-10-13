@@ -1,6 +1,6 @@
 "use client"
 
-import { memo, useEffect, useMemo, useRef, useState } from "react"
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import useSWR from "swr"
 import {
   CandlestickSeries,
@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils"
 import { formatPrice, type FuturesMarket } from "@/lib/futures/markets"
 import { INTERVALS, INTERVAL_SECONDS, type Candle, type ChartInterval } from "@/lib/futures/candles"
 import type { Order, Position } from "@/lib/futures/types"
+import { DrawingLayer, DrawingToolbar, useDrawingState } from "./chart-drawings"
 
 const COLORS = {
   bg: "#15181d",
@@ -74,9 +75,19 @@ function PriceChartImpl({ market, last, positions, openOrders }: PriceChartProps
   const decimalsRef = useRef(market.priceDecimals)
   const intervalRef = useRef(interval)
   const loadedKeyRef = useRef<string | null>(null)
+  const barsRef = useRef<Candle[]>([])
+  const styleRef = useRef(style)
+  const [chartApi, setChartApi] = useState<IChartApi | null>(null)
+  const drawing = useDrawingState(market.symbol)
 
   decimalsRef.current = market.priceDecimals
   intervalRef.current = interval
+  styleRef.current = style
+
+  const getSeries = useCallback(
+    () => (styleRef.current === "candles" ? candleRef.current : lineRef.current) as ISeriesApi<"Candlestick" | "Line"> | null,
+    [],
+  )
 
   const key = `/api/futures/candles?symbol=${market.symbol}&interval=${interval}`
   const { data: candles, error, isLoading } = useSWR(key, fetcher, {
@@ -143,9 +154,11 @@ function PriceChartImpl({ market, last, positions, openOrders }: PriceChartProps
       renderLegend(d && "open" in d ? d : lastCandleRef.current)
     })
     chartRef.current = chart
+    setChartApi(chart)
 
     return () => {
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current)
+      setChartApi(null)
       chart.remove()
       chartRef.current = null
       candleRef.current = null
@@ -166,6 +179,7 @@ function PriceChartImpl({ market, last, positions, openOrders }: PriceChartProps
   useEffect(() => {
     if (loadedKeyRef.current === key) return
     lastCandleRef.current = null
+    barsRef.current = []
     candleRef.current?.setData([])
     lineRef.current?.setData([])
     volumeRef.current?.setData([])
@@ -181,6 +195,7 @@ function PriceChartImpl({ market, last, positions, openOrders }: PriceChartProps
       candles.map((c) => ({ time: t(c), value: c.volume, color: c.close >= c.open ? `${COLORS.up}55` : `${COLORS.down}55` })),
     )
     lastCandleRef.current = candles.at(-1) ? { ...candles.at(-1)! } : null
+    barsRef.current = candles.map((c) => ({ ...c }))
     if (!hoverRef.current) renderLegend(lastCandleRef.current)
     if (loadedKeyRef.current !== key) {
       loadedKeyRef.current = key
@@ -219,6 +234,9 @@ function PriceChartImpl({ market, last, positions, openOrders }: PriceChartProps
         next = { time, open: prev.close, high: Math.max(prev.close, price), low: Math.min(prev.close, price), close: price, volume: 0 }
       }
       lastCandleRef.current = next
+      const bars = barsRef.current
+      if (bars.length && bars[bars.length - 1].time === next.time) bars[bars.length - 1] = next
+      else bars.push(next)
       const time = next.time as UTCTimestamp
       candleRef.current.update({ time, open: next.open, high: next.high, low: next.low, close: next.close })
       lineRef.current?.update({ time, value: next.close })
@@ -310,7 +328,19 @@ function PriceChartImpl({ market, last, positions, openOrders }: PriceChartProps
         </button>
       </div>
 
-      <div className="relative min-h-0 flex-1">
+      <div className="flex min-h-0 flex-1">
+      <DrawingToolbar state={drawing} />
+      <div className="relative min-h-0 min-w-0 flex-1">
+        {chartApi && (
+          <DrawingLayer
+            state={drawing}
+            chart={chartApi}
+            getSeries={getSeries}
+            barsRef={barsRef}
+            step={INTERVAL_SECONDS[interval]}
+            decimals={market.priceDecimals}
+          />
+        )}
         <div className="pointer-events-none absolute left-3 top-2 z-10 flex flex-wrap items-center gap-x-2 font-mono text-[11px]">
           <span className="font-sans font-semibold text-term-text">
             {market.symbol} · {INTERVAL_LABEL[interval]}
@@ -323,6 +353,7 @@ function PriceChartImpl({ market, last, positions, openOrders }: PriceChartProps
           </p>
         )}
         <div ref={containerRef} className="h-full w-full touch-pan-y" />
+      </div>
       </div>
     </section>
   )

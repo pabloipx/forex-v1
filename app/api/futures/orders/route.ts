@@ -3,6 +3,7 @@ import { z } from "zod"
 import { cancelAllOrders, cancelOrder, placeOrder } from "@/lib/futures/engine"
 import { errorResponse, requireUser } from "@/lib/futures/http"
 import { MARKET_MAP } from "@/lib/futures/markets"
+import { assertCanOpen } from "@/lib/futures/user-status"
 
 const positive = z.number().finite().positive()
 
@@ -30,6 +31,7 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Dados inválidos" }, { status: 400 })
     }
+    if (!parsed.data.reduceOnly) await assertCanOpen(user.id)
     const result = await placeOrder(user.id, parsed.data)
     return NextResponse.json({ success: true, result })
   } catch (e) {

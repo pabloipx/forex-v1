@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { Toaster } from "sonner"
 import { MARKET_MAP } from "@/lib/futures/markets"
 import type { AccountMode } from "@/lib/futures/types"
-import { useFuturesState, useTickers } from "@/hooks/use-futures"
+import { useFuturesState, useTickers, useTradingPrefs } from "@/hooks/use-futures"
 import { useMarketFeed } from "@/hooks/use-market-feed"
 import { TopNav } from "./top-nav"
 import { TickerBar } from "./ticker-bar"
@@ -23,6 +23,12 @@ export function FuturesTerminal({ symbol }: { symbol: string }) {
 
   const tickers = useTickers()
   const { state, refresh } = useFuturesState(account)
+  const prefs = useTradingPrefs(!!state?.authenticated)
+  const [prefsApplied, setPrefsApplied] = useState(false)
+  if (prefs && !prefsApplied) {
+    setPrefsApplied(true)
+    setAccount(prefs.defaultAccount)
+  }
   const feed = useMarketFeed(market, tickers[symbol])
   const ticker = feed.ticker ?? tickers[symbol] ?? null
   const last = feed.last ?? ticker?.price ?? null
@@ -73,7 +79,8 @@ export function FuturesTerminal({ symbol }: { symbol: string }) {
         </div>
         <aside className="shrink-0 lg:w-80 phone:w-64 phone:overflow-y-auto">
           <OrderPanel
-            key={`${symbol}-${account}`}
+            key={`${symbol}-${account}-${prefs?.defaultLeverage ?? 0}-${prefs?.defaultMarginMode ?? ""}`}
+            prefs={prefs}
             market={market}
             account={account}
             balance={state?.balance ?? 0}
