@@ -3,7 +3,6 @@
 import { useState } from "react"
 import Link from "next/link"
 import { toast } from "sonner"
-import { Calculator } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Slider } from "@/components/ui/slider"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -233,8 +232,7 @@ export function OrderPanel({
     <section aria-label="Enviar ordem" className="flex h-full flex-col gap-3 overflow-y-auto bg-term-panel p-3">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-term-text">Trade</h2>
-        <span className="flex items-center gap-1 text-[11px] text-term-muted">
-          <Calculator className="size-3.5" aria-hidden="true" />
+        <span className="text-[11px] text-term-muted">
           {account === "demo" ? "Conta demo" : "Conta real"}
         </span>
       </div>

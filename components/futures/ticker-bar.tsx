@@ -160,7 +160,7 @@ export function TickerBar({ market, ticker, last, tickers, onSelect }: TickerBar
       {market.category === "crypto" ? (
         <>
           <Stat label="Volume 24h (USDT)" value={formatCompact(ticker?.volume)} />
-          <Stat label="Taxa de financiamento" value="0.0100%" className="text-primary" />
+          <Stat label="Spread" value={formatPrice(spread, market.priceDecimals)} />
         </>
       ) : (
         <>

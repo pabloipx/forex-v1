@@ -23,6 +23,7 @@ function withTotals(levels: BookLevel[], count: number) {
 }
 
 function fmtQty(q: number) {
+  if (q <= 0) return "--"
   return q >= 1000 ? q.toLocaleString("en-US", { maximumFractionDigits: 0 }) : q.toFixed(q < 1 ? 4 : 3)
 }
 
@@ -111,6 +112,7 @@ function Book({ market, feed, onPriceClick }: OrderBookProps) {
         </div>
       )}
 
+      {bidVol + askVol > 0 ? (
       <div className="mt-auto flex items-center gap-1 px-3 py-2 font-mono text-[11px]">
         <span className="rounded border border-long px-1 text-long">C</span>
         <span className="text-long">{bidPct}%</span>
@@ -121,6 +123,11 @@ function Book({ market, feed, onPriceClick }: OrderBookProps) {
         <span className="text-short">{100 - bidPct}%</span>
         <span className="rounded border border-short px-1 text-short">V</span>
       </div>
+      ) : (
+        <p className="mt-auto px-3 py-2 text-[11px] leading-relaxed text-term-muted">
+          Spread {formatPrice((asks[0]?.price ?? 0) - (bids[0]?.price ?? 0), market.priceDecimals)} · cotação do motor
+        </p>
+      )}
     </div>
   )
 }

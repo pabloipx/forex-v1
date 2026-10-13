@@ -15,18 +15,16 @@ interface TopNavProps {
 }
 
 const links = [
-  { href: "/", label: "Início" },
   { href: "/futures", label: "Derivativos", active: true },
-  { href: "/trade", label: "Opções Binárias" },
-  { href: "/historico", label: "Histórico" },
-  { href: "/afiliados", label: "Afiliados" },
+  { href: "/transactions", label: "Transações" },
+  { href: "/withdraw", label: "Sacar" },
 ]
 
 export function TopNav({ account, onAccountChange, authenticated, email, balances }: TopNavProps) {
   return (
     <header className="flex h-12 shrink-0 items-center justify-between gap-4 border-b border-term-line bg-term-bg px-3 lg:px-4">
       <div className="flex min-w-0 items-center gap-6">
-        <Link href="/" className="flex items-center gap-1 text-lg font-extrabold tracking-tight text-term-text">
+        <Link href="/futures" className="flex items-center gap-1 text-lg font-extrabold tracking-tight text-term-text">
           URYN<span className="text-primary">.</span>
         </Link>
         <nav aria-label="Principal" className="hidden items-center gap-5 md:flex">

@@ -9,7 +9,7 @@ import { useFuturesState, useTickers } from "@/hooks/use-futures"
 import { useMarketFeed } from "@/hooks/use-market-feed"
 import { TopNav } from "./top-nav"
 import { TickerBar } from "./ticker-bar"
-import { TradingViewChart } from "./tradingview-chart"
+import { PriceChart } from "./price-chart"
 import { OrderBookPanel } from "./order-book"
 import { OrderPanel } from "./order-panel"
 import { AccountTables } from "./account-tables"
@@ -45,7 +45,12 @@ export function FuturesTerminal({ symbol }: { symbol: string }) {
           <TickerBar market={market} ticker={ticker} last={last} tickers={tickers} onSelect={selectMarket} />
           <div className="flex min-h-0 flex-1 flex-col gap-px md:flex-row">
             <div className="h-[420px] min-w-0 flex-1 bg-term-panel md:h-auto">
-              <TradingViewChart symbol={market.tvChart} />
+              <PriceChart
+                market={market}
+                last={last}
+                positions={state?.positions ?? []}
+                openOrders={state?.openOrders ?? []}
+              />
             </div>
             <div className="h-[560px] shrink-0 md:h-auto md:w-72">
               <OrderBookPanel market={market} feed={feed} onPriceClick={(p) => setLimitPrice(p.toFixed(market.priceDecimals))} />

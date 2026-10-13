@@ -24,24 +24,14 @@ export interface MarketFeed {
 const EMPTY: MarketFeed = { bids: [], asks: [], trades: [], last: null, ticker: null, live: false }
 const MAX_TRADES = 40
 
-// Tamanhos estaveis por nivel de preco (mesmo preco => mesma quantidade) para o
-// livro sintetico de forex/metais, onde a fonte so publica bid/ask.
-function seeded(price: number, salt: number) {
-  const x = Math.sin(price * 9301 + salt * 49297) * 233280
-  return x - Math.floor(x)
-}
-
-function syntheticBook(market: FuturesMarket, bid: number, ask: number) {
-  const tick = 10 ** -market.priceDecimals
-  const bids: BookLevel[] = []
-  const asks: BookLevel[] = []
-  for (let i = 0; i < 20; i++) {
-    const bp = Number((bid - i * tick).toFixed(market.priceDecimals))
-    const ap = Number((ask + i * tick).toFixed(market.priceDecimals))
-    bids.push([bp, Number((0.5 + seeded(bp, 1) * 12).toFixed(2))])
-    asks.push([ap, Number((0.5 + seeded(ap, 2) * 12).toFixed(2))])
+// Forex/metais: o motor so recebe a melhor compra/venda (sem profundidade), entao o livro
+// mostra apenas esse nivel real e as quantidades ficam vazias (qty 0).
+function topOfBook(market: FuturesMarket, bid: number, ask: number) {
+  const d = market.priceDecimals
+  return {
+    bids: [[Number(bid.toFixed(d)), 0]] as BookLevel[],
+    asks: [[Number(ask.toFixed(d)), 0]] as BookLevel[],
   }
-  return { bids, asks }
 }
 
 export function useMarketFeed(market: FuturesMarket, polledTicker: Ticker | undefined): MarketFeed {
@@ -125,7 +115,7 @@ export function useMarketFeed(market: FuturesMarket, polledTicker: Ticker | unde
   useEffect(() => {
     if (market.source === "binance" || !polledTicker) return
     setFeed((prev) => {
-      const { bids, asks } = syntheticBook(market, polledTicker.bid, polledTicker.ask)
+      const { bids, asks } = topOfBook(market, polledTicker.bid, polledTicker.ask)
       let trades = prev.trades
       if (prev.last != null && prev.last !== polledTicker.price) {
         const side = polledTicker.price > prev.last ? "buy" : "sell"
@@ -133,7 +123,7 @@ export function useMarketFeed(market: FuturesMarket, polledTicker: Ticker | unde
           {
             id: `${polledTicker.updatedAt}`,
             price: polledTicker.price,
-            qty: Number((0.01 + seeded(polledTicker.price, 3) * 3).toFixed(2)),
+            qty: 0,
             side,
             time: Date.now(),
           } satisfies PublicTrade,
