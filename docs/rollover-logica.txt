@@ -1,0 +1,117 @@
+========================================================================
+LÓGICA DO ROLLOVER — URYN BROKER
+========================================================================
+
+O que é
+-------
+Rollover é uma trava sobre o dinheiro depositado. Quando um depósito tem
+rollover, o cliente NÃO pode sacar aquele valor até "girar" (negociar) um
+volume mínimo em operações. Isso evita que o usuário deposite, receba bônus
+ou vantagem, e saque na sequência sem operar.
+
+A regra base é:
+
+    volume exigido = valor travado  x  multiplicador
+
+Exemplo: depósito de R$ 500 com multiplicador 2x
+    => o cliente precisa negociar R$ 1.000 em entradas (soma do valor das
+       operações) para liberar os R$ 500 para saque.
+
+
+========================================================================
+ONDE FICA GUARDADO (tabela deposit_rollovers)
+========================================================================
+Cada trava é uma linha na tabela `deposit_rollovers`:
+
+    user_id            -> dono da trava
+    deposit_id         -> depósito que gerou a trava (ou um ID sintético,
+                          no caso do rollover aplicado manualmente pelo admin)
+    deposit_amount     -> valor travado (a "base")
+    multiplier         -> multiplicador exigido (ex.: 1, 2, 3...)
+    rollover_required  -> volume que precisa ser negociado = deposit_amount x multiplier
+    rollover_progress  -> quanto de volume o cliente já negociou
+    status             -> 'active' (travado) ou 'completed' (liberado)
+    granted_at         -> quando a trava foi criada
+
+Um mesmo usuário pode ter VÁRIAS travas ao mesmo tempo (um depósito
+diferente cada). O sistema soma todas as travas ativas.
+
+
+========================================================================
+COMO A TRAVA É CRIADA
+========================================================================
+Existem dois caminhos:
+
+1) AUTOMÁTICO (no depósito)
+   Quando o admin liga o rollover nas Configurações
+   (deposit_rollover_enabled = true) e define o multiplicador
+   (deposit_rollover_multiplier), todo depósito aprovado cria
+   automaticamente uma trava com aquele multiplicador.
+
+2) MANUAL (admin marca um usuário)
+   Na aba Usuários do painel admin, o botão "Rollover" abre um modal.
+   O admin escolhe:
+     - o valor a travar (vem pré-preenchido com o saldo real do usuário)
+     - o multiplicador
+   Ao confirmar, cria-se uma trava em deposit_rollovers para aquele usuário.
+   Serve para clientes que JÁ depositaram antes de o rollover existir.
+
+
+========================================================================
+COMO O PROGRESSO AVANÇA
+========================================================================
+Cada vez que o cliente ABRE uma operação (compra ou venda em conta REAL),
+o valor daquela entrada é somado ao rollover_progress das travas ativas.
+
+    Ex.: trava exige R$ 1.000 de volume.
+         Cliente opera R$ 200  -> progresso 200  (faltam 800)
+         Cliente opera R$ 300  -> progresso 500  (faltam 500)
+         Cliente opera R$ 500  -> progresso 1000 (faltam 0) -> LIBERA
+
+Observação: conta DEMO não conta para rollover. Apenas operações reais.
+
+Quando rollover_progress >= rollover_required, a trava vira 'completed'
+e aquele valor deixa de bloquear o saque.
+
+
+========================================================================
+COMO AFETA O SAQUE
+========================================================================
+No momento do saque, o sistema calcula:
+
+    valor_travado   = soma de (rollover_required - rollover_progress)
+                      de todas as travas ativas
+                      (na prática, o quanto de saldo ainda está preso)
+
+    saldo_disponível = saldo_total - valor_travado
+
+Se o cliente tentar sacar mais do que o saldo_disponível, o saque é
+BLOQUEADO e ele recebe uma mensagem explicando:
+
+    - quanto ainda está travado pelo rollover
+    - quanto de volume em entradas ainda falta negociar
+    - qual o saldo que ele PODE sacar agora
+
+Exemplo de mensagem:
+    "Você ainda tem R$ 500,00 em depósitos travados pelo rollover.
+     Faltam R$ 700,00 de volume em entradas para liberar esse valor.
+     Saldo disponível para saque agora: R$ 120,00."
+
+Isso é validado em DOIS lugares (dupla proteção):
+    - no navegador, antes de enviar (aviso imediato)
+    - no servidor, na rota /api/withdraw (proteção real, não burlável)
+
+
+========================================================================
+RESUMO DO CICLO
+========================================================================
+   1. Depósito aprovado (ou admin aplica manualmente)
+        -> cria trava: exige valor x multiplicador de volume
+   2. Cliente opera em conta real
+        -> cada entrada soma no progresso
+   3. Progresso atinge o volume exigido
+        -> trava vira 'completed', valor liberado
+   4. Saque
+        -> só libera o que não está travado; senão mostra o que falta
+
+========================================================================

@@ -1,0 +1,65 @@
+========================================
+PAINEL DO ADMIN - ROBO IA
+========================================
+
+Na aba "Robo IA" o admin ve um card para cada usuario que ativou a IA e
+controla individualmente o desempenho de cada conta.
+
+
+----------------------------------------
+INFORMACOES DO CARD
+----------------------------------------
+
+- Nome, e-mail e status: mostra o usuario, o plano ativo (ex: R$ 500,00 -
+  5% ao dia), a data de ativacao e os selos de estado: Operando, Pausado,
+  Ganhando, Sem rendimento ou Em prejuizo.
+
+- Saldo na carteira: saldo real atual do usuario.
+
+- Rendimento total / Ganho hoje: quanto a IA ja gerou no acumulado e no dia.
+
+- Meta diaria: o alvo de ganho do dia (padrao do plano ou valor personalizado).
+
+- Assertividade: a taxa de acerto exibida ao usuario.
+
+
+----------------------------------------
+CONTROLES
+----------------------------------------
+
+1. PAUSAR / RETOMAR
+   Congela a operacao da IA daquele usuario sem desativar. Enquanto pausado,
+   nenhum rendimento e creditado e nenhuma entrada e gerada.
+
+2. LIGAR / DESLIGAR RENDIMENTO
+   Define se aquela pessoa vai ganhar dinheiro ou nao. Desligado, a IA continua
+   "operando" na tela do usuario, mas nao credita mais lucro.
+
+3. CONTROLAR GANHO DE HOJE
+   - Definir: o admin digita um valor e o sistema ajusta o ganho do dia para
+     exatamente aquele numero; a diferenca em relacao ao que ja foi creditado
+     entra (ou sai) do saldo real.
+   - Bater meta: completa instantaneamente a meta diaria.
+   - Zerar hoje: remove o ganho do dia.
+
+4. META DIARIA
+   Permite personalizar o valor da meta de cada usuario, independente do
+   padrao do plano.
+
+5. MODO PREJUIZO (COLOCAR EM PREJUIZO)
+   Quando marcado, o usuario passa a PERDER dinheiro no dia em vez de ganhar.
+   O saldo cai aos poucos ate o prejuizo alvo (campo "Prejuizo do dia"), as
+   entradas fecham no vermelho e aparecem no historico da tela de TRADE. O
+   saldo nunca fica negativo - o debito para ao zerar. Desmarcar volta ao
+   comportamento normal.
+
+
+----------------------------------------
+COMO AS ENTRADAS FUNCIONAM
+----------------------------------------
+
+Todo ganho ou perda gera entradas reais (8 a 12 por dia) gravadas na tabela
+de trades - as mesmas que aparecem no historico da tela de TRADE do usuario.
+As entradas surgem gradualmente conforme o rendimento (ou prejuizo) do dia
+progride, e a ultima entrada reconcilia o total para bater exatamente com o
+valor definido.

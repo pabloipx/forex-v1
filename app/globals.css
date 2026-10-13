@@ -1,0 +1,761 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ========================================
+   URYN BROKER - PALETA DE CORES (TEMA LARANJA)
+   ======================================== */
+
+/* All colors defined statically in @theme inline below */
+
+/* Remove light mode - platform is always dark */
+.dark {
+  --primary: #f97316;
+  --primary-foreground: #ffffff;
+  --primary-hover: #fb923c;
+  --primary-dark: #7c2d12;
+  --background: #0b0f14;
+  --foreground: #ffffff;
+  --card: #121826;
+  --card-foreground: #ffffff;
+  --popover: #121826;
+  --popover-foreground: #ffffff;
+  --secondary: #1f2933;
+  --secondary-foreground: #ffffff;
+  --muted: #1f2933;
+  --muted-foreground: #9ca3af;
+  --accent: #1f2933;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #1f2933;
+  --input: #121826;
+  --ring: #f97316;
+  --chart-1: #f97316;
+  --chart-2: #ef4444;
+  --chart-3: #fb923c;
+  --chart-4: #f59e0b;
+  --chart-5: #7c2d12;
+  --sidebar: #7c2d12;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #f97316;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1f2933;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #1f2933;
+  --sidebar-ring: #f97316;
+}
+
+@theme inline {
+  --font-sans: "Inter", "Inter Fallback", sans-serif;
+  --font-mono: "JetBrains Mono", "Geist Mono", monospace;
+  --color-background: #0b0f14;
+  --color-foreground: #ffffff;
+  --color-card: #121826;
+  --color-card-foreground: #ffffff;
+  --color-popover: #121826;
+  --color-popover-foreground: #ffffff;
+  --color-primary: #f97316;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #1f2933;
+  --color-secondary-foreground: #ffffff;
+  --color-muted: #1f2933;
+  --color-muted-foreground: #9ca3af;
+  --color-accent: #1f2933;
+  --color-accent-foreground: #ffffff;
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #1f2933;
+  --color-input: #121826;
+  --color-ring: #f97316;
+  --color-chart-1: #f97316;
+  --color-chart-2: #ef4444;
+  --color-chart-3: #fb923c;
+  --color-chart-4: #f59e0b;
+  --color-chart-5: #7c2d12;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --color-sidebar: #7c2d12;
+  --color-sidebar-foreground: #ffffff;
+  --color-sidebar-primary: #f97316;
+  --color-sidebar-primary-foreground: #ffffff;
+  --color-sidebar-accent: #1f2933;
+  --color-sidebar-accent-foreground: #ffffff;
+  --color-sidebar-border: #1f2933;
+  --color-sidebar-ring: #f97316;
+
+  /* Custom URYN BROKER colors */
+  --color-atlas-blue: #f97316;
+  --color-atlas-orange-hover: #fb923c;
+  --color-atlas-orange-dark: #7c2d12;
+  --color-atlas-bg: #0b0f14;
+  --color-atlas-card: #121826;
+  --color-atlas-alt: #1f2933;
+  --color-atlas-text: #ffffff;
+  --color-atlas-text-muted: #9ca3af;
+  --color-atlas-text-disabled: #6b7280;
+  --color-atlas-loss: #ef4444;
+  --color-atlas-warning: #f59e0b;
+  --color-atlas-success: #22c55e;
+}
+
+/* Adicionando animações suaves para melhor UX */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+/* Animação para indicador de digitando */
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 1s ease-in-out infinite;
+}
+
+/* Marquee (faixa de cotações da landing page) */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 45s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Sobe suave do conteúdo do hero */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ===== Painel da IA Broker: estado negativo ===== */
+@keyframes ia-loss-glow {
+  0%,
+  100% {
+    text-shadow: 0 0 0 rgba(248, 113, 113, 0);
+  }
+  50% {
+    text-shadow: 0 0 22px rgba(248, 113, 113, 0.45);
+  }
+}
+
+@keyframes ia-loss-nudge {
+  0% {
+    transform: translateY(-6px);
+    opacity: 0.4;
+  }
+  60% {
+    transform: translateY(2px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes ia-loss-stripes {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 24px 0;
+  }
+}
+
+@keyframes ia-loss-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(2px);
+  }
+}
+
+.animate-ia-loss-value {
+  animation:
+    ia-loss-nudge 0.5s cubic-bezier(0.22, 1, 0.36, 1) both,
+    ia-loss-glow 2.4s ease-in-out 0.5s infinite;
+}
+
+.animate-ia-loss-bar {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(255, 255, 255, 0.14) 0 6px,
+    transparent 6px 12px
+  );
+  background-size: 24px 100%;
+  animation: ia-loss-stripes 1.2s linear infinite;
+}
+
+.animate-ia-loss-bob {
+  animation: ia-loss-bob 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-ia-loss-value,
+  .animate-ia-loss-bar,
+  .animate-ia-loss-bob {
+    animation: none;
+  }
+}
+
+@keyframes ia-scan {
+  0% { left: -35%; }
+  100% { left: 100%; }
+}
+
+@keyframes ia-step-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ia-dots {
+  0% { content: ""; }
+  25% { content: "."; }
+  50% { content: ".."; }
+  75% { content: "..."; }
+}
+
+.animate-ia-scan {
+  animation: ia-scan 1.6s ease-in-out infinite;
+}
+
+.animate-ia-step-in {
+  animation: ia-step-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-ia-dots::after {
+  content: "";
+  animation: ia-dots 1.2s steps(1) infinite;
+}
+
+.ia-status-card {
+  background-image:
+    radial-gradient(120% 90% at 0% 0%, var(--ia-glow) 0%, transparent 55%),
+    linear-gradient(180deg, color-mix(in oklab, var(--secondary) 70%, transparent), transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-ia-scan,
+  .animate-ia-step-in,
+  .animate-ia-dots::after {
+    animation: none;
+  }
+}
+
+/* ===== Fundo animado do hero (brilhos + particulas) ===== */
+
+/* Orbes de brilho flutuando lentamente */
+@keyframes hero-float-a {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(6%, -8%) scale(1.12);
+  }
+}
+
+@keyframes hero-float-b {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1.05);
+  }
+  50% {
+    transform: translate(-7%, 6%) scale(0.92);
+  }
+}
+
+@keyframes hero-float-c {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(5%, 7%) scale(1.15);
+  }
+}
+
+.animate-hero-float-a {
+  animation: hero-float-a 14s ease-in-out infinite;
+  will-change: transform;
+}
+.animate-hero-float-b {
+  animation: hero-float-b 18s ease-in-out infinite;
+  will-change: transform;
+}
+.animate-hero-float-c {
+  animation: hero-float-c 22s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Pulso de opacidade/brilho */
+@keyframes hero-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.animate-hero-pulse {
+  animation: hero-pulse 6s ease-in-out infinite;
+  will-change: opacity;
+}
+
+/* Grade em perspectiva deslizando */
+@keyframes hero-grid-slide {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 60px;
+  }
+}
+
+.hero-grid {
+  background-image:
+    linear-gradient(to right, rgba(249, 115, 22, 0.12) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(249, 115, 22, 0.12) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: hero-grid-slide 8s linear infinite;
+  will-change: background-position;
+}
+
+/* Particulas subindo */
+@keyframes hero-particle {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: var(--p-opacity, 0.8);
+  }
+  90% {
+    opacity: var(--p-opacity, 0.8);
+  }
+  100% {
+    transform: translateY(-120px) scale(0.4);
+    opacity: 0;
+  }
+}
+
+.animate-hero-particle {
+  animation: hero-particle var(--p-duration, 9s) linear infinite;
+  animation-delay: var(--p-delay, 0s);
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-hero-float-a,
+  .animate-hero-float-b,
+  .animate-hero-float-c,
+  .animate-hero-pulse,
+  .hero-grid,
+  .animate-hero-particle {
+    animation: none;
+  }
+}
+
+/* ===== Efeito tecnológico da seção showcase ===== */
+
+/* Linha de varredura vertical (scanline estilo HUD) */
+@keyframes tech-scan {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(1300%);
+    opacity: 0;
+  }
+}
+
+.animate-tech-scan {
+  animation: tech-scan 4.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: transform, opacity;
+}
+
+/* Grade tecnológica deslizando */
+@keyframes tech-grid {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 44px;
+  }
+}
+
+.tech-grid {
+  background-image:
+    linear-gradient(to right, rgba(249, 115, 22, 0.18) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(249, 115, 22, 0.18) 1px, transparent 1px);
+  background-size: 44px 44px;
+  animation: tech-grid 3s linear infinite;
+  will-change: background-position;
+}
+
+/* Glow pulsante da moldura */
+@keyframes tech-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02);
+  }
+}
+
+.animate-tech-pulse {
+  animation: tech-pulse 3.5s ease-in-out infinite;
+  will-change: opacity, transform;
+}
+
+/* Ponto orbitando a moldura */
+@keyframes tech-orbit {
+  from {
+    transform: rotate(0deg) translateX(var(--orbit-r, 220px)) rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg) translateX(var(--orbit-r, 220px)) rotate(-360deg);
+  }
+}
+
+.animate-tech-orbit {
+  animation: tech-orbit 9s linear infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-tech-scan,
+  .tech-grid,
+  .animate-tech-pulse,
+  .animate-tech-orbit {
+    animation: none;
+  }
+}
+
+/* Otimizando performance de scroll e animações */
+@media (prefers-reduced-motion: no-preference) {
+  :root {
+    scroll-behavior: smooth;
+  }
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar for trading platform */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #f97316;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #fb923c;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Esconde a scrollbar (usado na barra de abas de ativos, estilo IQ Option) */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* iOS safe area utilities */
+@supports (padding: env(safe-area-inset-top)) {
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-area-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-area-right {
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .safe-area-all {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Fix for iOS viewport height */
+  .h-screen-safe {
+    height: 100vh;
+    height: 100dvh;
+    height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+
+  .min-h-screen-safe {
+    min-height: 100vh;
+    min-height: 100dvh;
+    min-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+}
+
+/* Prevent overscroll on iOS */
+html,
+body {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fix for iOS input zoom */
+@media screen and (max-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* ==========================================================================
+   Animacao de resultado da operacao (estilo Avalon)
+   Card central que entra com um "pop" elastico, segura, e sai subindo.
+   No ganho sobem moedas; na perda o card treme levemente.
+   ========================================================================== */
+
+@keyframes result-pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.6) translateY(24px);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.08) translateY(0);
+  }
+  75% {
+    transform: scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-result-pop-in {
+  animation: result-pop-in 520ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes result-out {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.92) translateY(-40px);
+  }
+}
+
+.animate-result-out {
+  animation: result-out 460ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+/* Tremida curta e seca aplicada ao card de perda */
+@keyframes result-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  15% {
+    transform: translateX(-9px);
+  }
+  30% {
+    transform: translateX(8px);
+  }
+  45% {
+    transform: translateX(-6px);
+  }
+  60% {
+    transform: translateX(4px);
+  }
+  80% {
+    transform: translateX(-2px);
+  }
+}
+
+.animate-result-shake {
+  animation: result-shake 480ms ease-out 460ms both;
+}
+
+/* Anel de energia que se expande a partir do badge */
+@keyframes result-ring {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.7);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.1);
+  }
+}
+
+.animate-result-ring {
+  animation: result-ring 1.4s ease-out infinite;
+}
+
+/* Brilho radial pulsando atras do card */
+@keyframes result-glow {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.12);
+  }
+}
+
+.animate-result-glow {
+  animation: result-glow 1.8s ease-in-out infinite;
+}
+
+/* Badge do icone dando um leve salto ao aparecer */
+@keyframes result-badge {
+  0% {
+    opacity: 0;
+    transform: scale(0.2) rotate(-25deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.18) rotate(4deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.animate-result-badge {
+  animation: result-badge 560ms cubic-bezier(0.34, 1.56, 0.64, 1) 120ms both;
+}
+
+/* Valor entra depois do badge, deslizando de baixo */
+@keyframes result-amount {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.86);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-result-amount {
+  animation: result-amount 420ms cubic-bezier(0.22, 1, 0.36, 1) 260ms both;
+}
+
+/* Moedas subindo no ganho */
+@keyframes result-coin {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.5) rotate(0deg);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-150px) scale(1.05) rotate(320deg);
+  }
+}
+
+.animate-result-coin {
+  animation: result-coin 1.5s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-result-pop-in,
+  .animate-result-out,
+  .animate-result-shake,
+  .animate-result-ring,
+  .animate-result-glow,
+  .animate-result-badge,
+  .animate-result-amount,
+  .animate-result-coin {
+    animation: none !important;
+  }
+}
