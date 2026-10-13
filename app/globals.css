@@ -100,6 +100,15 @@
   --color-atlas-loss: #ef4444;
   --color-atlas-warning: #f59e0b;
   --color-atlas-success: #22c55e;
+
+  /* Terminal de derivativos (futuros/forex) */
+  --color-term-bg: #0b0e11;
+  --color-term-panel: #15181d;
+  --color-term-line: #23272e;
+  --color-term-text: #eaecef;
+  --color-term-muted: #848e9c;
+  --color-long: #20b26c;
+  --color-short: #ef454a;
 }
 
 /* Adicionando animações suaves para melhor UX */
