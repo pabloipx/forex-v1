@@ -7,7 +7,10 @@ import { getSupabasePublishableKey, getSupabaseSecretKey, getSupabaseUrl } from 
 export async function createClient() {
   const cookieStore = await cookies()
 
-  return createServerClient(getSupabaseUrl(), getSupabasePublishableKey(), {
+  return createServerClient(
+    getSupabaseUrl() || "https://not-configured.supabase.co",
+    getSupabasePublishableKey() || "not-configured",
+    {
     cookies: {
       getAll() {
         return cookieStore.getAll()
