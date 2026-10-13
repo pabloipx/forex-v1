@@ -35,7 +35,11 @@ const TEST_ADMIN_PASSWORD = "Admin123!"
 
 /** Sem banco e sem ADMIN_EMAIL configurados, o painel aceita o login de teste. */
 export function isAdminTestMode(): boolean {
-  return !process.env.ADMIN_EMAIL && !(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SECRET_KEY)
+  return (
+    process.env.NODE_ENV !== "production" &&
+    !process.env.ADMIN_EMAIL &&
+    !(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SECRET_KEY)
+  )
 }
 
 export function getAdminCredentials() {

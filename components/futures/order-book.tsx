@@ -101,7 +101,28 @@ function Book({ market, feed, onPriceClick }: OrderBookProps) {
           {up ? <ArrowUp className="size-4" aria-hidden="true" /> : <ArrowDown className="size-4" aria-hidden="true" />}
           {formatPrice(feed.last, market.priceDecimals)}
         </span>
-        {!feed.live && <span className="text-[11px] text-term-muted">conectando...</span>}
+        <span
+          role="status"
+          className={cn(
+            "ml-auto flex items-center gap-1.5 text-[11px]",
+            feed.status === "connected" ? "text-long" : feed.status === "disconnected" ? "text-short" : "text-term-muted",
+          )}
+        >
+          <span
+            aria-hidden="true"
+            className={cn(
+              "size-1.5 rounded-full",
+              feed.status === "connected" ? "bg-long" : feed.status === "disconnected" ? "bg-short" : "animate-pulse bg-primary",
+            )}
+          />
+          {feed.status === "connected"
+            ? "ao vivo"
+            : feed.status === "fallback"
+              ? "REST (reconectando)"
+              : feed.status === "disconnected"
+                ? "desconectado"
+                : "conectando..."}
+        </span>
       </div>
 
       {view !== "asks" && (

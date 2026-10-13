@@ -5,8 +5,7 @@ import { isSupabaseAdminConfigured } from "@/lib/supabase/env"
 // Login de teste usado enquanto o banco de dados não está configurado.
 // Assim que NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SECRET_KEY existirem, este modo é desativado
 // automaticamente e só o login real do Supabase funciona.
-export const TEST_EMAIL = "admin@admin.com"
-const TEST_PASSWORD = "Admin123!"
+export const TEST_EMAIL = "demo@localhost"
 export const TEST_USER_ID = "00000000-0000-4000-8000-000000000001"
 export const TEST_SESSION_COOKIE = "fx_test_session"
 export const TEST_SESSION_MAX_AGE = 60 * 60 * 24 * 7
@@ -14,11 +13,7 @@ export const TEST_SESSION_MAX_AGE = 60 * 60 * 24 * 7
 const secret = () => process.env.TEST_SESSION_SECRET || "fx-test-mode-local-secret"
 
 export function isTestModeEnabled() {
-  return !isSupabaseAdminConfigured()
-}
-
-export function checkTestCredentials(email: string, password: string) {
-  return email.trim().toLowerCase() === TEST_EMAIL && password === TEST_PASSWORD
+  return !isSupabaseAdminConfigured() && process.env.NODE_ENV !== "production"
 }
 
 function sign(payload: string) {

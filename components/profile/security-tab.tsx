@@ -7,6 +7,7 @@ import { toast } from "sonner"
 import { LogOut } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import type { ProfileData } from "./use-profile"
+import { DemoResetSection, GlobalSignOutButton, TwoFactorSection } from "./security-extras"
 
 const inputCls =
   "h-10 w-full rounded border border-term-line bg-term-bg px-3 text-sm text-term-text outline-none focus:border-primary"
@@ -49,12 +50,7 @@ export function SecurityTab({ profile }: { profile: ProfileData }) {
 
   const logout = async () => {
     setLeaving(true)
-    await fetch("/api/auth/test-login", { method: "DELETE" }).catch(() => null)
-    try {
-      await createClient().auth.signOut()
-    } catch {
-      // Sem Supabase configurado: o cookie de teste já foi removido.
-    }
+    await createClient().auth.signOut().catch(() => null)
     router.replace("/auth/login")
     router.refresh()
   }
@@ -96,6 +92,9 @@ export function SecurityTab({ profile }: { profile: ProfileData }) {
         </div>
       </form>
 
+      {!profile.testMode && <TwoFactorSection />}
+      {!profile.testMode && <DemoResetSection />}
+
       <section className="flex flex-col gap-3 rounded-md border border-term-line bg-term-panel p-4 md:p-6">
         <h2 className="text-base font-semibold">Conta e acesso</h2>
         <dl className="grid gap-x-6 sm:grid-cols-2">
@@ -115,6 +114,8 @@ export function SecurityTab({ profile }: { profile: ProfileData }) {
           <Link href="/kyc" className="text-sm font-medium text-primary hover:underline">
             Documentos de verificação
           </Link>
+          <div className="flex flex-wrap gap-2">
+          {!profile.testMode && <GlobalSignOutButton />}
           <button
             type="button"
             onClick={logout}
@@ -124,6 +125,7 @@ export function SecurityTab({ profile }: { profile: ProfileData }) {
             <LogOut className="size-4" aria-hidden />
             {leaving ? "Saindo..." : "Sair da conta"}
           </button>
+          </div>
         </div>
       </section>
     </div>
