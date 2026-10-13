@@ -13,6 +13,7 @@ import { PriceChart } from "./price-chart"
 import { OrderBookPanel } from "./order-book"
 import { OrderPanel } from "./order-panel"
 import { AccountTables } from "./account-tables"
+import { RotateDevice } from "./rotate-device"
 
 export function FuturesTerminal({ symbol }: { symbol: string }) {
   const router = useRouter()
@@ -32,7 +33,8 @@ export function FuturesTerminal({ symbol }: { symbol: string }) {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-term-bg text-term-text lg:h-dvh">
+    <div className="flex min-h-dvh flex-col bg-term-bg text-term-text lg:h-dvh phone:h-dvh phone:min-h-0 phone:overflow-hidden">
+      <RotateDevice />
       <TopNav
         account={account}
         onAccountChange={setAccount}
@@ -40,20 +42,22 @@ export function FuturesTerminal({ symbol }: { symbol: string }) {
         email={state?.email}
         balances={state?.balances ?? { real: 0, demo: 0 }}
       />
-      <main className="flex min-h-0 flex-1 flex-col gap-px bg-term-bg lg:flex-row">
-        <div className="flex min-w-0 flex-1 flex-col gap-px">
-          <TickerBar market={market} ticker={ticker} last={last} tickers={tickers} onSelect={selectMarket} />
-          <div className="flex min-h-0 flex-1 flex-col gap-px md:flex-row">
-            <div className="h-[420px] min-w-0 flex-1 bg-term-panel md:h-auto">
-              <PriceChart
-                market={market}
-                last={last}
-                positions={state?.positions ?? []}
-                openOrders={state?.openOrders ?? []}
-              />
-            </div>
-            <div className="h-[560px] shrink-0 md:h-auto md:w-72">
-              <OrderBookPanel market={market} feed={feed} onPriceClick={(p) => setLimitPrice(p.toFixed(market.priceDecimals))} />
+      <main className="flex min-h-0 flex-1 flex-col gap-px bg-term-bg lg:flex-row phone:flex-row phone-portrait:hidden">
+        <div className="flex min-w-0 flex-1 flex-col gap-px phone:overflow-y-auto">
+          <div className="flex min-h-0 flex-1 flex-col gap-px phone:h-[calc(100dvh-3rem)] phone:flex-none">
+            <TickerBar market={market} ticker={ticker} last={last} tickers={tickers} onSelect={selectMarket} />
+            <div className="flex min-h-0 flex-1 flex-col gap-px md:flex-row phone:flex-row">
+              <div className="h-[420px] min-w-0 flex-1 bg-term-panel md:h-auto phone:h-auto">
+                <PriceChart
+                  market={market}
+                  last={last}
+                  positions={state?.positions ?? []}
+                  openOrders={state?.openOrders ?? []}
+                />
+              </div>
+              <div className="h-[560px] shrink-0 md:h-auto md:w-72 phone:h-auto phone:w-52">
+                <OrderBookPanel market={market} feed={feed} onPriceClick={(p) => setLimitPrice(p.toFixed(market.priceDecimals))} />
+              </div>
             </div>
           </div>
           <div className="h-72 shrink-0">
@@ -67,7 +71,7 @@ export function FuturesTerminal({ symbol }: { symbol: string }) {
             />
           </div>
         </div>
-        <aside className="shrink-0 lg:w-80">
+        <aside className="shrink-0 lg:w-80 phone:w-64 phone:overflow-y-auto">
           <OrderPanel
             key={`${symbol}-${account}`}
             market={market}
