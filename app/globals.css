@@ -109,6 +109,8 @@
   --color-term-line: #23272e;
   --color-term-text: #eaecef;
   --color-term-muted: #848e9c;
+  --color-term-up: #20b26c;
+  --color-term-down: #ef454a;
   --color-long: #20b26c;
   --color-short: #ef454a;
 }

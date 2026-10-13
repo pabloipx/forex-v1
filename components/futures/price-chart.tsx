@@ -20,6 +20,9 @@ import { formatPrice, type FuturesMarket } from "@/lib/futures/markets"
 import { INTERVALS, INTERVAL_SECONDS, type Candle, type ChartInterval } from "@/lib/futures/candles"
 import type { Order, Position } from "@/lib/futures/types"
 import { DrawingLayer, DrawingToolbar, useDrawingState } from "./chart-drawings"
+import { useChartScripts } from "@/hooks/use-chart-scripts"
+import { ScriptEditor } from "./script-editor"
+import { useScriptOverlay } from "./use-script-overlay"
 
 const COLORS = {
   bg: "#15181d",
@@ -90,11 +93,27 @@ function PriceChartImpl({ market, last, positions, openOrders }: PriceChartProps
   )
 
   const key = `/api/futures/candles?symbol=${market.symbol}&interval=${interval}`
+  // Ressincroniza o historico real periodicamente; entre um refresh e outro o motor atualiza a ultima vela.
   const { data: candles, error, isLoading } = useSWR(key, fetcher, {
     revalidateOnFocus: false,
     revalidateIfStale: false,
     dedupingInterval: 30_000,
+    refreshInterval: 60_000,
+    keepPreviousData: false,
   })
+
+  const [editorOpen, setEditorOpen] = useState(false)
+  const scriptStore = useChartScripts()
+  const getMain = useCallback(() => candleRef.current, [])
+  const scriptErrors = useScriptOverlay({
+    chart: chartApi,
+    getMain,
+    barsRef,
+    scripts: scriptStore.scripts,
+    dataVersion: candles,
+    decimals: market.priceDecimals,
+  })
+  const activeScripts = scriptStore.scripts.filter((s) => s.enabled)
 
   const renderLegend = (c: Candle | null) => {
     const el = legendRef.current
@@ -326,7 +345,17 @@ function PriceChartImpl({ market, last, positions, openOrders }: PriceChartProps
         <button onClick={() => chartRef.current?.timeScale().scrollToRealTime()} className={toolBtn(false)}>
           Tempo real
         </button>
+        <span className="h-4 w-px shrink-0 bg-term-line" aria-hidden="true" />
+        <button
+          onClick={() => setEditorOpen(true)}
+          aria-haspopup="dialog"
+          className={cn(toolBtn(activeScripts.length > 0), "flex items-center gap-1 font-mono")}
+        >
+          {"</>"}
+          <span className="font-sans">Scripts{activeScripts.length ? ` (${activeScripts.length})` : ""}</span>
+        </button>
       </div>
+      <ScriptEditor open={editorOpen} onOpenChange={setEditorOpen} store={scriptStore} errors={scriptErrors} />
 
       <div className="flex min-h-0 flex-1">
       <DrawingToolbar state={drawing} />
@@ -346,6 +375,24 @@ function PriceChartImpl({ market, last, positions, openOrders }: PriceChartProps
             {market.symbol} · {INTERVAL_LABEL[interval]}
           </span>
           <span ref={legendRef} className="whitespace-pre" />
+          {activeScripts.length > 0 && (
+            <span className="pointer-events-auto flex basis-full flex-wrap gap-1 pt-0.5 font-sans">
+              {activeScripts.map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => setEditorOpen(true)}
+                  title={scriptErrors[s.id] ?? s.name}
+                  className={cn(
+                    "rounded bg-term-bg/80 px-1.5 py-px text-[10px]",
+                    scriptErrors[s.id] ? "text-term-down" : "text-term-muted hover:text-term-text",
+                  )}
+                >
+                  {s.name}
+                  {scriptErrors[s.id] ? " · erro" : ""}
+                </button>
+              ))}
+            </span>
+          )}
         </div>
         {(isLoading || error) && !candles && (
           <p className="absolute inset-0 z-10 flex items-center justify-center text-xs text-term-muted">
