@@ -152,7 +152,7 @@ export function AdminWithdrawals({ onUpdate }: AdminWithdrawalsProps) {
               size="sm"
               className={
                 filter === f
-                  ? "bg-[#f97316] hover:bg-[#c2410c]"
+                  ? "bg-[#10b981] hover:bg-[#047857]"
                   : "border-[#2A3142] bg-transparent text-gray-300 hover:bg-[#1E2430]"
               }
             >

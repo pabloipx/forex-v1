@@ -7,9 +7,10 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "URYN BROKER - Plataforma de Trading OTC",
-  description: "Negocie opções binárias OTC com a URYN BROKER",
-  generator: "URYN BROKER",
+  title: "Profit Trading Global — Forex e Futuros",
+  description: "Negocie Forex, metais e futuros perpétuos com alavancagem na Profit Trading Global",
+  generator: "Profit Trading Global",
+  icons: { icon: "/images/ptg-logo.svg" },
 }
 
 export const viewport: Viewport = {

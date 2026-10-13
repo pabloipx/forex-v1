@@ -22,7 +22,7 @@ export function TradeHistory({ trades }: TradeHistoryProps) {
   return (
     <div className="bg-[#121826] border border-[#1f2933] rounded-xl p-4">
       <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-        <History className="w-4 h-4 text-[#f97316]" />
+        <History className="w-4 h-4 text-[#10b981]" />
         Histórico de Operações
       </h3>
 
@@ -34,7 +34,7 @@ export function TradeHistory({ trades }: TradeHistoryProps) {
         </div>
         <div className="bg-[#0B0F14] rounded-lg p-2 text-center">
           <div className="text-[#6B7280] text-xs">Wins</div>
-          <div className="text-[#fb923c] font-bold">{stats.wins}</div>
+          <div className="text-[#34d399] font-bold">{stats.wins}</div>
         </div>
         <div className="bg-[#0B0F14] rounded-lg p-2 text-center">
           <div className="text-[#6B7280] text-xs">Losses</div>
@@ -42,7 +42,7 @@ export function TradeHistory({ trades }: TradeHistoryProps) {
         </div>
         <div className="bg-[#0B0F14] rounded-lg p-2 text-center">
           <div className="text-[#6B7280] text-xs">Win Rate</div>
-          <div className={`font-bold ${winRate >= 50 ? "text-[#fb923c]" : "text-[#EF4444]"}`}>
+          <div className={`font-bold ${winRate >= 50 ? "text-[#34d399]" : "text-[#EF4444]"}`}>
             {winRate.toFixed(0)}%
           </div>
         </div>
@@ -50,10 +50,10 @@ export function TradeHistory({ trades }: TradeHistoryProps) {
 
       {/* P&L */}
       <div
-        className={`p-3 rounded-lg mb-4 flex items-center justify-between ${stats.totalProfit >= 0 ? "bg-[#fb923c]/10" : "bg-[#EF4444]/10"}`}
+        className={`p-3 rounded-lg mb-4 flex items-center justify-between ${stats.totalProfit >= 0 ? "bg-[#34d399]/10" : "bg-[#EF4444]/10"}`}
       >
         <span className="text-[#9CA3AF] text-sm">Lucro/Prejuízo Total</span>
-        <span className={`font-mono font-bold ${stats.totalProfit >= 0 ? "text-[#fb923c]" : "text-[#EF4444]"}`}>
+        <span className={`font-mono font-bold ${stats.totalProfit >= 0 ? "text-[#34d399]" : "text-[#EF4444]"}`}>
           {stats.totalProfit >= 0 ? "+" : ""}${stats.totalProfit.toFixed(2)}
         </span>
       </div>
@@ -68,7 +68,7 @@ export function TradeHistory({ trades }: TradeHistoryProps) {
               key={trade.id}
               className={`p-3 rounded-lg border ${
                 trade.result === "win"
-                  ? "bg-[#fb923c]/5 border-[#fb923c]/20"
+                  ? "bg-[#34d399]/5 border-[#34d399]/20"
                   : trade.result === "loss"
                     ? "bg-[#EF4444]/5 border-[#EF4444]/20"
                     : "bg-[#1f2933] border-[#1f2933]"
@@ -77,7 +77,7 @@ export function TradeHistory({ trades }: TradeHistoryProps) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {trade.direction === "call" ? (
-                    <TrendingUp className="w-4 h-4 text-[#fb923c]" />
+                    <TrendingUp className="w-4 h-4 text-[#34d399]" />
                   ) : (
                     <TrendingDown className="w-4 h-4 text-[#EF4444]" />
                   )}
@@ -92,7 +92,7 @@ export function TradeHistory({ trades }: TradeHistoryProps) {
                   <div
                     className={`text-sm font-bold ${
                       trade.result === "win"
-                        ? "text-[#fb923c]"
+                        ? "text-[#34d399]"
                         : trade.result === "loss"
                           ? "text-[#EF4444]"
                           : "text-[#9CA3AF]"
@@ -101,7 +101,7 @@ export function TradeHistory({ trades }: TradeHistoryProps) {
                     {trade.result === "win" ? "WIN" : trade.result === "loss" ? "LOSS" : "TIE"}
                   </div>
                   <div
-                    className={`text-xs font-mono ${(trade.profit || 0) >= 0 ? "text-[#fb923c]" : "text-[#EF4444]"}`}
+                    className={`text-xs font-mono ${(trade.profit || 0) >= 0 ? "text-[#34d399]" : "text-[#EF4444]"}`}
                   >
                     {(trade.profit || 0) >= 0 ? "+" : ""}${(trade.profit || 0).toFixed(2)}
                   </div>

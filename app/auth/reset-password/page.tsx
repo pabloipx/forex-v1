@@ -94,7 +94,7 @@ export default function ResetPasswordPage() {
         <Link href="/" className="flex items-center">
           <Image
             src="/images/kodilex-logo.png"
-            alt="URYN BROKER"
+            alt="Profit Trading Global"
             width={160}
             height={40}
             className="h-10 w-auto"
@@ -125,7 +125,7 @@ export default function ResetPasswordPage() {
             Este link de recuperação não é mais válido. Solicite um novo para redefinir sua senha.
           </p>
           <Link href="/auth/forgot-password" className="block">
-            <Button className="w-full text-white h-12 rounded-xl" style={{ backgroundColor: "#f97316" }}>
+            <Button className="w-full text-white h-12 rounded-xl" style={{ backgroundColor: "#10b981" }}>
               Solicitar novo link
             </Button>
           </Link>
@@ -143,7 +143,7 @@ export default function ResetPasswordPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-white text-sm font-medium flex items-center gap-2">
-                  <Lock className="w-4 h-4" style={{ color: "#f97316" }} />
+                  <Lock className="w-4 h-4" style={{ color: "#10b981" }} />
                   Nova senha
                 </Label>
                 <Input
@@ -162,7 +162,7 @@ export default function ResetPasswordPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword" className="text-white text-sm font-medium flex items-center gap-2">
-                  <Lock className="w-4 h-4" style={{ color: "#f97316" }} />
+                  <Lock className="w-4 h-4" style={{ color: "#10b981" }} />
                   Confirmar senha
                 </Label>
                 <Input
@@ -192,7 +192,7 @@ export default function ResetPasswordPage() {
               <Button
                 type="submit"
                 className="w-full text-white h-14 rounded-xl font-semibold text-base transition-all duration-200 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
-                style={{ backgroundColor: "#f97316", boxShadow: "0 4px 14px rgba(249, 115, 22, 0.4)" }}
+                style={{ backgroundColor: "#10b981", boxShadow: "0 4px 14px rgba(16,185,129, 0.4)" }}
                 disabled={isLoading}
               >
                 {isLoading ? (

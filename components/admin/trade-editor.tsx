@@ -239,7 +239,7 @@ export function TradeEditor({ users, onRefresh }: TradeEditorProps) {
                   </p>
                   <p className="text-xs text-zinc-400">
                     Saldo Demo:{" "}
-                    <span className="text-orange-400 font-medium">{formatCurrency(userBalance.balance_demo)}</span>
+                    <span className="text-emerald-400 font-medium">{formatCurrency(userBalance.balance_demo)}</span>
                   </p>
                 </div>
               </div>
@@ -317,7 +317,7 @@ export function TradeEditor({ users, onRefresh }: TradeEditorProps) {
                             {trade.direction === "call" ? "COMPRA" : "VENDA"}
                           </span>
                           {trade.is_demo && (
-                            <span className="text-xs px-2 py-0.5 rounded bg-orange-600/20 text-orange-400">DEMO</span>
+                            <span className="text-xs px-2 py-0.5 rounded bg-emerald-600/20 text-emerald-400">DEMO</span>
                           )}
                           {trade.is_manually_adjusted && (
                             <span className="text-xs px-2 py-0.5 rounded bg-yellow-600/20 text-yellow-400">

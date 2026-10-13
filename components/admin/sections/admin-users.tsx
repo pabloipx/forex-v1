@@ -499,7 +499,7 @@ export function AdminUsers() {
               <Button
                 onClick={handleSaveUser}
                 disabled={saving}
-                className="flex-1 bg-gradient-to-r from-[#f97316] to-[#fb923c] hover:from-[#c2410c] hover:to-[#f97316] text-white"
+                className="flex-1 bg-gradient-to-r from-[#10b981] to-[#34d399] hover:from-[#047857] hover:to-[#10b981] text-white"
               >
                 {saving ? "Salvando..." : "Salvar"}
               </Button>

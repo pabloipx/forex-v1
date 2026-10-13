@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { ForexAdmin } from "@/components/admin/forex/forex-admin"
 
 export const metadata: Metadata = {
-  title: "Admin | URYN Futuros & Forex",
+  title: "Admin | Profit Trading Global Futuros & Forex",
   robots: { index: false, follow: false },
 }
 

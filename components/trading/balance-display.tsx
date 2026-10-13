@@ -28,7 +28,7 @@ export function BalanceDisplay({ balance }: { balance: number }) {
   return (
     <div className="flex items-center gap-3">
       {/* Diamond VIP icon */}
-      <Diamond className="w-5 h-5 text-orange-500" strokeWidth={1.5} />
+      <Diamond className="w-5 h-5 text-emerald-500" strokeWidth={1.5} />
 
       {/* Account balance dropdown */}
       <button className="flex items-center gap-2 bg-[#1a1a1f] hover:bg-[#22222a] rounded px-3 py-1.5 transition-colors">

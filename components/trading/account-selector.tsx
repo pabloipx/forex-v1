@@ -46,7 +46,7 @@ export function AccountSelector({ balance, isDemo, payout, onToggleDemo }: Accou
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 bg-[#121826] border border-[#1F2933] rounded-lg px-3 py-2 hover:border-[#f97316]/50 transition-colors"
+        className="flex items-center gap-2 bg-[#121826] border border-[#1F2933] rounded-lg px-3 py-2 hover:border-[#10b981]/50 transition-colors"
       >
         {/* Account Type + Payout Badge */}
         <div className="flex items-center gap-2">
@@ -68,7 +68,7 @@ export function AccountSelector({ balance, isDemo, payout, onToggleDemo }: Accou
           <button
             onClick={() => selectAccount(true)}
             className={`w-full flex items-center justify-between px-4 py-3 hover:bg-[#1F2933] transition-colors ${
-              isDemo ? "bg-[#f97316]/10 border-l-2 border-[#f97316]" : ""
+              isDemo ? "bg-[#10b981]/10 border-l-2 border-[#10b981]" : ""
             }`}
           >
             <div className="flex items-center gap-3">
@@ -99,33 +99,33 @@ export function AccountSelector({ balance, isDemo, payout, onToggleDemo }: Accou
           <button
             onClick={() => selectAccount(false)}
             className={`w-full flex items-center justify-between px-4 py-3 hover:bg-[#1F2933] transition-colors ${
-              !isDemo ? "bg-[#f97316]/10 border-l-2 border-[#f97316]" : ""
+              !isDemo ? "bg-[#10b981]/10 border-l-2 border-[#10b981]" : ""
             }`}
           >
             <div className="flex items-center gap-3">
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  !isDemo ? "bg-[#f97316]/20" : "bg-[#1F2933]"
+                  !isDemo ? "bg-[#10b981]/20" : "bg-[#1F2933]"
                 }`}
               >
-                <Wallet className={`w-5 h-5 ${!isDemo ? "text-[#f97316]" : "text-[#6B7280]"}`} />
+                <Wallet className={`w-5 h-5 ${!isDemo ? "text-[#10b981]" : "text-[#6B7280]"}`} />
               </div>
               <div className="text-left">
                 <div className="flex items-center gap-2">
                   <span className="text-white font-medium">Conta real</span>
-                  <span className="bg-[#f97316]/20 text-[#f97316] text-xs px-2 py-0.5 rounded">DINHEIRO</span>
+                  <span className="bg-[#10b981]/20 text-[#10b981] text-xs px-2 py-0.5 rounded">DINHEIRO</span>
                 </div>
                 <span className="text-[#9CA3AF] text-sm">Opere com saldo real</span>
               </div>
             </div>
-            <span className={`font-bold ${!isDemo ? "text-[#f97316]" : "text-white"}`}>
+            <span className={`font-bold ${!isDemo ? "text-[#10b981]" : "text-white"}`}>
               {formatCurrency(balance.real)}
             </span>
           </button>
 
           {/* Deposit Button */}
           <div className="border-t border-[#1F2933] p-3">
-            <button className="w-full bg-[#f97316] hover:bg-[#fb923c] text-white font-bold py-2.5 rounded-lg transition-colors">
+            <button className="w-full bg-[#10b981] hover:bg-[#34d399] text-white font-bold py-2.5 rounded-lg transition-colors">
               Depositar
             </button>
           </div>

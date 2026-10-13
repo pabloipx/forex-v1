@@ -978,8 +978,8 @@ export default function AdminDashboardClient() {
           <Menu className="w-6 h-6 text-white" />
         </button>
         <Image
-          src="/images/uryn-fox-logo.png"
-          alt="URYNBROKER"
+          src="/images/ptg-logo.svg"
+          alt="Profit Trading Global"
           width={130}
           height={35}
           priority
@@ -996,8 +996,8 @@ export default function AdminDashboardClient() {
           <div className="w-64 h-full bg-[#0B0F14] border-r border-[#1E2633] p-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-8">
               <Image
-          src="/images/uryn-fox-logo.png"
-          alt="URYNBROKER"
+          src="/images/ptg-logo.svg"
+          alt="Profit Trading Global"
           width={130}
           height={35}
           priority
@@ -1016,7 +1016,7 @@ export default function AdminDashboardClient() {
                     setSidebarOpen(false)
                   }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg ${
-                    activeTab === item.id ? "bg-orange-500/20 text-orange-500" : "text-gray-400 hover:bg-[#1A1F2E]"
+                    activeTab === item.id ? "bg-emerald-500/20 text-emerald-500" : "text-gray-400 hover:bg-[#1A1F2E]"
                   }`}
                 >
                   <item.icon className="w-5 h-5" />
@@ -1038,8 +1038,8 @@ export default function AdminDashboardClient() {
         <div className="hidden lg:flex lg:flex-col w-64 min-h-screen border-r border-[#1E2633] p-4">
           <div className="mb-8">
             <Image
-              src="/images/uryn-fox-logo.png"
-              alt="URYNBROKER"
+              src="/images/ptg-logo.svg"
+              alt="Profit Trading Global"
               width={180}
               height={48}
               priority
@@ -1053,7 +1053,7 @@ export default function AdminDashboardClient() {
                 key={item.id}
                 onClick={() => setActiveTab(item.id as any)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg ${
-                  activeTab === item.id ? "bg-orange-500/20 text-orange-500" : "text-gray-400 hover:bg-[#1A1F2E]"
+                  activeTab === item.id ? "bg-emerald-500/20 text-emerald-500" : "text-gray-400 hover:bg-[#1A1F2E]"
                 }`}
               >
                 <item.icon className="w-5 h-5" />
@@ -1196,7 +1196,7 @@ export default function AdminDashboardClient() {
                       onClick={() => setUserDaysFilter(opt.value)}
                       className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
                         active
-                          ? "bg-orange-500 text-white"
+                          ? "bg-emerald-500 text-white"
                           : "border border-[#2A3142] bg-[#11161f] text-gray-400 hover:bg-[#171d28] hover:text-gray-200"
                       }`}
                     >
@@ -1224,7 +1224,7 @@ export default function AdminDashboardClient() {
                               <span className="px-2 py-0.5 bg-red-500/20 text-red-500 text-xs rounded">Bloqueado</span>
                             )}
   {user.is_verified && (
-  <span className="px-2 py-0.5 bg-orange-500/20 text-orange-500 text-xs rounded">
+  <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-500 text-xs rounded">
   Verificado
   </span>
   )}
@@ -1242,7 +1242,7 @@ export default function AdminDashboardClient() {
                             <p className="text-green-500 font-bold">{formatCurrency(user.balance_real)}</p>
                             <p className="text-gray-500 text-xs">Demo: {formatCurrency(user.balance_demo)}</p>
                             {user.rollover && user.rollover.remaining > 0 && (
-                              <p className="text-orange-400 text-xs mt-1 flex items-center justify-end gap-1">
+                              <p className="text-emerald-400 text-xs mt-1 flex items-center justify-end gap-1">
                                 <Repeat className="w-3 h-3" />
                                 Rollover: falta {formatCurrency(user.rollover.remaining)}
                               </p>
@@ -1255,7 +1255,7 @@ export default function AdminDashboardClient() {
                             onClick={() => openRolloverModal(user)}
                             size="sm"
                             variant="outline"
-                            className="border-[#2A3142] text-orange-400 hover:text-orange-300"
+                            className="border-[#2A3142] text-emerald-400 hover:text-emerald-300"
                           >
                             <Repeat className="w-4 h-4" />
                             <span className="ml-1 hidden sm:inline">Rollover</span>
@@ -1312,7 +1312,7 @@ export default function AdminDashboardClient() {
                             <p className="text-white font-medium">{deposit.user_email || "Usuário"}</p>
                             <span className={`px-2 py-0.5 text-xs rounded ${
                               deposit.method === "crypto" ? "bg-yellow-500/20 text-yellow-500" :
-                              deposit.method === "card" ? "bg-orange-500/20 text-orange-500" :
+                              deposit.method === "card" ? "bg-emerald-500/20 text-emerald-500" :
                               "bg-green-500/20 text-green-500"
                             }`}>
                               {deposit.method === "crypto" ? "USDT" : deposit.method === "card" ? "Cartao" : "PIX"}
@@ -2202,8 +2202,8 @@ export default function AdminDashboardClient() {
                   {/* Card Deposit Toggle */}
                   <div className="flex items-center justify-between p-4 bg-[#0B0F14] rounded-lg">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center">
-                        <CreditCard className="w-5 h-5 text-orange-500" />
+                      <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                        <CreditCard className="w-5 h-5 text-emerald-500" />
                       </div>
                       <div>
                         <p className="text-white font-medium">Deposito via Cartao</p>
@@ -2281,8 +2281,8 @@ export default function AdminDashboardClient() {
                   {/* Liga/desliga o rollover de deposito */}
                   <div className="flex items-center justify-between gap-4 p-4 bg-[#0B0F14] rounded-lg">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center shrink-0">
-                        <Repeat className="w-5 h-5 text-orange-500" />
+                      <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center shrink-0">
+                        <Repeat className="w-5 h-5 text-emerald-500" />
                       </div>
                       <div>
                         <p className="text-white font-medium">Rollover de Deposito</p>
@@ -2357,7 +2357,7 @@ export default function AdminDashboardClient() {
                     <Button
                       onClick={saveRolloverSettings}
                       disabled={savingRollover}
-                      className="bg-orange-500 hover:bg-orange-600 text-white"
+                      className="bg-emerald-500 hover:bg-emerald-600 text-white"
                     >
                       {savingRollover ? "Salvando..." : "Salvar"}
                     </Button>
@@ -2387,13 +2387,13 @@ export default function AdminDashboardClient() {
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div className="bg-[#1A1F2E] rounded-xl p-6 w-full max-w-md border border-[#2A3142]">
             <div className="flex items-center gap-2 mb-1">
-              <Repeat className="w-5 h-5 text-orange-400" />
+              <Repeat className="w-5 h-5 text-emerald-400" />
               <h2 className="text-xl font-bold text-white">Aplicar Rollover</h2>
             </div>
             <p className="text-gray-400 text-sm mb-4">{rolloverUser.email}</p>
 
-            <div className="rounded-lg bg-orange-500/10 border border-orange-500/20 p-3 mb-4">
-              <p className="text-orange-300 text-xs leading-relaxed">
+            <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 mb-4">
+              <p className="text-emerald-300 text-xs leading-relaxed">
                 Trava o valor abaixo até o usuário negociar o volume exigido em entradas. Use para quem
                 depositou antes do rollover ser ativado.
               </p>
@@ -2456,7 +2456,7 @@ export default function AdminDashboardClient() {
                 <Button
                   onClick={handleApplyRollover}
                   disabled={rolloverSaving}
-                  className="flex-1 bg-orange-500 hover:bg-orange-600"
+                  className="flex-1 bg-emerald-500 hover:bg-emerald-600"
                 >
                   {rolloverSaving ? "Aplicando..." : "Aplicar Rollover"}
                 </Button>
@@ -2577,14 +2577,14 @@ function StatCard({
   badge?: string
 }) {
   const accents: Record<string, string> = {
-    blue: "#fb923c",
+    blue: "#34d399",
     green: "#22c55e",
     red: "#ef4444",
-    purple: "#fdba74",
+    purple: "#6ee7b7",
     cyan: "#22d3ee",
     yellow: "#eab308",
   }
-  const accent = accents[color] || "#fb923c"
+  const accent = accents[color] || "#34d399"
 
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0c121c] p-5 transition-all duration-300 hover:border-white/[0.12] hover:-translate-y-0.5">

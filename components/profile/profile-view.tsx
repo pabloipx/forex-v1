@@ -34,7 +34,7 @@ export function ProfileView() {
           <ChevronLeft className="size-4" aria-hidden /> Voltar ao terminal
         </Link>
         <span className="text-lg font-extrabold tracking-tight">
-          URYN<span className="text-primary">.</span>
+          Profit Trading Global<span className="text-primary">.</span>
         </span>
       </header>
 

@@ -214,7 +214,7 @@ export function AdminManipulation() {
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-orange-500" />
+            <Zap className="h-5 w-5 text-emerald-500" />
             <h1 className="text-2xl font-bold tracking-tight text-white">Manipulacao</h1>
           </div>
           <p className="mt-1 text-sm text-gray-400">
@@ -254,7 +254,7 @@ export function AdminManipulation() {
                 key={a.symbol}
                 onClick={() => setSymbol(a.symbol)}
                 className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm transition-colors ${
-                  symbol === a.symbol ? "bg-orange-500/15 text-orange-400" : "text-gray-300 hover:bg-white/[0.04]"
+                  symbol === a.symbol ? "bg-emerald-500/15 text-emerald-400" : "text-gray-300 hover:bg-white/[0.04]"
                 }`}
               >
                 <span className="truncate">{a.name}</span>
@@ -300,7 +300,7 @@ export function AdminManipulation() {
                 onClick={() => setStyle(s.value)}
                 className={`rounded-lg border px-3 py-2 text-left text-sm font-semibold transition-all ${
                   style === s.value
-                    ? "border-orange-500 bg-orange-500/15 text-orange-400"
+                    ? "border-emerald-500 bg-emerald-500/15 text-emerald-400"
                     : "border-white/[0.06] bg-[#0a0e16] text-gray-400 hover:text-gray-200"
                 }`}
               >
@@ -321,7 +321,7 @@ export function AdminManipulation() {
                 onClick={() => setTimeframe(t.value)}
                 className={`rounded-lg border py-2 text-sm font-semibold transition-all ${
                   timeframe === t.value
-                    ? "border-orange-500 bg-orange-500/15 text-orange-400"
+                    ? "border-emerald-500 bg-emerald-500/15 text-emerald-400"
                     : "border-white/[0.06] bg-[#0a0e16] text-gray-400 hover:text-gray-200"
                 }`}
               >
@@ -337,7 +337,7 @@ export function AdminManipulation() {
               onClick={() => setMode("now")}
               className={`flex items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-semibold transition-all ${
                 mode === "now"
-                  ? "border-orange-500 bg-orange-500/15 text-orange-400"
+                  ? "border-emerald-500 bg-emerald-500/15 text-emerald-400"
                   : "border-white/[0.06] bg-[#0a0e16] text-gray-400 hover:text-gray-200"
               }`}
             >
@@ -347,7 +347,7 @@ export function AdminManipulation() {
               onClick={() => setMode("scheduled")}
               className={`flex items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-semibold transition-all ${
                 mode === "scheduled"
-                  ? "border-orange-500 bg-orange-500/15 text-orange-400"
+                  ? "border-emerald-500 bg-emerald-500/15 text-emerald-400"
                   : "border-white/[0.06] bg-[#0a0e16] text-gray-400 hover:text-gray-200"
               }`}
             >
@@ -374,7 +374,7 @@ export function AdminManipulation() {
             max={30}
             value={durationCandles}
             onChange={(e) => setDurationCandles(Number(e.target.value))}
-            className="mb-4 w-full accent-orange-500"
+            className="mb-4 w-full accent-emerald-500"
           />
 
           {/* Forca */}
@@ -385,7 +385,7 @@ export function AdminManipulation() {
             max={100}
             value={strength}
             onChange={(e) => setStrength(Number(e.target.value))}
-            className="mb-4 w-full accent-orange-500"
+            className="mb-4 w-full accent-emerald-500"
           />
 
           {error && (

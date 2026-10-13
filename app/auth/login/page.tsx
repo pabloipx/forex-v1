@@ -123,7 +123,7 @@ export default function LoginPage() {
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-3 border-b border-gray-100 bg-gray-50/60">
         <Link href="/" className="flex items-center">
-          <Image src="/images/uryn-fox-logo.png" alt="URYNBROKER" width={150} height={38} className="h-9 w-auto" unoptimized />
+          <Image src="/images/ptg-logo.svg" alt="Profit Trading Global" width={150} height={38} className="h-9 w-auto" unoptimized />
         </Link>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 text-gray-600 text-sm font-medium">

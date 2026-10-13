@@ -30,17 +30,17 @@ const SECRET_KEY = process.env.AMPLOPAY_SECRET_KEY_V2 || ""
 // sem redirecionamento.
 //
 // Bug corrigido: aqui havia o dominio fixo "https://kodilexbroker.com", que NAO EXISTE (nao
-// resolve DNS - o dominio de producao e urynbrokertrade.com). Como NEXT_PUBLIC_APP_URL nao esta
+// resolve DNS - o dominio de producao e profittradingglobal.com). Como NEXT_PUBLIC_APP_URL nao esta
 // definida no projeto, esse fallback morto era sempre usado: a AmploPay mandava a confirmacao de
 // pagamento para o vazio e o deposito NUNCA era creditado automaticamente. So era aprovado quando
 // o cliente deixava a tela do PIX aberta (verificacao ativa do polling) ou, no pior caso, quando
 // o cron diario rodava - por isso "pagou e nao caiu na corretora".
 //
-// Usamos o subdominio www porque o apex urynbrokertrade.com responde 308 redirecionando para ele,
+// Usamos o subdominio www porque o apex profittradingglobal.com responde 308 redirecionando para ele,
 // e nao se deve depender de o provedor seguir redirecionamento em POST de webhook.
 //
 // Para trocar de dominio, basta definir NEXT_PUBLIC_APP_URL - ela tem prioridade sobre este valor.
-const CANONICAL_APP_URL = "https://www.urynbrokertrade.com"
+const CANONICAL_APP_URL = "https://www.profittradingglobal.com"
 
 function resolveAppUrl(): string {
   const fromEnv = process.env.NEXT_PUBLIC_APP_URL?.trim()

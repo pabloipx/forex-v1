@@ -160,13 +160,13 @@ export function AffiliateSidebar({ active, onChange, onSignOut }: AffiliateSideb
       <div className="px-3">
         <div className="flex items-center gap-3 rounded-lg px-4 py-3">
           <div className="relative">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-900 text-sm font-semibold text-orange-400">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-900 text-sm font-semibold text-emerald-400">
               UB
             </span>
             <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-500" />
           </div>
           <div className="text-sm leading-tight text-gray-700">
-            <p className="font-medium text-gray-900">Suporte URYN</p>
+            <p className="font-medium text-gray-900">Suporte Profit Trading Global</p>
             <p className="text-gray-500">8:00 - 21:00</p>
             <p className="text-gray-500">Seg – Sex</p>
           </div>

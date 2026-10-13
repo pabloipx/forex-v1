@@ -292,7 +292,7 @@ function TradeHistorySidebarBase({ userId, refreshTrigger, isDemo }: TradeHistor
 
           let bgColor = "bg-transparent"
           if (isPending) {
-            bgColor = "bg-orange-500/10 border-l-2 border-l-orange-500"
+            bgColor = "bg-emerald-500/10 border-l-2 border-l-emerald-500"
           } else if (isWin) {
             bgColor = "bg-green-500/10 border-l-2 border-l-green-500"
           } else if (isLoss) {
@@ -306,14 +306,14 @@ function TradeHistorySidebarBase({ userId, refreshTrigger, isDemo }: TradeHistor
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1 lg:gap-2">
                     {isCall ? (
-                      <TrendingUp className="w-3 h-3 lg:w-4 lg:h-4 text-[#f97316]" />
+                      <TrendingUp className="w-3 h-3 lg:w-4 lg:h-4 text-[#10b981]" />
                     ) : (
                       <TrendingDown className="w-3 h-3 lg:w-4 lg:h-4 text-[#EF4444]" />
                     )}
                     <span className="text-white font-medium text-[10px] lg:text-sm truncate">{getAssetName(trade.symbol)}</span>
                     <span
                       className={`text-[8px] lg:text-[10px] font-bold px-1 lg:px-1.5 py-0.5 rounded ${
-                        isCall ? "bg-[#f97316]/20 text-[#f97316]" : "bg-[#EF4444]/20 text-[#EF4444]"
+                        isCall ? "bg-[#10b981]/20 text-[#10b981]" : "bg-[#EF4444]/20 text-[#EF4444]"
                       }`}
                     >
                       {isCall ? "C" : "V"}
@@ -328,8 +328,8 @@ function TradeHistorySidebarBase({ userId, refreshTrigger, isDemo }: TradeHistor
                   {isPending ? (
                     <div className="flex flex-col items-start lg:items-end gap-0.5 mt-0.5">
                       <div className="flex items-center gap-1.5 lg:justify-end">
-                        <Clock className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-orange-400 animate-pulse" />
-                        <span className="text-orange-400 text-xs lg:text-sm font-mono font-bold">
+                        <Clock className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-emerald-400 animate-pulse" />
+                        <span className="text-emerald-400 text-xs lg:text-sm font-mono font-bold">
                           {remaining > 0 ? (
                             remaining >= 60
                               ? `${Math.floor(remaining / 60)}m${Math.floor(remaining % 60)}s`
@@ -339,15 +339,15 @@ function TradeHistorySidebarBase({ userId, refreshTrigger, isDemo }: TradeHistor
                           )}
                         </span>
                       </div>
-                      <div className="w-20 lg:w-24 h-1.5 lg:h-2 rounded-full bg-orange-500/20 overflow-hidden">
+                      <div className="w-20 lg:w-24 h-1.5 lg:h-2 rounded-full bg-emerald-500/20 overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-orange-500 transition-all duration-500"
+                          className="h-full rounded-full bg-emerald-500 transition-all duration-500"
                           style={{ width: `${Math.max(0, Math.min(100, (remaining / (trade.timeframe || 60)) * 100))}%` }}
                         />
                       </div>
                     </div>
                   ) : (
-                    <div className={`text-[10px] lg:text-sm font-bold ${isWin ? "text-[#f97316]" : "text-[#EF4444]"}`}>
+                    <div className={`text-[10px] lg:text-sm font-bold ${isWin ? "text-[#10b981]" : "text-[#EF4444]"}`}>
                       {isWin ? "+" : ""}
                       {formatBRL(trade.profit)}
                     </div>

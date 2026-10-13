@@ -21,7 +21,7 @@ export function TimeframeSelector({ timeframe, onChange }: TimeframeSelectorProp
           key={tf.value}
           onClick={() => onChange(tf.value)}
           className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-            timeframe === tf.value ? "bg-[#f97316] text-white" : "text-[#9CA3AF] hover:text-white hover:bg-[#1f2933]"
+            timeframe === tf.value ? "bg-[#10b981] text-white" : "text-[#9CA3AF] hover:text-white hover:bg-[#1f2933]"
           }`}
         >
           {tf.label}

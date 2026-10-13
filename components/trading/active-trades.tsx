@@ -21,7 +21,7 @@ export function ActiveTrades({ trades, currentPrices }: ActiveTradesProps) {
     return (
       <div className="bg-[#121826] border border-[#1f2933] rounded-xl p-4">
         <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
-          <Clock className="w-4 h-4 text-[#f97316]" />
+          <Clock className="w-4 h-4 text-[#10b981]" />
           Operações Ativas
         </h3>
         <div className="text-[#6B7280] text-sm text-center py-6">Nenhuma operação ativa</div>
@@ -32,7 +32,7 @@ export function ActiveTrades({ trades, currentPrices }: ActiveTradesProps) {
   return (
     <div className="bg-[#121826] border border-[#1f2933] rounded-xl p-4">
       <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
-        <Clock className="w-4 h-4 text-[#f97316]" />
+        <Clock className="w-4 h-4 text-[#10b981]" />
         Operações Ativas ({trades.length})
       </h3>
       <div className="space-y-2 max-h-48 overflow-y-auto">
