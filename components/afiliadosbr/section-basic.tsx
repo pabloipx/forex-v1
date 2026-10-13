@@ -175,7 +175,7 @@ export function SectionTelegramBot({ affiliate }: { affiliate: AffiliateInfo }) 
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 text-sm font-medium text-gray-700">
               1
             </span>
-            Abra o bot <span className="font-medium">@URYNAfiliadosBot</span> no Telegram e inicie a conversa.
+            Abra o bot <span className="font-medium">@ProfitTradingAfiliadosBot</span> no Telegram e inicie a conversa.
           </li>
           <li className="flex gap-3">
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 text-sm font-medium text-gray-700">

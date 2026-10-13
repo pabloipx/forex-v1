@@ -23,7 +23,7 @@ export function SectionOffers({ affiliate }: SectionOffersProps) {
     offers.push({
       id: "revenue",
       model: "revenue",
-      title: `URYN · ${affiliate.commission_rate}% · Revenue`,
+      title: `Profit Trading Global · ${affiliate.commission_rate}% · Revenue`,
       rate: `${affiliate.commission_rate}%`,
       payout: `${affiliate.commission_rate}%`,
     })
@@ -33,7 +33,7 @@ export function SectionOffers({ affiliate }: SectionOffersProps) {
     offers.push({
       id: "cpa",
       model: "cpa",
-      title: `URYN · ${brl(cpaAmount)} · CPA`,
+      title: `Profit Trading Global · ${brl(cpaAmount)} · CPA`,
       rate: brl(cpaAmount),
       payout: brl(cpaAmount),
     })
@@ -57,7 +57,7 @@ export function SectionOffers({ affiliate }: SectionOffersProps) {
         <section key={offer.id} className="rounded-xl border border-gray-200 bg-white">
           <div className="flex flex-wrap items-center justify-between gap-4 p-6">
             <div className="flex items-center gap-4">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-900 text-sm font-semibold text-orange-400">
+              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-900 text-sm font-semibold text-emerald-400">
                 UB
               </span>
               <div>

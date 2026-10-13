@@ -111,8 +111,8 @@ export default function HelpPage() {
       <div className="px-4 py-6 space-y-6">
         <div className="p-4 rounded-xl bg-gradient-to-br from-[#1A2332] to-[#121826] border border-[#1F2933]">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 rounded-full bg-[#f97316]/20 flex items-center justify-center">
-              <MessageCircle className="w-6 h-6 text-[#f97316]" />
+            <div className="w-12 h-12 rounded-full bg-[#10b981]/20 flex items-center justify-center">
+              <MessageCircle className="w-6 h-6 text-[#10b981]" />
             </div>
             <div>
               <h3 className="text-white font-semibold">Precisa de ajuda?</h3>
@@ -121,7 +121,7 @@ export default function HelpPage() {
           </div>
           <button
             onClick={() => router.push("/suporte")}
-            className="w-full py-3 rounded-xl bg-[#f97316] text-white font-semibold"
+            className="w-full py-3 rounded-xl bg-[#10b981] text-white font-semibold"
           >
             Iniciar Atendimento
           </button>
@@ -137,7 +137,7 @@ export default function HelpPage() {
                 onClick={() => setSelectedCategory(cat.id)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
                   selectedCategory === cat.id
-                    ? "bg-[#f97316] text-white"
+                    ? "bg-[#10b981] text-white"
                     : "bg-[#121826] text-[#9CA3AF] border border-[#1F2933]"
                 }`}
               >

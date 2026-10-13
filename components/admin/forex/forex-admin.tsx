@@ -58,7 +58,7 @@ export function ForexAdmin() {
     <div className="flex min-h-dvh bg-term-bg font-sans text-term-text">
       <aside className="sticky top-0 hidden h-dvh w-56 shrink-0 flex-col border-r border-term-line bg-term-panel md:flex">
         <div className="flex h-14 items-center gap-1 border-b border-term-line px-5 text-lg font-extrabold tracking-tight">
-          URYN<span className="text-primary">.</span>
+          Profit Trading Global<span className="text-primary">.</span>
           <span className="ml-2 rounded bg-term-line px-1.5 py-0.5 text-[10px] font-medium text-term-muted">ADMIN</span>
         </div>
         <nav aria-label="Seções do painel" className="flex flex-1 flex-col gap-0.5 p-3">

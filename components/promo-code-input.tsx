@@ -163,7 +163,7 @@ export function PromoCodeInput({ amount, onApplied }: PromoCodeInputProps) {
             }
           }}
           placeholder="Digite seu código"
-          className="flex-1 px-3 py-2.5 rounded-lg bg-[#0B0F14] border border-[#1E2633] text-white font-mono placeholder:font-sans placeholder:text-[#6B7280] focus:outline-none focus:border-[#f97316]"
+          className="flex-1 px-3 py-2.5 rounded-lg bg-[#0B0F14] border border-[#1E2633] text-white font-mono placeholder:font-sans placeholder:text-[#6B7280] focus:outline-none focus:border-[#10b981]"
         />
         <button
           onClick={handleApply}

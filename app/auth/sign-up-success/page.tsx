@@ -9,14 +9,14 @@ export default function SignUpSuccessPage() {
           {/* Header */}
           <div className="text-center">
             <h1 className="text-2xl font-bold text-white">
-              URYN<span className="text-orange-500"> BROKER</span>
+              Profit<span className="text-emerald-500"> Trading Global</span>
             </h1>
           </div>
 
           {/* Success Icon */}
           <div className="flex justify-center">
-            <div className="w-16 h-16 rounded-full bg-orange-500/20 flex items-center justify-center">
-              <svg className="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center">
+              <svg className="w-8 h-8 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>

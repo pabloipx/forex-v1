@@ -80,7 +80,7 @@ const EMPTY_SETTINGS: AdminSettings = {
 
 const cardClass = "rounded-xl bg-[#121826] border border-[#1F2933]"
 const inputClass =
-  "h-10 rounded-lg bg-[#0a0e17] border border-[#1F2933] px-3 text-sm text-white outline-none focus:border-[#f97316]"
+  "h-10 rounded-lg bg-[#0a0e17] border border-[#1F2933] px-3 text-sm text-white outline-none focus:border-[#10b981]"
 const thClass = "px-3 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-white/40"
 
 type SortKey = "recent" | "earned" | "referrals" | "deposits" | "balance"
@@ -172,7 +172,7 @@ export function AdminAffiliates() {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-[#f97316]" />
+        <Loader2 className="h-6 w-6 animate-spin text-[#10b981]" />
       </div>
     )
   }
@@ -205,7 +205,7 @@ export function AdminAffiliates() {
             type="button"
             onClick={() => setTab(t.id)}
             className={`flex shrink-0 items-center gap-2 border-b-2 px-4 py-3 text-sm transition-colors ${
-              tab === t.id ? "border-[#f97316] text-white" : "border-transparent text-white/40 hover:text-white/70"
+              tab === t.id ? "border-[#10b981] text-white" : "border-transparent text-white/40 hover:text-white/70"
             }`}
           >
             {t.label}
@@ -246,7 +246,7 @@ export function AdminAffiliates() {
                 <button
                   type="button"
                   onClick={() => setTab("affiliates")}
-                  className="flex items-center gap-1 text-[11px] text-[#f97316] hover:underline"
+                  className="flex items-center gap-1 text-[11px] text-[#10b981] hover:underline"
                 >
                   Ver todos <ArrowUpRight className="h-3 w-3" />
                 </button>
@@ -372,11 +372,11 @@ export function AdminAffiliates() {
                       <td className="px-3 py-3">
                         <p className="text-white">{a.name}</p>
                         <p className="text-[11px] text-white/40">
-                          {a.email} · <span className="text-[#f97316]">{a.code}</span>
+                          {a.email} · <span className="text-[#10b981]">{a.code}</span>
                         </p>
                       </td>
                       <td className="px-3 py-3">
-                        <span className="rounded-md bg-[#f97316]/15 px-2 py-0.5 text-[11px] font-medium text-[#f97316]">
+                        <span className="rounded-md bg-[#10b981]/15 px-2 py-0.5 text-[11px] font-medium text-[#10b981]">
                           {MODEL_LABEL[a.terms.model]}
                         </span>
                       </td>
@@ -556,7 +556,7 @@ export function AdminAffiliates() {
                     <td className="px-3 py-3 text-white/50">{dateTime(c.created_at)}</td>
                     <td className="px-3 py-3">
                       <p className="text-white">{c.affiliate_name}</p>
-                      <p className="text-[11px] text-[#f97316]">{c.affiliate_code}</p>
+                      <p className="text-[11px] text-[#10b981]">{c.affiliate_code}</p>
                     </td>
                     <td className="px-3 py-3 text-white/70">{c.referred_name}</td>
                     <td className="px-3 py-3 text-white/70">
@@ -604,8 +604,8 @@ function StatCard({
   return (
     <div className={`${cardClass} p-4`}>
       <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#f97316]/20">
-          <Icon className="h-5 w-5 text-[#f97316]" />
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#10b981]/20">
+          <Icon className="h-5 w-5 text-[#10b981]" />
         </span>
         <div className="min-w-0">
           <p className="text-[11px] text-white/40">{label}</p>
@@ -672,7 +672,7 @@ function SettingsPanel({ settings, onSaved }: { settings: AdminSettings; onSaved
 
       <section className={`${cardClass} p-5`}>
         <div className="mb-4 flex items-center gap-2">
-          <Target className="h-4 w-4 text-[#f97316]" />
+          <Target className="h-4 w-4 text-[#10b981]" />
           <p className="text-sm font-semibold text-white">Valores padrão de comissão</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -685,7 +685,7 @@ function SettingsPanel({ settings, onSaved }: { settings: AdminSettings; onSaved
 
       <section className={`${cardClass} p-5`}>
         <div className="mb-4 flex items-center gap-2">
-          <Wallet className="h-4 w-4 text-[#f97316]" />
+          <Wallet className="h-4 w-4 text-[#10b981]" />
           <p className="text-sm font-semibold text-white">Regras de saque</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -696,7 +696,7 @@ function SettingsPanel({ settings, onSaved }: { settings: AdminSettings; onSaved
 
       <section className={`${cardClass} p-5`}>
         <div className="mb-4 flex items-center gap-2">
-          <Wallet className="h-4 w-4 text-[#f97316]" />
+          <Wallet className="h-4 w-4 text-[#10b981]" />
           <p className="text-sm font-semibold text-white">Exibição no painel do afiliado</p>
         </div>
         <div className="flex flex-col gap-4">
@@ -755,7 +755,7 @@ function SettingsPanel({ settings, onSaved }: { settings: AdminSettings; onSaved
             <button
               type="button"
               onClick={() => set("next_payment_date", null)}
-              className="self-start text-[11px] text-[#f97316] hover:underline"
+              className="self-start text-[11px] text-[#10b981] hover:underline"
             >
               Limpar data e voltar ao cálculo automático
             </button>
@@ -765,7 +765,7 @@ function SettingsPanel({ settings, onSaved }: { settings: AdminSettings; onSaved
 
       <section className={`${cardClass} p-5`}>
         <div className="mb-4 flex items-center gap-2">
-          <Settings2 className="h-4 w-4 text-[#f97316]" />
+          <Settings2 className="h-4 w-4 text-[#10b981]" />
           <p className="text-sm font-semibold text-white">Programa</p>
         </div>
         <div className="flex flex-col gap-3">
@@ -789,7 +789,7 @@ function SettingsPanel({ settings, onSaved }: { settings: AdminSettings; onSaved
           type="button"
           onClick={save}
           disabled={saving}
-          className="flex h-11 items-center gap-2 rounded-lg bg-[#f97316] px-6 text-sm font-medium text-white disabled:opacity-40"
+          className="flex h-11 items-center gap-2 rounded-lg bg-[#10b981] px-6 text-sm font-medium text-white disabled:opacity-40"
         >
           {saving && <Loader2 className="h-4 w-4 animate-spin" />}
           Salvar configurações

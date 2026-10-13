@@ -181,8 +181,8 @@ export default function AffiliateLoginPage() {
           </Link>
         </div>
         <p className="flex items-center gap-4 text-sm text-gray-500">
-          <span>afiliados@urynbroker.com</span>
-          <span>© URYN-2026</span>
+          <span>afiliados@profittradingglobal.com</span>
+          <span>© Profit Trading Global 2026</span>
         </p>
       </footer>
     </div>

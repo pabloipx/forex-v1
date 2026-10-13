@@ -320,8 +320,8 @@ export default function IaBrokerPage() {
           <span className="text-sm font-medium">Voltar</span>
         </Link>
         <Image
-          src="/images/uryn-fox-logo.png"
-          alt="URYNBROKER"
+          src="/images/ptg-logo.svg"
+          alt="Profit Trading Global"
           width={140}
           height={34}
           className="h-8 w-auto"
@@ -381,13 +381,13 @@ function Welcome({ onContinue }: { onContinue: () => void }) {
         </div>
         <div
           className="absolute -top-24 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full blur-3xl pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(249,115,22,0.28), transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, rgba(16,185,129,0.28), transparent 70%)" }}
         />
 
         <div className="relative flex flex-col items-center">
           <div className="relative mb-6">
             <div className="absolute inset-0 rounded-2xl bg-primary/40 blur-2xl" />
-            <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-orange-600 flex items-center justify-center shadow-lg shadow-primary/30">
+            <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-emerald-600 flex items-center justify-center shadow-lg shadow-primary/30">
               <Bot className="w-10 h-10 text-white" />
             </div>
           </div>
@@ -398,7 +398,7 @@ function Welcome({ onContinue }: { onContinue: () => void }) {
           </span>
 
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground text-balance mb-2">
-            Robô de IA URYN
+            Robô de IA Profit Trading Global
           </h1>
           <p className="text-muted-foreground text-sm sm:text-base text-pretty mb-8 max-w-sm">
             A inteligência artificial que analisa o mercado e opera no gráfico por você, 24 horas por dia.
@@ -406,7 +406,7 @@ function Welcome({ onContinue }: { onContinue: () => void }) {
 
           <button
             onClick={onContinue}
-            className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-gradient-to-r from-primary to-orange-600 text-white font-semibold text-base shadow-lg shadow-primary/25 hover:brightness-110 active:scale-[0.99] transition"
+            className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-gradient-to-r from-primary to-emerald-600 text-white font-semibold text-base shadow-lg shadow-primary/25 hover:brightness-110 active:scale-[0.99] transition"
           >
             <Zap className="w-5 h-5" />
             Ativar
@@ -481,7 +481,7 @@ function ConnectForm({
                 Mercado ao vivo
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-balance">Robô de IA URYN</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-balance">Robô de IA Profit Trading Global</h1>
             <p className="text-muted-foreground text-sm mt-2 text-pretty max-w-xs">
               A inteligência artificial que analisa o mercado e faz entradas no gráfico por você.
             </p>

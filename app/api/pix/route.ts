@@ -33,7 +33,7 @@ function sanitizeEmail(raw: string | null | undefined, userId: string): string {
   const email = (raw || "").trim().toLowerCase()
   const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
   if (valid) return email
-  return `user-${userId.slice(0, 8)}@urynbrokertrade.com`
+  return `user-${userId.slice(0, 8)}@profittradingglobal.com`
 }
 
 // Telefone: recusado com "Invalid phone number" quando nao e um numero BR plausivel. Aceita 10

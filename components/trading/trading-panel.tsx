@@ -229,25 +229,25 @@ export function TradingPanel({
                     onClick={() => handleSelectAsset(asset.symbol)}
                     disabled={disabled}
                     className={`w-full flex items-center gap-4 px-4 py-4 hover:bg-white/5 transition-colors border-b border-white/5 ${
-                      isSelected ? "bg-[#f97316]/10" : ""
+                      isSelected ? "bg-[#10b981]/10" : ""
                     } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     <div className="relative">
                       <span className="text-3xl">{asset.icon}</span>
-                      <span className="absolute -bottom-1 -right-1 bg-orange-500 text-[7px] text-white px-1 rounded font-bold">
+                      <span className="absolute -bottom-1 -right-1 bg-emerald-500 text-[7px] text-white px-1 rounded font-bold">
                         OTC
                       </span>
                     </div>
 
                     <div className="flex-1 text-left">
                       <div className="text-white font-semibold">{asset.name}</div>
-                      <div className="text-[#f97316] text-sm font-medium">Payout 95%</div>
+                      <div className="text-[#10b981] text-sm font-medium">Payout 95%</div>
                     </div>
 
                     <div className="text-right">
                       <div className="text-white font-mono font-semibold">{formatPrice(assetPrice, asset.symbol)}</div>
                       <div
-                        className={`flex items-center justify-end gap-1 text-sm ${isUp ? "text-[#f97316]" : "text-[#EF4444]"}`}
+                        className={`flex items-center justify-end gap-1 text-sm ${isUp ? "text-[#10b981]" : "text-[#EF4444]"}`}
                       >
                         {isUp ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                         <span>
@@ -257,7 +257,7 @@ export function TradingPanel({
                       </div>
                     </div>
 
-                    {isSelected && <div className="w-2 h-2 rounded-full bg-[#f97316]" />}
+                    {isSelected && <div className="w-2 h-2 rounded-full bg-[#10b981]" />}
                   </button>
                 )
               })}
@@ -280,17 +280,17 @@ export function TradingPanel({
         >
           <div className="relative">
             <span className="text-2xl">{assetFlag}</span>
-            <span className="absolute -bottom-1 -right-1 bg-orange-500 text-[8px] text-white px-1 rounded font-bold">
+            <span className="absolute -bottom-1 -right-1 bg-emerald-500 text-[8px] text-white px-1 rounded font-bold">
               OTC
             </span>
           </div>
           <div className="flex-1 text-left">
             <div className="text-white font-bold text-sm">{assetDisplay}</div>
-            <div className="text-[#f97316] font-semibold text-xs">Payout {payout}%</div>
+            <div className="text-[#10b981] font-semibold text-xs">Payout {payout}%</div>
           </div>
           <div className="text-right">
             <div className="text-white/60 text-xs">Pagamento</div>
-            <div className="text-[#f97316] font-bold text-sm">{formatBRL(potentialPayment)}</div>
+            <div className="text-[#10b981] font-bold text-sm">{formatBRL(potentialPayment)}</div>
           </div>
         </button>
 
@@ -345,8 +345,8 @@ export function TradingPanel({
                   }}
                   onBlur={handleInputBlur}
                   onKeyDown={handleInputKeyDown}
-                  className="bg-transparent text-white font-bold text-xl w-24 text-center outline-none border-b-2 border-transparent focus:border-[#f97316] transition-colors"
-                  style={{ caretColor: "#f97316" }}
+                  className="bg-transparent text-white font-bold text-xl w-24 text-center outline-none border-b-2 border-transparent focus:border-[#10b981] transition-colors"
+                  style={{ caretColor: "#10b981" }}
                 />
               </div>
             </div>
@@ -367,7 +367,7 @@ export function TradingPanel({
                 disabled={quickAmount > balance}
                 className={`py-2 rounded text-xs font-semibold transition-all ${
                   amount === quickAmount
-                    ? "bg-[#f97316] text-white"
+                    ? "bg-[#10b981] text-white"
                     : quickAmount > balance
                       ? "bg-[#1F2933] text-white/30 cursor-not-allowed"
                       : "bg-[#1F2933] text-white/70 hover:bg-[#2a3441] hover:text-white"
@@ -383,7 +383,7 @@ export function TradingPanel({
           <button
             onClick={() => handleTrade("CALL")}
             disabled={!canTrade}
-            className={`w-full bg-[#f97316] hover:bg-[#fb923c] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 text-lg rounded-lg transition-all flex items-center justify-center gap-2 ${
+            className={`w-full bg-[#10b981] hover:bg-[#34d399] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 text-lg rounded-lg transition-all flex items-center justify-center gap-2 ${
               isSubmitting ? "animate-pulse" : "active:scale-[0.98]"
             }`}
           >
@@ -408,7 +408,7 @@ export function TradingPanel({
 
           <div className="text-center">
             <div className="text-white/50 text-xs">Seu pagamento</div>
-            <div className="text-[#f97316] font-bold text-lg">{formatBRL(potentialPayment)}</div>
+            <div className="text-[#10b981] font-bold text-lg">{formatBRL(potentialPayment)}</div>
           </div>
 
           <button

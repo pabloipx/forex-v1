@@ -6,17 +6,17 @@
 @custom-variant phone-portrait (@media (orientation: portrait) and (max-width: 767px));
 
 /* ========================================
-   URYN BROKER - PALETA DE CORES (TEMA LARANJA)
+   Profit Trading Global - PALETA DE CORES (TEMA VERDE)
    ======================================== */
 
 /* All colors defined statically in @theme inline below */
 
 /* Remove light mode - platform is always dark */
 .dark {
-  --primary: #f97316;
+  --primary: #10b981;
   --primary-foreground: #ffffff;
-  --primary-hover: #fb923c;
-  --primary-dark: #7c2d12;
+  --primary-hover: #34d399;
+  --primary-dark: #064e3b;
   --background: #0b0f14;
   --foreground: #ffffff;
   --card: #121826;
@@ -33,20 +33,20 @@
   --destructive-foreground: #ffffff;
   --border: #1f2933;
   --input: #121826;
-  --ring: #f97316;
-  --chart-1: #f97316;
+  --ring: #10b981;
+  --chart-1: #10b981;
   --chart-2: #ef4444;
-  --chart-3: #fb923c;
+  --chart-3: #34d399;
   --chart-4: #f59e0b;
-  --chart-5: #7c2d12;
-  --sidebar: #7c2d12;
+  --chart-5: #064e3b;
+  --sidebar: #064e3b;
   --sidebar-foreground: #ffffff;
-  --sidebar-primary: #f97316;
+  --sidebar-primary: #10b981;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #1f2933;
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: #1f2933;
-  --sidebar-ring: #f97316;
+  --sidebar-ring: #10b981;
 }
 
 @theme inline {
@@ -58,7 +58,7 @@
   --color-card-foreground: #ffffff;
   --color-popover: #121826;
   --color-popover-foreground: #ffffff;
-  --color-primary: #f97316;
+  --color-primary: #10b981;
   --color-primary-foreground: #ffffff;
   --color-secondary: #1f2933;
   --color-secondary-foreground: #ffffff;
@@ -70,29 +70,29 @@
   --color-destructive-foreground: #ffffff;
   --color-border: #1f2933;
   --color-input: #121826;
-  --color-ring: #f97316;
-  --color-chart-1: #f97316;
+  --color-ring: #10b981;
+  --color-chart-1: #10b981;
   --color-chart-2: #ef4444;
-  --color-chart-3: #fb923c;
+  --color-chart-3: #34d399;
   --color-chart-4: #f59e0b;
-  --color-chart-5: #7c2d12;
+  --color-chart-5: #064e3b;
   --radius-sm: 0.5rem;
   --radius-md: 0.625rem;
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
-  --color-sidebar: #7c2d12;
+  --color-sidebar: #064e3b;
   --color-sidebar-foreground: #ffffff;
-  --color-sidebar-primary: #f97316;
+  --color-sidebar-primary: #10b981;
   --color-sidebar-primary-foreground: #ffffff;
   --color-sidebar-accent: #1f2933;
   --color-sidebar-accent-foreground: #ffffff;
   --color-sidebar-border: #1f2933;
-  --color-sidebar-ring: #f97316;
+  --color-sidebar-ring: #10b981;
 
-  /* Custom URYN BROKER colors */
-  --color-atlas-blue: #f97316;
-  --color-atlas-orange-hover: #fb923c;
-  --color-atlas-orange-dark: #7c2d12;
+  /* Custom Profit Trading Global colors */
+  --color-atlas-blue: #10b981;
+  --color-atlas-orange-hover: #34d399;
+  --color-atlas-orange-dark: #064e3b;
   --color-atlas-bg: #0b0f14;
   --color-atlas-card: #121826;
   --color-atlas-alt: #1f2933;
@@ -366,8 +366,8 @@
 
 .hero-grid {
   background-image:
-    linear-gradient(to right, rgba(249, 115, 22, 0.12) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(249, 115, 22, 0.12) 1px, transparent 1px);
+    linear-gradient(to right, rgba(16,185,129, 0.12) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(16,185,129, 0.12) 1px, transparent 1px);
   background-size: 60px 60px;
   animation: hero-grid-slide 8s linear infinite;
   will-change: background-position;
@@ -445,8 +445,8 @@
 
 .tech-grid {
   background-image:
-    linear-gradient(to right, rgba(249, 115, 22, 0.18) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(249, 115, 22, 0.18) 1px, transparent 1px);
+    linear-gradient(to right, rgba(16,185,129, 0.18) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(16,185,129, 0.18) 1px, transparent 1px);
   background-size: 44px 44px;
   animation: tech-grid 3s linear infinite;
   will-change: background-position;
@@ -518,12 +518,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #f97316;
+  background: #10b981;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #fb923c;
+  background: #34d399;
 }
 
 input[type="number"]::-webkit-inner-spin-button,

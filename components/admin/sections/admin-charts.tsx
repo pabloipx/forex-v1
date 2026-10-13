@@ -43,7 +43,7 @@ function ChartCard({
     <div
       className={`relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0c121c] p-5 transition-colors hover:border-white/[0.1] ${className}`}
     >
-      <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-[#f97316]/[0.08] blur-3xl" />
+      <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-[#10b981]/[0.08] blur-3xl" />
       <div className="relative">
         <div className="mb-4 flex items-center justify-between">
           <div>
@@ -73,7 +73,7 @@ function TooltipBox({ active, payload, label, currency }: any) {
 }
 
 const DONUT_COLORS = ["#22c55e", "#ef4444"]
-const BAR_COLORS = ["#f97316", "#fb923c", "#fdba74", "#fdba74", "#fb923c"]
+const BAR_COLORS = ["#10b981", "#34d399", "#6ee7b7", "#6ee7b7", "#34d399"]
 
 export function AdminCharts({ refreshKey }: { refreshKey: number }) {
   const [data, setData] = useState<AnalyticsData | null>(null)
@@ -166,9 +166,9 @@ export function AdminCharts({ refreshKey }: { refreshKey: number }) {
               type="monotone"
               dataKey="lucro"
               name="Lucro"
-              stroke="#f97316"
+              stroke="#10b981"
               strokeWidth={2.5}
-              dot={{ r: 3, fill: "#f97316", strokeWidth: 0 }}
+              dot={{ r: 3, fill: "#10b981", strokeWidth: 0 }}
               activeDot={{ r: 5 }}
             />
           </LineChart>
@@ -212,7 +212,7 @@ export function AdminCharts({ refreshKey }: { refreshKey: number }) {
             <XAxis dataKey="date" stroke="#4b5563" fontSize={11} tickLine={false} axisLine={false} />
             <YAxis stroke="#4b5563" fontSize={11} tickLine={false} axisLine={false} width={40} />
             <Tooltip content={<TooltipBox />} cursor={{ fill: "#ffffff08" }} />
-            <Bar dataKey="trades" name="Trades" fill="#f97316" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="trades" name="Trades" fill="#10b981" radius={[4, 4, 0, 0]} />
             <Bar dataKey="usuarios" name="Novos usuários" fill="#22d3ee" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>

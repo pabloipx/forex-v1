@@ -235,7 +235,7 @@ export default function AffiliatePage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#0a0e17" }}>
-        <Loader2 className="w-8 h-8 text-[#f97316] animate-spin" />
+        <Loader2 className="w-8 h-8 text-[#10b981] animate-spin" />
       </div>
     )
   }
@@ -249,14 +249,14 @@ export default function AffiliatePage() {
               <p className="text-red-400 mb-4">{loadError}</p>
               <button
                 onClick={() => { setLoading(true); loadData() }}
-                className="px-6 py-3 rounded-xl bg-[#f97316] text-white font-medium"
+                className="px-6 py-3 rounded-xl bg-[#10b981] text-white font-medium"
               >
                 Tentar novamente
               </button>
             </>
           ) : (
             <>
-              <Loader2 className="w-8 h-8 text-[#f97316] animate-spin mx-auto mb-3" />
+              <Loader2 className="w-8 h-8 text-[#10b981] animate-spin mx-auto mb-3" />
               <p className="text-white/60">Carregando painel de afiliado...</p>
             </>
           )}
@@ -281,7 +281,7 @@ export default function AffiliatePage() {
       {/* Balance Card */}
       <div className="p-4">
         <div
-          className="relative overflow-hidden p-5 rounded-2xl border border-[#f97316]/25"
+          className="relative overflow-hidden p-5 rounded-2xl border border-[#10b981]/25"
           style={{ background: "linear-gradient(135deg, #f973161f 0%, #0a0e17 60%)" }}
         >
           {/* Malha tecnologica */}
@@ -289,14 +289,14 @@ export default function AffiliatePage() {
             className="absolute inset-0 opacity-[0.18] pointer-events-none"
             style={{
               backgroundImage:
-                "linear-gradient(rgba(249, 115, 22,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(249, 115, 22,0.4) 1px, transparent 1px)",
+                "linear-gradient(rgba(16,185,129,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.4) 1px, transparent 1px)",
               backgroundSize: "32px 32px",
               maskImage: "radial-gradient(ellipse 90% 80% at 100% 0%, #000 0%, transparent 70%)",
               WebkitMaskImage: "radial-gradient(ellipse 90% 80% at 100% 0%, #000 0%, transparent 70%)",
             }}
           />
           {/* Brilho */}
-          <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-[#f97316]/25 blur-3xl pointer-events-none" />
+          <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-[#10b981]/25 blur-3xl pointer-events-none" />
 
           <div className="relative">
             <p className="text-white/50 text-xs uppercase tracking-wider mb-1">Saldo disponível</p>
@@ -304,7 +304,7 @@ export default function AffiliatePage() {
               {"R$ " + affiliate.balance.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
             </p>
             <div className="mb-4 flex flex-wrap items-center gap-2">
-              <span className="rounded-md bg-[#f97316]/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#f97316]">
+              <span className="rounded-md bg-[#10b981]/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#10b981]">
                 {MODEL_LABEL[affiliate.commission_model]}
               </span>
               <p className="text-white/30 text-xs">{termsSummary(affiliate)}</p>
@@ -313,8 +313,8 @@ export default function AffiliatePage() {
             <div className="grid grid-cols-2 gap-2.5">
             <div className="p-3 rounded-xl bg-white/[0.04] border border-white/[0.06]">
               <div className="flex items-center gap-2 mb-1.5">
-                <div className="w-7 h-7 rounded-lg bg-[#f97316]/15 flex items-center justify-center">
-                  <Users className="w-3.5 h-3.5 text-[#f97316]" />
+                <div className="w-7 h-7 rounded-lg bg-[#10b981]/15 flex items-center justify-center">
+                  <Users className="w-3.5 h-3.5 text-[#10b981]" />
                 </div>
                 <p className="text-white/40 text-[10px] uppercase tracking-wider">Cadastrados</p>
               </div>
@@ -333,12 +333,12 @@ export default function AffiliatePage() {
             </div>
             <div className="p-3 rounded-xl bg-white/[0.04] border border-white/[0.06]">
               <div className="flex items-center gap-2 mb-1.5">
-                <div className="w-7 h-7 rounded-lg bg-[#f97316]/15 flex items-center justify-center">
-                  <TrendingUp className="w-3.5 h-3.5 text-[#f97316]" />
+                <div className="w-7 h-7 rounded-lg bg-[#10b981]/15 flex items-center justify-center">
+                  <TrendingUp className="w-3.5 h-3.5 text-[#10b981]" />
                 </div>
                 <p className="text-white/40 text-[10px] uppercase tracking-wider">Total ganho</p>
               </div>
-              <p className="text-[#f97316] text-xl font-bold">
+              <p className="text-[#10b981] text-xl font-bold">
                 {"R$ " + affiliate.total_earned.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
               </p>
               <p className="text-white/30 text-[10px]">em comissões</p>
@@ -372,7 +372,7 @@ export default function AffiliatePage() {
             </div>
             <button
               onClick={copyCode}
-              className="p-3 rounded-lg bg-[#f97316] hover:bg-[#f97316]/80 transition-colors flex-shrink-0"
+              className="p-3 rounded-lg bg-[#10b981] hover:bg-[#10b981]/80 transition-colors flex-shrink-0"
             >
               {copied ? <Check className="w-5 h-5 text-white" /> : <Copy className="w-5 h-5 text-white" />}
             </button>
@@ -403,7 +403,7 @@ export default function AffiliatePage() {
               className={
                 "flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors " +
                 (activeTab === tab.id
-                  ? "bg-[#f97316] text-white"
+                  ? "bg-[#10b981] text-white"
                   : "bg-[#121826] text-white/60 hover:text-white")
               }
             >
@@ -422,7 +422,7 @@ export default function AffiliatePage() {
 
             <div className="p-4 rounded-xl bg-[#121826] border border-[#1F2933]">
               <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
-                <Users className="w-4 h-4 text-[#f97316]" />
+                <Users className="w-4 h-4 text-[#10b981]" />
                 Resumo de indicados
               </h3>
               <div className="space-y-2">
@@ -436,12 +436,12 @@ export default function AffiliatePage() {
                 </div>
                 <div className="flex items-center justify-between py-2 border-b border-[#1F2933]">
                   <span className="text-white/50 text-sm">Modelo de comissão</span>
-                  <span className="text-[#f97316] font-bold">{MODEL_LABEL[affiliate.commission_model]}</span>
+                  <span className="text-[#10b981] font-bold">{MODEL_LABEL[affiliate.commission_model]}</span>
                 </div>
                 {affiliate.commission_model !== "cpa" && (
                   <div className="flex items-center justify-between py-2 border-b border-[#1F2933]">
                     <span className="text-white/50 text-sm">RevShare por depósito</span>
-                    <span className="text-[#f97316] font-bold">{affiliate.commission_rate + "%"}</span>
+                    <span className="text-[#10b981] font-bold">{affiliate.commission_rate + "%"}</span>
                   </div>
                 )}
                 {affiliate.commission_model !== "revshare" && (
@@ -449,7 +449,7 @@ export default function AffiliatePage() {
                     <span className="text-white/50 text-sm">
                       {"CPA por indicado (mín. " + brl(affiliate.cpa_min_deposit) + ")"}
                     </span>
-                    <span className="text-[#f97316] font-bold">{brl(affiliate.cpa_amount)}</span>
+                    <span className="text-[#10b981] font-bold">{brl(affiliate.cpa_amount)}</span>
                   </div>
                 )}
                 {affiliate.sub_percent > 0 && (
@@ -480,8 +480,8 @@ export default function AffiliatePage() {
                   "Saque suas comissões via PIX quando quiser (mínimo " + brl(affiliate.min_withdrawal) + ")",
                 ].map((text, i) => (
                   <div key={i} className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-[#f97316]/20 flex items-center justify-center flex-shrink-0">
-                      <span className="text-[#f97316] text-xs font-bold">{i + 1}</span>
+                    <div className="w-6 h-6 rounded-full bg-[#10b981]/20 flex items-center justify-center flex-shrink-0">
+                      <span className="text-[#10b981] text-xs font-bold">{i + 1}</span>
                     </div>
                     <p className="text-white/60 text-sm">{text}</p>
                   </div>
@@ -504,8 +504,8 @@ export default function AffiliatePage() {
                 <div key={referral.id} className="p-4 rounded-xl bg-[#121826] border border-[#1F2933]">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-[#f97316]/20 flex items-center justify-center">
-                        <Users className="w-5 h-5 text-[#f97316]" />
+                      <div className="w-10 h-10 rounded-full bg-[#10b981]/20 flex items-center justify-center">
+                        <Users className="w-5 h-5 text-[#10b981]" />
                       </div>
                       <div>
                         <p className="text-white font-medium">
@@ -520,7 +520,7 @@ export default function AffiliatePage() {
                       className={
                         "px-2 py-1 rounded-lg text-xs font-medium " +
                         (referral.status === "active"
-                          ? "bg-[#f97316]/20 text-[#f97316]"
+                          ? "bg-[#10b981]/20 text-[#10b981]"
                           : "bg-yellow-500/20 text-yellow-500")
                       }
                     >
@@ -536,7 +536,7 @@ export default function AffiliatePage() {
                     </div>
                     <div>
                       <p className="text-white/40 text-xs">Sua comissao</p>
-                      <p className="text-[#f97316] font-medium">
+                      <p className="text-[#10b981] font-medium">
                         {"R$ " + referral.total_commission.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                       </p>
                     </div>
@@ -552,10 +552,10 @@ export default function AffiliatePage() {
         {activeTab === "withdraw" && (
           <div className="space-y-4">
             {withdrawSuccess && (
-              <div className="p-4 rounded-xl bg-[#f97316]/20 border border-[#f97316]/30">
+              <div className="p-4 rounded-xl bg-[#10b981]/20 border border-[#10b981]/30">
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-[#f97316]" />
-                  <p className="text-[#f97316] font-medium">Saque solicitado com sucesso!</p>
+                  <CheckCircle className="w-5 h-5 text-[#10b981]" />
+                  <p className="text-[#10b981] font-medium">Saque solicitado com sucesso!</p>
                 </div>
               </div>
             )}
@@ -569,7 +569,7 @@ export default function AffiliatePage() {
                   value={withdrawAmount}
                   onChange={(e) => setWithdrawAmount(e.target.value)}
                   placeholder="0,00"
-                  className="w-full p-4 pl-12 rounded-xl bg-[#0a0e17] border border-[#1F2933] text-white text-lg font-bold focus:border-[#f97316] outline-none"
+                  className="w-full p-4 pl-12 rounded-xl bg-[#0a0e17] border border-[#1F2933] text-white text-lg font-bold focus:border-[#10b981] outline-none"
                 />
               </div>
               <p className="text-white/40 text-xs mt-2">
@@ -592,7 +592,7 @@ export default function AffiliatePage() {
                     className={
                       "p-2 rounded-lg text-xs font-medium transition-colors " +
                       (pixKeyType === type.value
-                        ? "bg-[#f97316] text-white"
+                        ? "bg-[#10b981] text-white"
                         : "bg-[#0a0e17] text-white/60 hover:text-white")
                     }
                   >
@@ -611,7 +611,7 @@ export default function AffiliatePage() {
                   pixKeyType === "email" ? "seu@email.com" :
                   pixKeyType === "phone" ? "(00) 00000-0000" : "Chave aleatoria"
                 }
-                className="w-full p-4 rounded-xl bg-[#0a0e17] border border-[#1F2933] text-white focus:border-[#f97316] outline-none"
+                className="w-full p-4 rounded-xl bg-[#0a0e17] border border-[#1F2933] text-white focus:border-[#10b981] outline-none"
               />
             </div>
 
@@ -651,7 +651,7 @@ export default function AffiliatePage() {
               onClick={handleWithdraw}
               disabled={withdrawing || !withdrawAmount || !pixKey}
               className="w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 disabled:opacity-50"
-              style={{ background: "linear-gradient(135deg, #f97316 0%, #fb923c 100%)" }}
+              style={{ background: "linear-gradient(135deg, #10b981 0%, #34d399 100%)" }}
             >
               {withdrawing ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -682,8 +682,8 @@ export default function AffiliatePage() {
                           <Clock className="w-5 h-5 text-yellow-500" />
                         </div>
                       ) : withdrawal.status === "completed" || withdrawal.status === "approved" ? (
-                        <div className="w-10 h-10 rounded-full bg-[#f97316]/20 flex items-center justify-center">
-                          <CheckCircle className="w-5 h-5 text-[#f97316]" />
+                        <div className="w-10 h-10 rounded-full bg-[#10b981]/20 flex items-center justify-center">
+                          <CheckCircle className="w-5 h-5 text-[#10b981]" />
                         </div>
                       ) : (
                         <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
@@ -711,7 +711,7 @@ export default function AffiliatePage() {
                         (withdrawal.status === "pending"
                           ? "bg-yellow-500/20 text-yellow-500"
                           : withdrawal.status === "completed" || withdrawal.status === "approved"
-                            ? "bg-[#f97316]/20 text-[#f97316]"
+                            ? "bg-[#10b981]/20 text-[#10b981]"
                             : "bg-red-500/20 text-red-500")
                       }
                     >
@@ -744,12 +744,12 @@ export default function AffiliatePage() {
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm p-4">
           <div className="relative flex h-24 w-24 items-center justify-center">
             {/* aneis pulsantes */}
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#f97316]/20" />
-            <span className="absolute inline-flex h-16 w-16 animate-ping rounded-full bg-[#f97316]/30 [animation-delay:200ms]" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#10b981]/20" />
+            <span className="absolute inline-flex h-16 w-16 animate-ping rounded-full bg-[#10b981]/30 [animation-delay:200ms]" />
             {/* anel giratorio */}
-            <span className="absolute h-24 w-24 rounded-full border-4 border-[#f97316]/20 border-t-[#f97316] animate-spin" />
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#f97316]/15 ring-1 ring-[#f97316]/40">
-              <Wallet className="h-7 w-7 text-[#f97316]" />
+            <span className="absolute h-24 w-24 rounded-full border-4 border-[#10b981]/20 border-t-[#10b981] animate-spin" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#10b981]/15 ring-1 ring-[#10b981]/40">
+              <Wallet className="h-7 w-7 text-[#10b981]" />
             </div>
           </div>
           <p className="mt-6 text-white font-semibold text-lg">Sacando...</p>
@@ -769,8 +769,8 @@ export default function AffiliatePage() {
             className="w-full max-w-md rounded-2xl border border-[#1F2933] bg-[#121826] p-6 text-center shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#f97316]/15 ring-1 ring-[#f97316]/30">
-              <Clock className="h-7 w-7 text-[#f97316]" />
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#10b981]/15 ring-1 ring-[#10b981]/30">
+              <Clock className="h-7 w-7 text-[#10b981]" />
             </div>
             <h3 className="text-white text-lg font-semibold mb-2">Saque em processamento</h3>
             <p className="text-white/60 text-sm leading-relaxed">
@@ -783,7 +783,7 @@ export default function AffiliatePage() {
             <div className="mt-5 space-y-2 rounded-xl border border-[#1F2933] bg-[#0a0e17] p-4 text-left">
               <div className="flex items-center justify-between">
                 <span className="text-white/50 text-sm">Valor a receber</span>
-                <span className="text-[#f97316] font-semibold">
+                <span className="text-[#10b981] font-semibold">
                   {"R$ " +
                     confirmation.netAmount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                 </span>
@@ -801,7 +801,7 @@ export default function AffiliatePage() {
             <button
               type="button"
               onClick={() => setConfirmation(null)}
-              className="mt-5 w-full rounded-xl bg-[#f97316] py-3 font-semibold text-white transition-colors hover:bg-[#c2410c]"
+              className="mt-5 w-full rounded-xl bg-[#10b981] py-3 font-semibold text-white transition-colors hover:bg-[#047857]"
             >
               Entendi
             </button>

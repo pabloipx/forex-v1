@@ -1172,7 +1172,7 @@ export default function TradePage() {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#0e0e0e" }}>
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-12 h-12 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
           <p className="text-gray-400 text-sm">Carregando...</p>
         </div>
       </div>
@@ -1382,7 +1382,7 @@ export default function TradePage() {
             {/* Wallet Button */}
             <button
               onClick={() => (window.location.href = "/deposit")}
-              className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center bg-[#f97316] hover:bg-[#fb923c] transition-all duration-200 shadow-lg shadow-[#f97316]/20 active:scale-95 shrink-0"
+              className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center bg-[#10b981] hover:bg-[#34d399] transition-all duration-200 shadow-lg shadow-[#10b981]/20 active:scale-95 shrink-0"
             >
               <Wallet className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
             </button>
@@ -1869,7 +1869,7 @@ export default function TradePage() {
                           Fechado
                         </span>
                       ) : (
-                        <span className="text-orange-500 font-semibold text-sm">{asset.payout}%</span>
+                        <span className="text-emerald-500 font-semibold text-sm">{asset.payout}%</span>
                       )}
                     </button>
                   )

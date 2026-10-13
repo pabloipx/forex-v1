@@ -11,20 +11,22 @@ export function HeroBackground() {
   const fastRef = useRef<HTMLDivElement>(null)
   const gridRef = useRef<HTMLDivElement>(null)
 
-  // Particulas geradas uma unica vez (posicao/tamanho/tempo aleatorios estaveis).
-  const particles = useMemo(
-    () =>
-      Array.from({ length: 26 }).map((_, i) => ({
-        id: i,
-        left: Math.random() * 100,
-        top: 40 + Math.random() * 55,
-        size: 2 + Math.random() * 4,
-        duration: 7 + Math.random() * 8,
-        delay: -Math.random() * 10,
-        opacity: 0.35 + Math.random() * 0.5,
-      })),
-    [],
-  )
+  // Pseudo-aleatorio deterministico: servidor e cliente geram os mesmos valores (evita erro de hidratacao).
+  const particles = useMemo(() => {
+    const rand = (seed: number) => {
+      const x = Math.sin(seed * 9301 + 49297) * 233280
+      return x - Math.floor(x)
+    }
+    return Array.from({ length: 26 }).map((_, i) => ({
+      id: i,
+      left: Number((rand(i * 6 + 1) * 100).toFixed(3)),
+      top: Number((40 + rand(i * 6 + 2) * 55).toFixed(3)),
+      size: Number((2 + rand(i * 6 + 3) * 4).toFixed(3)),
+      duration: Number((7 + rand(i * 6 + 4) * 8).toFixed(3)),
+      delay: Number((-rand(i * 6 + 5) * 10).toFixed(3)),
+      opacity: Number((0.35 + rand(i * 6 + 6) * 0.5).toFixed(3)),
+    }))
+  }, [])
 
   useEffect(() => {
     let raf = 0
@@ -69,23 +71,23 @@ export function HeroBackground() {
 
       {/* Camada lenta — orbe grande central */}
       <div ref={slowRef} className="absolute inset-0">
-        <div className="animate-hero-float-a absolute left-1/2 top-1/4 h-[34rem] w-[34rem] -translate-x-1/2 rounded-full bg-[#f97316]/25 blur-[140px]" />
+        <div className="animate-hero-float-a absolute left-1/2 top-1/4 h-[34rem] w-[34rem] -translate-x-1/2 rounded-full bg-[#10b981]/25 blur-[140px]" />
       </div>
 
       {/* Camada média — dois orbes laterais */}
       <div ref={midRef} className="absolute inset-0">
-        <div className="animate-hero-float-b absolute left-[8%] top-[30%] h-72 w-72 rounded-full bg-[#fb923c]/20 blur-[110px]" />
-        <div className="animate-hero-float-c absolute right-[6%] top-[45%] h-80 w-80 rounded-full bg-[#f97316]/18 blur-[120px]" />
+        <div className="animate-hero-float-b absolute left-[8%] top-[30%] h-72 w-72 rounded-full bg-[#34d399]/20 blur-[110px]" />
+        <div className="animate-hero-float-c absolute right-[6%] top-[45%] h-80 w-80 rounded-full bg-[#10b981]/18 blur-[120px]" />
       </div>
 
       {/* Camada rápida — brilho quente inferior + partículas */}
       <div ref={fastRef} className="absolute inset-0">
-        <div className="animate-hero-pulse absolute bottom-[12%] left-1/2 h-56 w-[38rem] max-w-[92%] -translate-x-1/2 rounded-full bg-[#fdba74]/15 blur-[100px]" />
+        <div className="animate-hero-pulse absolute bottom-[12%] left-1/2 h-56 w-[38rem] max-w-[92%] -translate-x-1/2 rounded-full bg-[#6ee7b7]/15 blur-[100px]" />
 
         {particles.map((p) => (
           <span
             key={p.id}
-            className="animate-hero-particle absolute rounded-full bg-[#fdba74] shadow-[0_0_8px_2px_rgba(251,146,60,0.6)]"
+            className="animate-hero-particle absolute rounded-full bg-[#6ee7b7] shadow-[0_0_8px_2px_rgba(52,211,153,0.6)]"
             style={
               {
                 left: `${p.left}%`,

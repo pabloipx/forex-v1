@@ -49,8 +49,8 @@ export function TradePanel({ asset, currentPrice, balance, isDemo, onTrade, acti
       {/* Price Display */}
       <div className="text-center">
         <div className="text-[#9CA3AF] text-xs mb-1">Preço Atual</div>
-        <div className="text-2xl font-mono font-bold text-[#f97316]">{formatPrice(currentPrice)}</div>
-        <div className="text-[#fb923c] text-sm font-medium">Payout: {asset.payout}%</div>
+        <div className="text-2xl font-mono font-bold text-[#10b981]">{formatPrice(currentPrice)}</div>
+        <div className="text-[#34d399] text-sm font-medium">Payout: {asset.payout}%</div>
       </div>
 
       {/* Amount */}
@@ -62,7 +62,7 @@ export function TradePanel({ asset, currentPrice, balance, isDemo, onTrade, acti
             type="number"
             value={amount}
             onChange={(e) => setAmount(Math.max(1, Number(e.target.value)))}
-            className="w-full pl-9 pr-4 py-3 bg-[#0B0F14] border border-[#1f2933] rounded-lg text-white font-mono text-lg focus:outline-none focus:border-[#f97316]"
+            className="w-full pl-9 pr-4 py-3 bg-[#0B0F14] border border-[#1f2933] rounded-lg text-white font-mono text-lg focus:outline-none focus:border-[#10b981]"
           />
         </div>
         <div className="flex flex-wrap gap-1.5 mt-2">
@@ -72,8 +72,8 @@ export function TradePanel({ asset, currentPrice, balance, isDemo, onTrade, acti
               onClick={() => setAmount(amt)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 amount === amt
-                  ? "bg-[#f97316] text-white"
-                  : "bg-[#1f2933] text-[#9CA3AF] hover:bg-[#f97316]/20 hover:text-white"
+                  ? "bg-[#10b981] text-white"
+                  : "bg-[#1f2933] text-[#9CA3AF] hover:bg-[#10b981]/20 hover:text-white"
               }`}
             >
               ${amt}
@@ -95,8 +95,8 @@ export function TradePanel({ asset, currentPrice, balance, isDemo, onTrade, acti
               onClick={() => setDuration(d.value)}
               className={`py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 duration === d.value
-                  ? "bg-[#f97316] text-white"
-                  : "bg-[#1f2933] text-[#9CA3AF] hover:bg-[#f97316]/20 hover:text-white"
+                  ? "bg-[#10b981] text-white"
+                  : "bg-[#1f2933] text-[#9CA3AF] hover:bg-[#10b981]/20 hover:text-white"
               }`}
             >
               {d.label}
@@ -108,7 +108,7 @@ export function TradePanel({ asset, currentPrice, balance, isDemo, onTrade, acti
       {/* Potential Profit */}
       <div className="bg-[#0B0F14] rounded-lg p-3 flex justify-between items-center">
         <span className="text-[#9CA3AF] text-sm">Lucro Potencial</span>
-        <span className="text-[#fb923c] font-mono font-bold">+${potentialProfit.toFixed(2)}</span>
+        <span className="text-[#34d399] font-mono font-bold">+${potentialProfit.toFixed(2)}</span>
       </div>
 
       {/* Error */}
@@ -123,7 +123,7 @@ export function TradePanel({ asset, currentPrice, balance, isDemo, onTrade, acti
         <button
           onClick={() => handleTrade("call")}
           disabled={amount > currentBalance}
-          className="flex items-center justify-center gap-2 py-4 bg-[#fb923c] hover:bg-[#f97316] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-white font-bold text-lg transition-colors"
+          className="flex items-center justify-center gap-2 py-4 bg-[#34d399] hover:bg-[#10b981] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-white font-bold text-lg transition-colors"
         >
           <ArrowUp className="w-5 h-5" />
           CALL

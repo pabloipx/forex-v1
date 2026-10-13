@@ -195,7 +195,7 @@ export function TraderIAWatermark({ isActive, onSignalGenerated }: TraderIAWater
               draggable={false}
             />
           </div>
-          <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-[#f97316] rounded-full border-2 border-[#0f1419] flex items-center justify-center">
+          <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-[#10b981] rounded-full border-2 border-[#0f1419] flex items-center justify-center">
             <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
           </div>
         </div>
@@ -220,7 +220,7 @@ export function TraderIAWatermark({ isActive, onSignalGenerated }: TraderIAWater
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#f97316] rounded-full border-2 border-[#0a0e13] flex items-center justify-center">
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#10b981] rounded-full border-2 border-[#0a0e13] flex items-center justify-center">
                     <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
                   </div>
                 </div>
@@ -231,8 +231,8 @@ export function TraderIAWatermark({ isActive, onSignalGenerated }: TraderIAWater
                     className="h-6 object-contain"
                   />
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[#f97316] text-xs font-medium flex items-center gap-1.5">
-                      <span className="w-2 h-2 bg-[#f97316] rounded-full animate-pulse" />
+                    <span className="text-[#10b981] text-xs font-medium flex items-center gap-1.5">
+                      <span className="w-2 h-2 bg-[#10b981] rounded-full animate-pulse" />
                       Online
                     </span>
                     <span className="text-white/30 text-xs">•</span>
@@ -275,14 +275,14 @@ export function TraderIAWatermark({ isActive, onSignalGenerated }: TraderIAWater
                 <div
                   className={`relative p-5 rounded-2xl border animate-in slide-in-from-bottom-4 duration-500 overflow-hidden ${
                     currentSignal.type === "CALL"
-                      ? "bg-gradient-to-br from-[#f97316]/20 via-[#f97316]/10 to-transparent border-[#f97316]/50"
+                      ? "bg-gradient-to-br from-[#10b981]/20 via-[#10b981]/10 to-transparent border-[#10b981]/50"
                       : "bg-gradient-to-br from-[#EF4444]/20 via-[#EF4444]/10 to-transparent border-[#EF4444]/50"
                   }`}
                 >
                   {/* Glow effect */}
                   <div
                     className={`absolute inset-0 opacity-30 blur-2xl ${
-                      currentSignal.type === "CALL" ? "bg-[#f97316]" : "bg-[#EF4444]"
+                      currentSignal.type === "CALL" ? "bg-[#10b981]" : "bg-[#EF4444]"
                     }`}
                     style={{ transform: "scale(0.5)", transformOrigin: "center" }}
                   />
@@ -293,18 +293,18 @@ export function TraderIAWatermark({ isActive, onSignalGenerated }: TraderIAWater
                       <div className="flex items-center gap-2">
                         <div
                           className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            currentSignal.type === "CALL" ? "bg-[#f97316]/20" : "bg-[#EF4444]/20"
+                            currentSignal.type === "CALL" ? "bg-[#10b981]/20" : "bg-[#EF4444]/20"
                           }`}
                         >
                           <Volume2
-                            className={`w-4 h-4 ${currentSignal.type === "CALL" ? "text-[#f97316]" : "text-[#EF4444]"}`}
+                            className={`w-4 h-4 ${currentSignal.type === "CALL" ? "text-[#10b981]" : "text-[#EF4444]"}`}
                           />
                         </div>
                         <span className="text-white/60 text-sm font-medium">Novo Sinal</span>
                       </div>
                       <div
                         className={`px-3 py-1 rounded-full text-xs font-bold ${
-                          currentSignal.type === "CALL" ? "bg-[#f97316] text-white" : "bg-[#EF4444] text-white"
+                          currentSignal.type === "CALL" ? "bg-[#10b981] text-white" : "bg-[#EF4444] text-white"
                         }`}
                       >
                         {currentSignal.confidence}%
@@ -319,13 +319,13 @@ export function TraderIAWatermark({ isActive, onSignalGenerated }: TraderIAWater
                       <div className="text-right">
                         <div className="flex items-center gap-2 justify-end">
                           {currentSignal.type === "CALL" ? (
-                            <TrendingUp className="w-6 h-6 text-[#f97316]" />
+                            <TrendingUp className="w-6 h-6 text-[#10b981]" />
                           ) : (
                             <TrendingDown className="w-6 h-6 text-[#EF4444]" />
                           )}
                           <p
                             className={`font-black text-2xl ${
-                              currentSignal.type === "CALL" ? "text-[#f97316]" : "text-[#EF4444]"
+                              currentSignal.type === "CALL" ? "text-[#10b981]" : "text-[#EF4444]"
                             }`}
                           >
                             {currentSignal.type === "CALL" ? "COMPRA" : "VENDA"}

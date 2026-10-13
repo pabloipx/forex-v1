@@ -151,7 +151,7 @@ function SignUpForm() {
             <div className="flex-1 overflow-y-auto p-4 text-gray-600 text-sm leading-relaxed space-y-3">
               <p className="text-xs text-gray-400">Última atualização: Janeiro de 2026</p>
               <p>
-                Ao acessar, cadastrar-se ou utilizar a plataforma URYN BROKER, o usuário declara que leu, compreendeu e
+                Ao acessar, cadastrar-se ou utilizar a plataforma Profit Trading Global, o usuário declara que leu, compreendeu e
                 concorda integralmente com os presentes Termos e Condições.
               </p>
               <h3 className="text-gray-800 font-semibold pt-1">1. Elegibilidade</h3>
@@ -159,7 +159,7 @@ function SignUpForm() {
               <h3 className="text-gray-800 font-semibold pt-1">2. Cadastro</h3>
               <p>O usuário compromete-se a fornecer informações verdadeiras e completas.</p>
               <h3 className="text-gray-800 font-semibold pt-1">3. Riscos</h3>
-              <p>Operações financeiras envolvem riscos e podem resultar em perdas. A URYN BROKER não garante lucros.</p>
+              <p>Operações financeiras envolvem riscos e podem resultar em perdas. A Profit Trading Global não garante lucros.</p>
             </div>
             <div className="p-4 border-t border-gray-200">
               <button
@@ -176,7 +176,7 @@ function SignUpForm() {
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-3 border-b border-gray-100 bg-gray-50/60">
         <Link href="/" className="flex items-center">
-          <Image src="/images/uryn-fox-logo.png" alt="URYNBROKER" width={150} height={38} className="h-9 w-auto" unoptimized />
+          <Image src="/images/ptg-logo.svg" alt="Profit Trading Global" width={150} height={38} className="h-9 w-auto" unoptimized />
         </Link>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 text-gray-600 text-sm font-medium">

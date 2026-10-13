@@ -20,7 +20,7 @@ interface KaykoRobotProps {
   expirySeconds?: number
 }
 
-const ACCENT = "#F97316"
+const ACCENT = "#10b981"
 
 interface KaykoScore {
   win: number

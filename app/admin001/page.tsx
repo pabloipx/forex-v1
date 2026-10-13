@@ -65,8 +65,8 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Image
-            src="/images/uryn-fox-logo.png"
-            alt="URYNBROKER"
+            src="/images/ptg-logo.svg"
+            alt="Profit Trading Global"
             width={240}
             height={64}
             priority
@@ -111,7 +111,7 @@ export default function AdminLoginPage() {
           <Button
             type="submit"
             disabled={isLoading || !email || !password}
-            className="w-full h-12 bg-gradient-to-r from-[#f97316] to-[#fb923c] hover:from-[#c2410c] hover:to-[#f97316] text-white font-semibold"
+            className="w-full h-12 bg-gradient-to-r from-[#10b981] to-[#34d399] hover:from-[#047857] hover:to-[#10b981] text-white font-semibold"
           >
             {isLoading ? "Entrando..." : "Entrar"}
           </Button>

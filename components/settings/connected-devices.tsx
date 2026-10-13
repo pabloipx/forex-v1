@@ -95,7 +95,7 @@ export function ConnectedDevices({ onBack }: Props) {
 
         {loading ? (
           <div className="flex justify-center py-10">
-            <Loader2 className="w-6 h-6 text-[#f97316] animate-spin" />
+            <Loader2 className="w-6 h-6 text-[#10b981] animate-spin" />
           </div>
         ) : sessions.length === 0 ? (
           <p className="text-center text-[#6B7280] py-10">Nenhum dispositivo registrado ainda.</p>
