@@ -8,7 +8,13 @@ let clientInstance: ReturnType<typeof createBrowserClient> | null = null
 export function createClient() {
   if (clientInstance) return clientInstance
 
-  clientInstance = createBrowserClient(getSupabaseUrl(), getSupabasePublishableKey())
+  // Sem as variáveis (ex.: build/prerender na Vercel antes de configurar o
+  // Supabase) o createBrowserClient lança erro e derruba o build. Usamos valores
+  // inertes: as chamadas apenas falham em tempo de execução e as telas tratam o erro.
+  clientInstance = createBrowserClient(
+    getSupabaseUrl() || "https://not-configured.supabase.co",
+    getSupabasePublishableKey() || "not-configured",
+  )
   return clientInstance
 }
 

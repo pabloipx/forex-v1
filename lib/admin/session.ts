@@ -26,10 +26,28 @@ function getSecret(): string {
     .filter(Boolean)
     .join(":")
 
+  if (!material && isAdminTestMode()) return "fx-admin-test-mode-secret"
   return material
 }
 
+const TEST_ADMIN_EMAIL = "admin@admin.com"
+const TEST_ADMIN_PASSWORD = "Admin123!"
+
+/** Sem banco e sem ADMIN_EMAIL configurados, o painel aceita o login de teste. */
+export function isAdminTestMode(): boolean {
+  return !process.env.ADMIN_EMAIL && !(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SECRET_KEY)
+}
+
+export function getAdminCredentials() {
+  if (isAdminTestMode()) return { email: TEST_ADMIN_EMAIL, password: TEST_ADMIN_PASSWORD }
+  return {
+    email: (process.env.ADMIN_EMAIL || "").trim().toLowerCase(),
+    password: process.env.ADMIN_PASSWORD || "",
+  }
+}
+
 export function isAdminAuthConfigured(): boolean {
+  if (isAdminTestMode()) return true
   return !!(process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD && getSecret())
 }
 
@@ -85,7 +103,7 @@ export async function verifyAdminSessionValue(value: string | undefined): Promis
   const expiry = Number(expiresAt)
   if (!Number.isFinite(expiry) || Date.now() > expiry) return false
 
-  return email === (process.env.ADMIN_EMAIL || "").trim().toLowerCase()
+  return email === getAdminCredentials().email
 }
 
 /**
