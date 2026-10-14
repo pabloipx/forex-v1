@@ -23,7 +23,7 @@ export function TradingHeader({ balance, isDemo, payout, onToggleDemo }: Trading
             <div className="w-1 h-6 bg-[#10b981] rounded-sm" />
           </div>
           <span className="text-white font-bold text-lg">
-            Profit Trading Global<span className="text-[#34d399]"> BROKER</span>
+            Krypto<span className="text-[#2190FF]">bit</span>
           </span>
         </Link>
 

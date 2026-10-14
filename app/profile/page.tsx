@@ -3,7 +3,7 @@ import { Suspense } from "react"
 import { ProfileView } from "@/components/profile/profile-view"
 
 export const metadata: Metadata = {
-  title: "Meu perfil | Profit Trading Global",
+  title: "Meu perfil | Kryptobit",
   description: "Dados pessoais, estatísticas de trading, preferências e segurança da conta.",
 }
 

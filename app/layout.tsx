@@ -7,10 +7,10 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Profit Trading Global — Forex e Futuros",
-  description: "Negocie Forex, metais e futuros perpétuos com alavancagem na Profit Trading Global",
-  generator: "Profit Trading Global",
-  icons: { icon: "/images/ptg-logo.svg" },
+  title: "Kryptobit — Forex e Futuros",
+  description: "Negocie Forex, metais e futuros perpétuos com alavancagem na Kryptobit",
+  generator: "Kryptobit",
+  icons: { icon: "/images/kryptobit-icon.png", apple: "/images/kryptobit-icon.png" },
 }
 
 export const viewport: Viewport = {

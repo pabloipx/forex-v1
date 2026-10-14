@@ -1785,11 +1785,11 @@ function ChartCore({
 
   return (
     <div className="relative w-full h-full overflow-hidden" style={{ backgroundColor: "#0d0d0f" }}>
-      {/* Marca d'agua Profit Trading Global no fundo do grafico */}
+      {/* Marca d'agua Kryptobit no fundo do grafico */}
       <div
         className="absolute inset-0 z-0 pointer-events-none"
         style={{
-          backgroundImage: "url(/images/ptg-logo.svg)",
+          backgroundImage: "url(/images/kryptobit-logo.png)",
           backgroundRepeat: "no-repeat",
           backgroundPosition: "center 45%",
           backgroundSize: "55% auto",

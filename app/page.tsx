@@ -8,9 +8,9 @@ import { MarketsSection } from "@/components/landing/markets-section"
 import { MAKER_FEE, MARKETS, TAKER_FEE } from "@/lib/futures/markets"
 
 export const metadata = {
-  title: "Profit Trading Global — Forex e Futuros com alavancagem",
+  title: "Kryptobit — Forex e Futuros com alavancagem",
   description:
-    "Negocie Forex, metais e futuros perpétuos de cripto com alavancagem, TP/SL e execução instantânea na Profit Trading Global.",
+    "Negocie Forex, metais e futuros perpétuos de cripto com alavancagem, TP/SL e execução instantânea na Kryptobit.",
 }
 
 const maxLeverage = Math.max(...MARKETS.map((m) => m.maxLeverage))
@@ -60,7 +60,7 @@ export default function HomePage() {
               Forex · Metais · Futuros perpétuos
             </p>
             <h1 className="mt-6 text-balance text-4xl font-extrabold leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-6xl">
-              Opere os mercados globais com a <span className="text-[#34d399]">Profit Trading Global</span>
+              Opere os mercados globais com a <span className="text-foreground">Krypto</span><span className="text-[#2190FF]">bit</span>
             </h1>
             <p className="mt-6 max-w-xl text-pretty text-base leading-relaxed text-white/65 md:text-lg">
               EUR/USD, ouro, Bitcoin e mais {MARKETS.length - 3} instrumentos em um terminal profissional: gráfico em tempo
@@ -106,7 +106,7 @@ export default function HomePage() {
           <div className="mt-12 overflow-hidden rounded-2xl border border-white/10">
             <img
               src="/images/ptg-showcase.png"
-              alt="Terminal da Profit Trading Global com gráfico de EUR/USD, livro de ofertas e painel de ordens Long e Short"
+              alt="Terminal da Kryptobit com gráfico de EUR/USD, livro de ofertas e painel de ordens Long e Short"
               className="w-full"
             />
           </div>
@@ -166,10 +166,10 @@ export default function HomePage() {
 
       <footer className="border-t border-white/10 px-6 py-10">
         <div className="mx-auto flex max-w-7xl flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-          <img src="/images/ptg-logo.svg" alt="Profit Trading Global" className="h-8 w-auto self-start" />
+          <img src="/images/kryptobit-logo.png" alt="Kryptobit" className="h-8 w-auto self-start" />
           <p className="max-w-xl text-xs leading-relaxed text-white/40">
             Negociar derivativos alavancados envolve alto risco e pode resultar na perda de todo o capital investido. ©{" "}
-            {new Date().getFullYear()} Profit Trading Global. Todos os direitos reservados.
+            {new Date().getFullYear()} Kryptobit. Todos os direitos reservados.
           </p>
         </div>
       </footer>

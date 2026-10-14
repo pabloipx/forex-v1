@@ -23,7 +23,7 @@ export function SectionOffers({ affiliate }: SectionOffersProps) {
     offers.push({
       id: "revenue",
       model: "revenue",
-      title: `Profit Trading Global · ${affiliate.commission_rate}% · Revenue`,
+      title: `Kryptobit · ${affiliate.commission_rate}% · Revenue`,
       rate: `${affiliate.commission_rate}%`,
       payout: `${affiliate.commission_rate}%`,
     })
@@ -33,7 +33,7 @@ export function SectionOffers({ affiliate }: SectionOffersProps) {
     offers.push({
       id: "cpa",
       model: "cpa",
-      title: `Profit Trading Global · ${brl(cpaAmount)} · CPA`,
+      title: `Kryptobit · ${brl(cpaAmount)} · CPA`,
       rate: brl(cpaAmount),
       payout: brl(cpaAmount),
     })

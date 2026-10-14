@@ -10,7 +10,7 @@ const supportFlow: Record<
   { message: string; options?: { label: string; value: string }[]; input?: boolean; inputPlaceholder?: string }
 > = {
   START: {
-    message: `👋 Olá! Bem-vindo ao suporte da Profit Trading Global.
+    message: `👋 Olá! Bem-vindo ao suporte da Kryptobit.
 
 Antes de começarmos, como posso te chamar?`,
     input: true,
@@ -672,7 +672,7 @@ export default function SupportPage() {
             <MessageCircle className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-white font-semibold">Suporte Profit Trading Global</h1>
+            <h1 className="text-white font-semibold">Suporte Kryptobit</h1>
             <p className="text-xs text-[#34d399]">{isTyping ? "Digitando..." : "Online agora"}</p>
           </div>
         </div>

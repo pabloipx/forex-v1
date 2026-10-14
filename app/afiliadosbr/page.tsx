@@ -182,7 +182,7 @@ export default function AffiliateLoginPage() {
         </div>
         <p className="flex items-center gap-4 text-sm text-gray-500">
           <span>afiliados@profittradingglobal.com</span>
-          <span>© Profit Trading Global 2026</span>
+          <span>© Kryptobit 2026</span>
         </p>
       </footer>
     </div>

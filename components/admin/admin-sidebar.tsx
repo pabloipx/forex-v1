@@ -68,8 +68,8 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
       {/* Logo */}
       <div className="p-4 border-b border-[#1E2430]">
         <Image
-          src="/images/ptg-logo.svg"
-          alt="Profit Trading Global"
+          src="/images/kryptobit-logo.png"
+          alt="Kryptobit"
           width={150}
           height={40}
           priority

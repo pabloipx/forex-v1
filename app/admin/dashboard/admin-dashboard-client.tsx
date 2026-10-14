@@ -978,8 +978,8 @@ export default function AdminDashboardClient() {
           <Menu className="w-6 h-6 text-white" />
         </button>
         <Image
-          src="/images/ptg-logo.svg"
-          alt="Profit Trading Global"
+          src="/images/kryptobit-logo.png"
+          alt="Kryptobit"
           width={130}
           height={35}
           priority
@@ -996,8 +996,8 @@ export default function AdminDashboardClient() {
           <div className="w-64 h-full bg-[#0B0F14] border-r border-[#1E2633] p-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-8">
               <Image
-          src="/images/ptg-logo.svg"
-          alt="Profit Trading Global"
+          src="/images/kryptobit-logo.png"
+          alt="Kryptobit"
           width={130}
           height={35}
           priority
@@ -1038,8 +1038,8 @@ export default function AdminDashboardClient() {
         <div className="hidden lg:flex lg:flex-col w-64 min-h-screen border-r border-[#1E2633] p-4">
           <div className="mb-8">
             <Image
-              src="/images/ptg-logo.svg"
-              alt="Profit Trading Global"
+              src="/images/kryptobit-logo.png"
+              alt="Kryptobit"
               width={180}
               height={48}
               priority

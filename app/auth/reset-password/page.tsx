@@ -93,8 +93,8 @@ export default function ResetPasswordPage() {
       <header className="flex items-center justify-between px-5 py-4">
         <Link href="/" className="flex items-center">
           <Image
-            src="/images/kodilex-logo.png"
-            alt="Profit Trading Global"
+            src="/images/kryptobit-logo.png"
+            alt="Kryptobit"
             width={160}
             height={40}
             className="h-10 w-auto"

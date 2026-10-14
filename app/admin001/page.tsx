@@ -65,8 +65,8 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Image
-            src="/images/ptg-logo.svg"
-            alt="Profit Trading Global"
+            src="/images/kryptobit-logo.png"
+            alt="Kryptobit"
             width={240}
             height={64}
             priority

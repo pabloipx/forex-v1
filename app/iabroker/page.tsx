@@ -320,8 +320,8 @@ export default function IaBrokerPage() {
           <span className="text-sm font-medium">Voltar</span>
         </Link>
         <Image
-          src="/images/ptg-logo.svg"
-          alt="Profit Trading Global"
+          src="/images/kryptobit-logo.png"
+          alt="Kryptobit"
           width={140}
           height={34}
           className="h-8 w-auto"
@@ -398,7 +398,7 @@ function Welcome({ onContinue }: { onContinue: () => void }) {
           </span>
 
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground text-balance mb-2">
-            Robô de IA Profit Trading Global
+            Robô de IA Kryptobit
           </h1>
           <p className="text-muted-foreground text-sm sm:text-base text-pretty mb-8 max-w-sm">
             A inteligência artificial que analisa o mercado e opera no gráfico por você, 24 horas por dia.
@@ -481,7 +481,7 @@ function ConnectForm({
                 Mercado ao vivo
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-balance">Robô de IA Profit Trading Global</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-balance">Robô de IA Kryptobit</h1>
             <p className="text-muted-foreground text-sm mt-2 text-pretty max-w-xs">
               A inteligência artificial que analisa o mercado e faz entradas no gráfico por você.
             </p>

@@ -36,7 +36,7 @@ export function ProfileView() {
           <ChevronLeft className="size-4" aria-hidden /> Voltar ao terminal
         </Link>
         <span className="text-lg font-extrabold tracking-tight">
-          Profit Trading Global<span className="text-primary">.</span>
+          Krypto<span className="text-[#2190FF]">bit</span>
         </span>
       </header>
 

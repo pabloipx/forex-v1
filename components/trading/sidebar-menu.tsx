@@ -90,8 +90,8 @@ function SidebarMenuBase({
         <div className="p-5 pb-0 flex-shrink-0">
           <div className="flex items-center justify-between mb-5">
             <img
-              src="/images/ptg-logo.svg"
-              alt="Profit Trading Global"
+              src="/images/kryptobit-logo.png"
+              alt="Kryptobit"
               className="h-8 w-auto"
             />
             <button

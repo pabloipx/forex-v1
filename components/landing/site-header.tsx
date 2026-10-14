@@ -11,8 +11,8 @@ export function SiteHeader() {
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-4 py-4">
       <div className="mx-auto flex max-w-7xl items-center justify-between rounded-full border border-white/10 bg-[#06100c]/75 px-4 py-2.5 backdrop-blur-xl">
-        <Link href="/" className="flex items-center" aria-label="Profit Trading Global — início">
-          <img src="/images/ptg-logo.svg" alt="Profit Trading Global" className="h-8 w-auto sm:h-9" />
+        <Link href="/" className="flex items-center" aria-label="Kryptobit — início">
+          <img src="/images/kryptobit-logo.png" alt="Kryptobit" className="h-8 w-auto sm:h-9" />
         </Link>
 
         <nav aria-label="Principal" className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 lg:flex">
