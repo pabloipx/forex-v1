@@ -2,7 +2,19 @@
 
 import useSWR, { mutate } from "swr"
 
-export type AdminView = "overview" | "positions" | "orders" | "users" | "markets" | "kyc" | "adjustments"
+export type AdminView =
+  | "overview"
+  | "positions"
+  | "orders"
+  | "users"
+  | "markets"
+  | "kyc"
+  | "adjustments"
+  | "withdrawals"
+  | "deposits"
+
+export const brl = (v: number | null | undefined) =>
+  v == null || !Number.isFinite(v) ? "—" : v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
 
 class AdminFetchError extends Error {
   constructor(message: string, public status: number) {

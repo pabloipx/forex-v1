@@ -1,7 +1,7 @@
 "use client"
 
 import { Badge, DataTable, ErrorNote, Panel, Stat, td } from "./ui"
-import { signedUsd, usd, useAdminView } from "./use-admin"
+import { brl, signedUsd, usd, useAdminView } from "./use-admin"
 import { cn } from "@/lib/utils"
 
 interface Overview {
@@ -22,6 +22,13 @@ interface Overview {
   fees30: number
   houseResult30: number
   liquidations30: number
+  cash: {
+    pendingWithdrawals: number
+    pendingWithdrawalsAmount: number
+    pendingDeposits: number
+    deposits24: number
+    withdrawalsPaid24: number
+  } | null
   exposure: { symbol: string; category: string; long: number; short: number; net: number; upnl: number; count: number }[]
 }
 
@@ -50,6 +57,20 @@ export function OverviewSection() {
         <Stat label="Usuários" value={String(data.users)} hint={`${data.blockedUsers} bloqueados · ${data.pendingKyc} KYC pendentes`} />
         <Stat label="Liquidações (30d)" value={String(data.liquidations30)} tone={data.liquidations30 ? "down" : undefined} hint={`PnL clientes 24h: ${signedUsd(data.clientRealized24)}`} />
       </div>
+
+      {data.cash && (
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <Stat
+            label="Saques a processar"
+            value={String(data.cash.pendingWithdrawals)}
+            tone={data.cash.pendingWithdrawals ? "accent" : undefined}
+            hint={brl(data.cash.pendingWithdrawalsAmount)}
+          />
+          <Stat label="Depósitos pendentes" value={String(data.cash.pendingDeposits)} tone={data.cash.pendingDeposits ? "accent" : undefined} />
+          <Stat label="Depósitos 24h (real)" value={brl(data.cash.deposits24)} tone="up" />
+          <Stat label="Saques pagos 24h" value={brl(data.cash.withdrawalsPaid24)} tone="down" />
+        </div>
+      )}
 
       <Panel title="Exposição líquida por mercado (conta real)">
         <DataTable

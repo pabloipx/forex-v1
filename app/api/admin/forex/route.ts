@@ -14,6 +14,10 @@ import {
   listOpenOrders,
   listOpenPositions,
   listUsers,
+  listWithdrawals,
+  listDeposits,
+  reviewWithdrawal,
+  reviewDeposit,
   reviewKyc,
   setUserBlocked,
   signKycFile,
@@ -31,6 +35,8 @@ const views = {
   markets: listMarketSettings,
   kyc: listKyc,
   adjustments: listAdjustments,
+  withdrawals: listWithdrawals,
+  deposits: listDeposits,
 } as const
 
 export async function GET(request: NextRequest) {
@@ -59,6 +65,13 @@ const actionSchema = z.discriminatedUnion("action", [
   }),
   z.object({ action: z.literal("review_kyc"), id: uuid, approve: z.boolean(), reason: z.string().max(300).nullish() }),
   z.object({ action: z.literal("kyc_file"), path: z.string().min(1).max(500) }),
+  z.object({
+    action: z.literal("review_withdrawal"),
+    id: z.string().uuid(),
+    status: z.enum(["approved", "paid", "rejected"]),
+    reason: z.string().max(300).nullish(),
+  }),
+  z.object({ action: z.literal("review_deposit"), id: z.string().uuid(), confirm: z.boolean() }),
   z.object({
     action: z.literal("update_market"),
     symbol: z.string().refine((s) => s in MARKET_MAP, "Mercado inválido"),
@@ -91,6 +104,10 @@ export async function POST(request: NextRequest) {
       case "review_kyc":
         await reviewKyc(a.id, a.approve, a.reason ?? null)
         return NextResponse.json({ success: true })
+      case "review_withdrawal":
+        return NextResponse.json({ success: true, status: await reviewWithdrawal(a.id, a.status, a.reason ?? null) })
+      case "review_deposit":
+        return NextResponse.json({ success: true, status: await reviewDeposit(a.id, a.confirm) })
       case "kyc_file":
         return NextResponse.json({ success: true, url: await signKycFile(a.path) })
       case "update_market": {

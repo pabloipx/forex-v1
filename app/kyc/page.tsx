@@ -66,8 +66,8 @@ export default function KYCPage() {
 
       // Check if there are actual documents submitted
       const { data: kycRequests, error: kycError } = await supabase
-        .from("kyc_requests")
-        .select("id, status, rejection_reason, document_front_url")
+        .from("kyc_submissions")
+        .select("id, status, rejection_reason:review_notes, document_front_url:document_front_path")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(1)

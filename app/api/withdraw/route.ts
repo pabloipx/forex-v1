@@ -193,12 +193,11 @@ export async function POST(request: NextRequest) {
         amount,
         status: "pending",
         method,
-        pix_key: method === "pix" ? pixKey : null,
-        pix_key_type: method === "pix" ? pixKeyType : null,
-        crypto_type: method === "crypto" ? cryptoType : null,
-        crypto_wallet: method === "crypto" ? cryptoWallet : null,
-        holder_name: holderName || null,
-        document: document || null,
+        currency: "BRL",
+        destination:
+          method === "pix"
+            ? { pix_key: pixKey, pix_key_type: pixKeyType, holder_name: holderName || null, document: document || null }
+            : { crypto_type: cryptoType, wallet: cryptoWallet, holder_name: holderName || null },
       })
       .select("id")
       .single()
