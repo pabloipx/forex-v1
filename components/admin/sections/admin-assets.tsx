@@ -191,7 +191,7 @@ export function AdminAssets() {
                       <div className="mt-1 flex items-center gap-2">
                         {editingSymbol === asset.symbol ? (
                           <div className="flex items-center gap-1">
-                            <div className="flex items-center rounded-md border border-emerald-500/40 bg-[#0a0e16] pl-2">
+                            <div className="flex items-center rounded-md border border-blue-500/40 bg-[#0a0e16] pl-2">
                               <input
                                 type="number"
                                 min={1}
@@ -209,7 +209,7 @@ export function AdminAssets() {
                             </div>
                             <button
                               onClick={() => savePayout(asset.symbol)}
-                              className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-500 text-white hover:bg-emerald-400"
+                              className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-500 text-white hover:bg-blue-400"
                               aria-label="Salvar payout"
                             >
                               <Check className="h-3.5 w-3.5" />
@@ -224,7 +224,7 @@ export function AdminAssets() {
                         ) : (
                           <button
                             onClick={() => startEditPayout(asset.symbol, asset.payout)}
-                            className="group/payout inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium text-emerald-400 transition-colors hover:bg-emerald-500/10"
+                            className="group/payout inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium text-blue-400 transition-colors hover:bg-blue-500/10"
                             title="Editar payout"
                           >
                             <TrendingUp className="h-3 w-3" />
@@ -234,7 +234,7 @@ export function AdminAssets() {
                               <span>{asset.payout}%</span>
                             )}
                             {savedSymbol === asset.symbol ? (
-                              <Check className="h-3 w-3 text-emerald-400" />
+                              <Check className="h-3 w-3 text-blue-400" />
                             ) : (
                               <Pencil className="h-2.5 w-2.5 text-gray-500 opacity-0 transition-opacity group-hover/payout:opacity-100" />
                             )}
@@ -249,7 +249,7 @@ export function AdminAssets() {
                         disabled={savingSymbol === asset.symbol}
                         onCheckedChange={(v) => toggleAsset(asset.symbol, v)}
                       />
-                      <span className={`text-[10px] font-medium ${asset.enabled ? "text-emerald-400" : "text-gray-500"}`}>
+                      <span className={`text-[10px] font-medium ${asset.enabled ? "text-blue-400" : "text-gray-500"}`}>
                         {asset.enabled ? "Ativo" : "Inativo"}
                       </span>
                     </div>

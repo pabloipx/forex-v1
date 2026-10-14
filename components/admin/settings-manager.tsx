@@ -67,7 +67,7 @@ export function SettingsManager({ settings, onUpdate }: SettingsManagerProps) {
                     className="bg-zinc-700 border-zinc-600 text-white font-mono text-sm"
                   />
                   <div className="flex gap-2">
-                    <Button size="sm" onClick={() => handleUpdate(setting.setting_key)} className="bg-emerald-600">
+                    <Button size="sm" onClick={() => handleUpdate(setting.setting_key)} className="bg-blue-600">
                       Save
                     </Button>
                     <Button

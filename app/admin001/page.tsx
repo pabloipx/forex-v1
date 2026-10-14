@@ -111,7 +111,7 @@ export default function AdminLoginPage() {
           <Button
             type="submit"
             disabled={isLoading || !email || !password}
-            className="w-full h-12 bg-gradient-to-r from-[#10b981] to-[#34d399] hover:from-[#047857] hover:to-[#10b981] text-white font-semibold"
+            className="w-full h-12 bg-gradient-to-r from-[#2190ff] to-[#4da6ff] hover:from-[#0b5ed7] hover:to-[#2190ff] text-white font-semibold"
           >
             {isLoading ? "Entrando..." : "Entrar"}
           </Button>

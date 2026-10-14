@@ -39,7 +39,7 @@ export function AffiliateTopbar({ userName, balance, nextPayment }: AffiliateTop
       <div className="flex items-center gap-5">
         <div className="hidden items-center gap-3 md:flex">
           <span className="text-[15px] text-gray-600">Próximo pagamento</span>
-          <span className="rounded-md bg-emerald-50 px-2.5 py-1 text-[15px] font-medium text-emerald-700">
+          <span className="rounded-md bg-blue-50 px-2.5 py-1 text-[15px] font-medium text-blue-700">
             {nextPayment}
           </span>
         </div>

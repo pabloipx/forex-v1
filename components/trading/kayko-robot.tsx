@@ -20,7 +20,7 @@ interface KaykoRobotProps {
   expirySeconds?: number
 }
 
-const ACCENT = "#10b981"
+const ACCENT = "#2190ff"
 
 interface KaykoScore {
   win: number
@@ -298,9 +298,9 @@ export function KaykoRobot({ isActive, assetName, symbol, expirySeconds = 60 }: 
             style={{ backgroundColor: "rgba(8,12,17,0.82)", borderColor: `${ACCENT}55` }}
           >
             <div className="flex gap-1">
-              <div className="flex-1 rounded-lg px-2 py-1 flex items-center justify-between" style={{ backgroundColor: "rgba(34,197,94,0.15)" }}>
-                <span className="text-[9px] font-bold uppercase tracking-wide text-[#22c55e]">Win</span>
-                <span className="text-sm font-black text-[#22c55e] leading-none">{score.win}</span>
+              <div className="flex-1 rounded-lg px-2 py-1 flex items-center justify-between" style={{ backgroundColor: "rgba(33,144,255,0.15)" }}>
+                <span className="text-[9px] font-bold uppercase tracking-wide text-[#2190ff]">Win</span>
+                <span className="text-sm font-black text-[#2190ff] leading-none">{score.win}</span>
               </div>
               <div className="flex-1 rounded-lg px-2 py-1 flex items-center justify-between" style={{ backgroundColor: "rgba(239,68,68,0.15)" }}>
                 <span className="text-[9px] font-bold uppercase tracking-wide text-[#EF4444]">Loss</span>
@@ -308,7 +308,7 @@ export function KaykoRobot({ isActive, assetName, symbol, expirySeconds = 60 }: 
               </div>
             </div>
             <div className="flex items-center justify-between px-1 pt-1">
-              <span className={`text-[11px] font-bold ${score.profit >= 0 ? "text-[#22c55e]" : "text-[#EF4444]"}`}>
+              <span className={`text-[11px] font-bold ${score.profit >= 0 ? "text-[#2190ff]" : "text-[#EF4444]"}`}>
                 {score.profit >= 0 ? "+" : "-"}R$ {Math.abs(score.profit).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
               <span className="text-[11px] font-bold text-white/70">
@@ -396,9 +396,9 @@ export function KaykoRobot({ isActive, assetName, symbol, expirySeconds = 60 }: 
                 <div
                   className="relative p-5 rounded-2xl border animate-in slide-in-from-bottom-4 duration-500 overflow-hidden"
                   style={{
-                    borderColor: isCall ? "#22c55e80" : "#EF444480",
+                    borderColor: isCall ? "#2190ff80" : "#EF444480",
                     background: isCall
-                      ? "linear-gradient(135deg, rgba(34,197,94,0.18), transparent)"
+                      ? "linear-gradient(135deg, rgba(33,144,255,0.18), transparent)"
                       : "linear-gradient(135deg, rgba(239,68,68,0.18), transparent)",
                   }}
                 >
@@ -406,7 +406,7 @@ export function KaykoRobot({ isActive, assetName, symbol, expirySeconds = 60 }: 
                     <span className="text-white/60 text-sm font-medium">Entrada confirmada</span>
                     <div
                       className="px-3 py-1 rounded-full text-xs font-bold text-white"
-                      style={{ backgroundColor: isCall ? "#22c55e" : "#EF4444" }}
+                      style={{ backgroundColor: isCall ? "#2190ff" : "#EF4444" }}
                     >
                       {signal.confidence}% de acerto
                     </div>
@@ -419,11 +419,11 @@ export function KaykoRobot({ isActive, assetName, symbol, expirySeconds = 60 }: 
                     </div>
                     <div className="flex items-center gap-2">
                       {isCall ? (
-                        <TrendingUp className="w-7 h-7 text-[#22c55e]" />
+                        <TrendingUp className="w-7 h-7 text-[#2190ff]" />
                       ) : (
                         <TrendingDown className="w-7 h-7 text-[#EF4444]" />
                       )}
-                      <p className={`font-black text-2xl ${isCall ? "text-[#22c55e]" : "text-[#EF4444]"}`}>
+                      <p className={`font-black text-2xl ${isCall ? "text-[#2190ff]" : "text-[#EF4444]"}`}>
                         {isCall ? "COMPRA" : "VENDA"}
                       </p>
                     </div>

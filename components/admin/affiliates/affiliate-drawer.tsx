@@ -30,7 +30,7 @@ const TABS: Array<{ id: Tab; label: string }> = [
 const card = "rounded-lg bg-[#0a0e17] border border-[#1F2933] p-4"
 const label = "text-white/40 text-[11px] uppercase tracking-wide"
 const input =
-  "w-full h-10 rounded-lg bg-[#0a0e17] border border-[#1F2933] px-3 text-sm text-white outline-none focus:border-[#10b981]"
+  "w-full h-10 rounded-lg bg-[#0a0e17] border border-[#1F2933] px-3 text-sm text-white outline-none focus:border-[#2190ff]"
 
 export function AffiliateDrawer({
   affiliate,
@@ -138,13 +138,13 @@ export function AffiliateDrawer({
           <div className="min-w-0">
             <p className="truncate text-lg font-semibold text-white">{data.name}</p>
             <p className="truncate text-sm text-white/40">
-              {data.email} · código <span className="text-[#10b981]">{data.code}</span>
+              {data.email} · código <span className="text-[#2190ff]">{data.code}</span>
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <span
                 className={`rounded-md px-2 py-0.5 text-[11px] font-medium ${
                   data.status === "active"
-                    ? "bg-[#22c55e]/15 text-[#22c55e]"
+                    ? "bg-[#2190ff]/15 text-[#2190ff]"
                     : data.status === "blocked"
                       ? "bg-red-500/15 text-red-400"
                       : "bg-yellow-500/15 text-yellow-400"
@@ -152,7 +152,7 @@ export function AffiliateDrawer({
               >
                 {data.status === "active" ? "Ativo" : data.status === "blocked" ? "Bloqueado" : "Pendente"}
               </span>
-              <span className="rounded-md bg-[#10b981]/15 px-2 py-0.5 text-[11px] font-medium text-[#10b981]">
+              <span className="rounded-md bg-[#2190ff]/15 px-2 py-0.5 text-[11px] font-medium text-[#2190ff]">
                 {MODEL_LABEL[data.terms.model]}
               </span>
               <span className="text-[11px] text-white/40">Desde {dateOnly(data.created_at)}</span>
@@ -176,7 +176,7 @@ export function AffiliateDrawer({
               onClick={() => setTab(t.id)}
               className={`shrink-0 border-b-2 px-3 py-3 text-sm transition-colors ${
                 tab === t.id
-                  ? "border-[#10b981] text-white"
+                  ? "border-[#2190ff] text-white"
                   : "border-transparent text-white/40 hover:text-white/70"
               }`}
             >
@@ -192,7 +192,7 @@ export function AffiliateDrawer({
             className={`border-b px-5 py-3 text-sm ${
               error
                 ? "border-red-500/20 bg-red-500/10 text-red-400"
-                : "border-[#22c55e]/20 bg-[#22c55e]/10 text-[#22c55e]"
+                : "border-[#2190ff]/20 bg-[#2190ff]/10 text-[#2190ff]"
             }`}
           >
             {error || ok}
@@ -257,7 +257,7 @@ export function AffiliateDrawer({
                         type="button"
                         onClick={adjustBalance}
                         disabled={saving || !delta}
-                        className="h-10 shrink-0 rounded-lg bg-[#10b981] px-5 text-sm font-medium text-white disabled:opacity-40"
+                        className="h-10 shrink-0 rounded-lg bg-[#2190ff] px-5 text-sm font-medium text-white disabled:opacity-40"
                       >
                         Aplicar
                       </button>
@@ -273,7 +273,7 @@ export function AffiliateDrawer({
                         type="button"
                         onClick={() => changeStatus("active")}
                         disabled={saving}
-                        className="flex h-10 items-center gap-2 rounded-lg bg-[#22c55e] px-4 text-sm font-medium text-white disabled:opacity-40"
+                        className="flex h-10 items-center gap-2 rounded-lg bg-[#2190ff] px-4 text-sm font-medium text-white disabled:opacity-40"
                       >
                         <Check className="h-4 w-4" /> Ativar afiliado
                       </button>
@@ -304,7 +304,7 @@ export function AffiliateDrawer({
                           onClick={() => setModel(m)}
                           className={`h-10 rounded-lg border text-sm transition-colors ${
                             model === m
-                              ? "border-[#10b981] bg-[#10b981]/15 text-[#10b981]"
+                              ? "border-[#2190ff] bg-[#2190ff]/15 text-[#2190ff]"
                               : "border-[#1F2933] text-white/50 hover:text-white"
                           }`}
                         >
@@ -350,7 +350,7 @@ export function AffiliateDrawer({
                     type="button"
                     onClick={saveTerms}
                     disabled={saving}
-                    className="flex h-11 items-center justify-center gap-2 rounded-lg bg-[#10b981] text-sm font-medium text-white disabled:opacity-40"
+                    className="flex h-11 items-center justify-center gap-2 rounded-lg bg-[#2190ff] text-sm font-medium text-white disabled:opacity-40"
                   >
                     {saving && <Loader2 className="h-4 w-4 animate-spin" />}
                     Salvar termos
@@ -383,7 +383,7 @@ export function AffiliateDrawer({
                     c.referred_name,
                     money(c.deposit_amount),
                     c.cpa_amount > 0 ? `CPA ${money(c.cpa_amount)}` : `Rev ${c.commission_percent}%`,
-                    <span key="v" className="text-[#22c55e]">
+                    <span key="v" className="text-[#2190ff]">
                       {money(c.commission_amount)}
                     </span>,
                   ])}
@@ -437,7 +437,7 @@ function Metric({
 }) {
   return (
     <div className={card}>
-      <Icon className="h-4 w-4 text-[#10b981]" />
+      <Icon className="h-4 w-4 text-[#2190ff]" />
       <p className={`mt-2 ${label}`}>{text}</p>
       <p className="mt-0.5 text-base font-semibold text-white">{value}</p>
     </div>
@@ -467,7 +467,7 @@ export function StatusPill({ status }: { status: string }) {
   const s = String(status).toLowerCase()
   const style =
     s === "approved" || s === "completed"
-      ? "bg-[#22c55e]/15 text-[#22c55e]"
+      ? "bg-[#2190ff]/15 text-[#2190ff]"
       : s === "rejected"
         ? "bg-red-500/15 text-red-400"
         : "bg-yellow-500/15 text-yellow-400"

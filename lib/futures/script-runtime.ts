@@ -164,9 +164,9 @@ hline(30, { title: "30", color: "#20b26c", pane: "separate" })
     name: "Bandas de Bollinger",
     code: `const { upper, middle, lower } = ta.bb(close, 20, 2)
 
-plot(upper, { title: "BB sup", color: "#26a69a", width: 1 })
+plot(upper, { title: "BB sup", color: "#2190ff", width: 1 })
 plot(middle, { title: "BB méd", color: "#848e9c", width: 1 })
-plot(lower, { title: "BB inf", color: "#26a69a", width: 1 })
+plot(lower, { title: "BB inf", color: "#2190ff", width: 1 })
 `,
   },
   {

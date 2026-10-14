@@ -21,7 +21,7 @@ export function ActiveTrades({ trades, currentPrices }: ActiveTradesProps) {
     return (
       <div className="bg-[#121826] border border-[#1f2933] rounded-xl p-4">
         <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
-          <Clock className="w-4 h-4 text-[#10b981]" />
+          <Clock className="w-4 h-4 text-[#2190ff]" />
           Operações Ativas
         </h3>
         <div className="text-[#6B7280] text-sm text-center py-6">Nenhuma operação ativa</div>
@@ -32,7 +32,7 @@ export function ActiveTrades({ trades, currentPrices }: ActiveTradesProps) {
   return (
     <div className="bg-[#121826] border border-[#1f2933] rounded-xl p-4">
       <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
-        <Clock className="w-4 h-4 text-[#10b981]" />
+        <Clock className="w-4 h-4 text-[#2190ff]" />
         Operações Ativas ({trades.length})
       </h3>
       <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -50,19 +50,19 @@ export function ActiveTrades({ trades, currentPrices }: ActiveTradesProps) {
             <div
               key={trade.id}
               className={`p-3 rounded-lg border ${
-                isWinning ? "bg-[#22C55E]/10 border-[#22C55E]/30" : "bg-[#EF4444]/10 border-[#EF4444]/30"
+                isWinning ? "bg-[#2190ff]/10 border-[#2190ff]/30" : "bg-[#EF4444]/10 border-[#EF4444]/30"
               }`}
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   {trade.direction === "call" ? (
-                    <ArrowUp className="w-4 h-4 text-[#22C55E]" />
+                    <ArrowUp className="w-4 h-4 text-[#2190ff]" />
                   ) : (
                     <ArrowDown className="w-4 h-4 text-[#EF4444]" />
                   )}
                   <span className="text-white text-sm font-medium">{trade.symbol.split("-")[0]}</span>
                 </div>
-                <span className={`font-mono text-sm font-bold ${isWinning ? "text-[#22C55E]" : "text-[#EF4444]"}`}>
+                <span className={`font-mono text-sm font-bold ${isWinning ? "text-[#2190ff]" : "text-[#EF4444]"}`}>
                   {seconds}s
                 </span>
               </div>
@@ -74,7 +74,7 @@ export function ActiveTrades({ trades, currentPrices }: ActiveTradesProps) {
               </div>
               <div className="h-1.5 bg-[#1f2933] rounded-full overflow-hidden">
                 <div
-                  className={`h-full transition-all ${isWinning ? "bg-[#22C55E]" : "bg-[#EF4444]"}`}
+                  className={`h-full transition-all ${isWinning ? "bg-[#2190ff]" : "bg-[#EF4444]"}`}
                   style={{ width: `${progress * 100}%` }}
                 />
               </div>

@@ -46,7 +46,7 @@ export function AdminHome({ stats, loading, onRefresh, refreshKey }: AdminHomePr
       title: "Depósitos",
       value: stats.totalDeposits,
       icon: ArrowDownCircle,
-      accent: "#22c55e",
+      accent: "#2190ff",
       caption: stats.pendingDeposits > 0 ? `${stats.pendingDeposits} pendentes` : "Confirmados",
       captionWarn: stats.pendingDeposits > 0,
     },
@@ -62,7 +62,7 @@ export function AdminHome({ stats, loading, onRefresh, refreshKey }: AdminHomePr
       title: "Saldo Total",
       value: stats.totalBalances,
       icon: Wallet,
-      accent: "#6ee7b7",
+      accent: "#8cc4ff",
       caption: "Saldo dos usuários",
     },
     {
@@ -70,14 +70,14 @@ export function AdminHome({ stats, loading, onRefresh, refreshKey }: AdminHomePr
       value: stats.totalTrades,
       isCount: true,
       icon: BarChart3,
-      accent: "#6ee7b7",
+      accent: "#8cc4ff",
       caption: "Operações reais",
     },
     {
       title: "Lucro Plataforma",
       value: stats.platformProfit,
       icon: stats.platformProfit >= 0 ? TrendingUp : TrendingDown,
-      accent: stats.platformProfit >= 0 ? "#22c55e" : "#ef4444",
+      accent: stats.platformProfit >= 0 ? "#2190ff" : "#ef4444",
       caption: stats.platformProfit >= 0 ? "Resultado positivo" : "Resultado negativo",
       captionWarn: stats.platformProfit < 0,
     },
@@ -89,8 +89,8 @@ export function AdminHome({ stats, loading, onRefresh, refreshKey }: AdminHomePr
         <div>
           <div className="flex items-center gap-2">
             <span className="relative flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#22c55e] opacity-60" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#22c55e]" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#2190ff] opacity-60" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#2190ff]" />
             </span>
             <h1 className="text-2xl font-bold tracking-tight text-white">Dashboard</h1>
           </div>

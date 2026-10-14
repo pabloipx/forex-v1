@@ -98,7 +98,7 @@ export function CryptoTicker() {
               </div>
               <span
                 className={`shrink-0 rounded-lg px-2.5 py-1 text-xs font-semibold ${
-                  up ? "bg-[#22c55e]/15 text-[#22c55e]" : "bg-[#ef4444]/15 text-[#ef4444]"
+                  up ? "bg-[#2190ff]/15 text-[#2190ff]" : "bg-[#ef4444]/15 text-[#ef4444]"
                 }`}
               >
                 {up ? "+" : ""}

@@ -119,12 +119,12 @@ function SignUpForm() {
     return (
       <div className="min-h-screen w-full flex items-center justify-center bg-white">
         <div className="text-center px-6 animate-in fade-in zoom-in duration-500">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center bg-green-100">
-            <CheckCircle2 className="w-12 h-12 text-green-600" />
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center bg-blue-100">
+            <CheckCircle2 className="w-12 h-12 text-blue-600" />
           </div>
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Conta criada com sucesso!</h1>
           <p className="text-gray-500 mb-6">Você será redirecionado para a plataforma...</p>
-          <div className="flex items-center justify-center gap-2 text-green-600">
+          <div className="flex items-center justify-center gap-2 text-blue-600">
             <Loader2 className="w-5 h-5 animate-spin" />
             <span>Entrando...</span>
           </div>
@@ -164,7 +164,7 @@ function SignUpForm() {
             <div className="p-4 border-t border-gray-200">
               <button
                 onClick={() => setShowTerms(false)}
-                className="w-full h-12 rounded-md text-white font-semibold bg-green-600 hover:bg-green-700 transition-colors"
+                className="w-full h-12 rounded-md text-white font-semibold bg-blue-600 hover:bg-blue-700 transition-colors"
               >
                 Li e Entendi
               </button>
@@ -299,7 +299,7 @@ function SignUpForm() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full h-14 rounded-md text-white font-semibold text-base bg-green-600 hover:bg-green-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+            className="w-full h-14 rounded-md text-white font-semibold text-base bg-blue-600 hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
           >
             {isLoading ? (
               <>

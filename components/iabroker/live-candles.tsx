@@ -51,7 +51,7 @@ export function LiveCandles({ active = true }: { active?: boolean }) {
     <div className="flex h-full w-full items-stretch gap-[3px]">
       {candles.map((c, i) => {
         const up = c.close >= c.open
-        const color = up ? "#22c55e" : "#ef4444"
+        const color = up ? "#2190ff" : "#ef4444"
         const highPct = pct(c.high)
         const lowPct = pct(c.low)
         const topBody = pct(Math.max(c.open, c.close))

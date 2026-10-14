@@ -55,8 +55,8 @@ export default function HomePage() {
         <HeroBackground />
         <div className="relative z-20 mx-auto grid max-w-7xl items-center gap-12 px-6 pb-16 pt-32 lg:grid-cols-2 lg:pt-40">
           <div className="animate-fade-up">
-            <p className="inline-flex items-center gap-2 rounded-full border border-[#10b981]/30 bg-[#10b981]/10 px-4 py-1.5 text-xs font-semibold text-[#6ee7b7]">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#34d399]" aria-hidden="true" />
+            <p className="inline-flex items-center gap-2 rounded-full border border-[#2190ff]/30 bg-[#2190ff]/10 px-4 py-1.5 text-xs font-semibold text-[#8cc4ff]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#4da6ff]" aria-hidden="true" />
               Forex · Metais · Futuros perpétuos
             </p>
             <h1 className="mt-6 text-balance text-4xl font-extrabold leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-6xl">
@@ -69,7 +69,7 @@ export default function HomePage() {
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/auth/sign-up"
-                className="rounded-xl bg-[#10b981] px-8 py-4 text-center text-base font-bold text-[#03140d] transition-colors hover:bg-[#34d399]"
+                className="rounded-xl bg-[#2190ff] px-8 py-4 text-center text-base font-bold text-[#03140d] transition-colors hover:bg-[#4da6ff]"
               >
                 Abrir conta grátis
               </Link>
@@ -97,7 +97,7 @@ export default function HomePage() {
       <section className="px-6 py-20 sm:py-28">
         <div className="mx-auto max-w-7xl">
           <div className="max-w-2xl">
-            <p className="text-sm font-semibold uppercase tracking-widest text-[#34d399]">Terminal</p>
+            <p className="text-sm font-semibold uppercase tracking-widest text-[#4da6ff]">Terminal</p>
             <h2 className="mt-3 text-balance text-3xl font-extrabold leading-tight text-white sm:text-4xl md:text-5xl">
               Tudo o que um trader de derivativos precisa
             </h2>
@@ -114,7 +114,7 @@ export default function HomePage() {
           <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {features.map((f) => (
               <div key={f.title} className="rounded-2xl border border-white/10 bg-white/[0.02] p-6">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#10b981]/15 text-[#34d399]">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#2190ff]/15 text-[#4da6ff]">
                   <f.icon className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <h3 className="mt-5 text-lg font-bold text-white">{f.title}</h3>
@@ -126,13 +126,13 @@ export default function HomePage() {
       </section>
 
       <section id="condicoes" className="scroll-mt-24 px-6 pb-20">
-        <div className="mx-auto max-w-7xl rounded-2xl border border-[#10b981]/25 bg-[#0a1a13] p-8 sm:p-10">
+        <div className="mx-auto max-w-7xl rounded-2xl border border-[#2190ff]/25 bg-[#0a1a13] p-8 sm:p-10">
           <h2 className="text-2xl font-extrabold text-white sm:text-3xl">Condições de negociação</h2>
           <dl className="mt-8 grid grid-cols-2 gap-6 sm:grid-cols-4">
             {conditions.map((c) => (
               <div key={c.label}>
                 <dt className="text-xs text-white/50 sm:text-sm">{c.label}</dt>
-                <dd className="mt-1 font-mono text-2xl font-bold text-[#34d399] sm:text-3xl">{c.value}</dd>
+                <dd className="mt-1 font-mono text-2xl font-bold text-[#4da6ff] sm:text-3xl">{c.value}</dd>
               </div>
             ))}
           </dl>
@@ -150,7 +150,7 @@ export default function HomePage() {
           <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
               href="/auth/sign-up"
-              className="w-full rounded-xl bg-[#10b981] px-10 py-4 text-base font-bold text-[#03140d] transition-colors hover:bg-[#34d399] sm:w-auto"
+              className="w-full rounded-xl bg-[#2190ff] px-10 py-4 text-base font-bold text-[#03140d] transition-colors hover:bg-[#4da6ff] sm:w-auto"
             >
               Criar conta
             </Link>

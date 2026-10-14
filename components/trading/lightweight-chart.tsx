@@ -275,8 +275,8 @@ export function LightweightChart({
       const lowY = priceToY(candle.low)
 
       const isBullish = candle.close >= candle.open
-      const bodyColor = isBullish ? "#10b981" : "#EF4444"
-      const wickColor = isBullish ? "#10b981" : "#EF4444"
+      const bodyColor = isBullish ? "#2190ff" : "#EF4444"
+      const wickColor = isBullish ? "#2190ff" : "#EF4444"
 
       // Wick
       ctx.strokeStyle = wickColor
@@ -307,7 +307,7 @@ export function LightweightChart({
       ctx.setLineDash([])
 
       // Badge do preço atual
-      ctx.fillStyle = "#10b981"
+      ctx.fillStyle = "#2190ff"
       ctx.fillRect(chartPadding.left + chartWidth + 2, priceY - 10, 75, 20)
       ctx.fillStyle = "#fff"
       ctx.font = "bold 11px monospace"
@@ -326,8 +326,8 @@ export function LightweightChart({
 
       const entryY = priceToY(tradeEntryPrice)
       const isCall = tradeDirection === "CALL"
-      const color = isCall ? "#34d399" : "#EF4444"
-      const bgColor = isCall ? "rgba(34, 197, 94, 0.1)" : "rgba(239, 68, 68, 0.1)"
+      const color = isCall ? "#4da6ff" : "#EF4444"
+      const bgColor = isCall ? "rgba(33, 144, 255, 0.1)" : "rgba(239, 68, 68, 0.1)"
 
       // Área de destaque (mais sutil)
       ctx.fillStyle = bgColor
@@ -338,7 +338,7 @@ export function LightweightChart({
       }
 
       // Glow effect
-      ctx.strokeStyle = isCall ? "rgba(34, 197, 94, 0.2)" : "rgba(239, 68, 68, 0.2)"
+      ctx.strokeStyle = isCall ? "rgba(33, 144, 255, 0.2)" : "rgba(239, 68, 68, 0.2)"
       ctx.lineWidth = 6
       ctx.setLineDash([])
       ctx.beginPath()
@@ -506,7 +506,7 @@ export function LightweightChart({
         <button
           onClick={goToLive}
           className="absolute top-2 right-2 px-3 py-1.5 rounded-lg text-white text-xs font-bold flex items-center gap-1.5 shadow-lg"
-          style={{ backgroundColor: "#10b981" }}
+          style={{ backgroundColor: "#2190ff" }}
         >
           <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
           LIVE

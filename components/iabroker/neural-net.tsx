@@ -166,11 +166,11 @@ export function NeuralNet({ active = true }: { active?: boolean }) {
       <defs>
         <radialGradient id="nn-node" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="#ffb27a" />
-          <stop offset="100%" stopColor="#10b981" />
+          <stop offset="100%" stopColor="#2190ff" />
         </radialGradient>
         <linearGradient id="nn-packet" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#6ee7b7" stopOpacity="0" />
-          <stop offset="100%" stopColor="#6ee7b7" stopOpacity="1" />
+          <stop offset="0%" stopColor="#8cc4ff" stopOpacity="0" />
+          <stop offset="100%" stopColor="#8cc4ff" stopOpacity="1" />
         </linearGradient>
       </defs>
 
@@ -185,7 +185,7 @@ export function NeuralNet({ active = true }: { active?: boolean }) {
             y1={a.y}
             x2={b.x}
             y2={b.y}
-            stroke="#10b981"
+            stroke="#2190ff"
             strokeOpacity={0.1}
             strokeWidth={0.6}
           />
@@ -200,7 +200,7 @@ export function NeuralNet({ active = true }: { active?: boolean }) {
         const b = nodes[e.to]
         const x = a.x + (b.x - a.x) * p.t
         const y = a.y + (b.y - a.y) * p.t
-        return <circle key={i} cx={x} cy={y} r={1.7} fill="#a7f3d0" opacity={0.9} />
+        return <circle key={i} cx={x} cy={y} r={1.7} fill="#cfe5ff" opacity={0.9} />
       })}
 
       {/* nós */}
@@ -209,7 +209,7 @@ export function NeuralNet({ active = true }: { active?: boolean }) {
         return (
           <g key={n.id}>
             {pulse > 0 && (
-              <circle cx={n.x} cy={n.y} r={n.r + 4 + pulse * 5} fill="#10b981" opacity={pulse * 0.25} />
+              <circle cx={n.x} cy={n.y} r={n.r + 4 + pulse * 5} fill="#2190ff" opacity={pulse * 0.25} />
             )}
             <circle
               cx={n.x}

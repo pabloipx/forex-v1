@@ -10,8 +10,8 @@ interface Candle {
   low: number
 }
 
-const PURPLE_UP = "#34d399"
-const PURPLE_UP_WICK = "#6ee7b7"
+const PURPLE_UP = "#4da6ff"
+const PURPLE_UP_WICK = "#8cc4ff"
 const RED_DOWN = "#ef4444"
 const RED_DOWN_WICK = "#f87171"
 
@@ -158,7 +158,7 @@ export function LiveChart() {
       // Linha de preço atual
       const lastClose = candles[candles.length - 1].close
       const yPrice = yOf(lastClose)
-      ctx.strokeStyle = "rgba(52,211,153,0.7)"
+      ctx.strokeStyle = "rgba(77,166,255,0.7)"
       ctx.setLineDash([4, 4])
       ctx.beginPath()
       ctx.moveTo(padding.left, yPrice)
@@ -167,7 +167,7 @@ export function LiveChart() {
       ctx.setLineDash([])
 
       // Etiqueta de preço
-      ctx.fillStyle = "#10b981"
+      ctx.fillStyle = "#2190ff"
       ctx.fillRect(padding.left + chartW, yPrice - 9, padding.right - 4, 18)
       ctx.fillStyle = "#fff"
       ctx.font = "bold 10px ui-sans-serif, system-ui"
@@ -182,11 +182,11 @@ export function LiveChart() {
   const up = changePct >= 0
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0b0e14]/80 p-4 shadow-[0_20px_60px_-15px_rgba(16,185,129,0.35)] backdrop-blur-sm">
+    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0b0e14]/80 p-4 shadow-[0_20px_60px_-15px_rgba(33,144,255,0.35)] backdrop-blur-sm">
       {/* Cabeçalho do gráfico */}
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#10b981]/20 text-xs font-bold text-[#6ee7b7]">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#2190ff]/20 text-xs font-bold text-[#8cc4ff]">
             EUR
           </span>
           <div className="text-left">
@@ -198,7 +198,7 @@ export function LiveChart() {
           <p className="font-mono text-sm font-bold text-white">{price.toFixed(4)}</p>
           <p
             className={`flex items-center justify-end gap-1 text-[11px] font-semibold ${
-              up ? "text-[#6ee7b7]" : "text-red-400"
+              up ? "text-[#8cc4ff]" : "text-red-400"
             }`}
           >
             {up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
@@ -215,8 +215,8 @@ export function LiveChart() {
       <div className="mt-2 flex items-center gap-2 text-[11px] text-white/40">
         <span className="flex items-center gap-1.5">
           <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#6ee7b7] opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-[#34d399]" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#8cc4ff] opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-[#4da6ff]" />
           </span>
           Mercado ao vivo
         </span>

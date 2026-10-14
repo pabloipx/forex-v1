@@ -43,7 +43,7 @@ function ChartCard({
     <div
       className={`relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0c121c] p-5 transition-colors hover:border-white/[0.1] ${className}`}
     >
-      <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-[#10b981]/[0.08] blur-3xl" />
+      <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-[#2190ff]/[0.08] blur-3xl" />
       <div className="relative">
         <div className="mb-4 flex items-center justify-between">
           <div>
@@ -72,8 +72,8 @@ function TooltipBox({ active, payload, label, currency }: any) {
   )
 }
 
-const DONUT_COLORS = ["#22c55e", "#ef4444"]
-const BAR_COLORS = ["#10b981", "#34d399", "#6ee7b7", "#6ee7b7", "#34d399"]
+const DONUT_COLORS = ["#2190ff", "#ef4444"]
+const BAR_COLORS = ["#2190ff", "#4da6ff", "#8cc4ff", "#8cc4ff", "#4da6ff"]
 
 export function AdminCharts({ refreshKey }: { refreshKey: number }) {
   const [data, setData] = useState<AnalyticsData | null>(null)
@@ -146,7 +146,7 @@ export function AdminCharts({ refreshKey }: { refreshKey: number }) {
         </div>
         <div className="mt-2 flex items-center justify-center gap-6 text-xs">
           <span className="flex items-center gap-2 text-gray-400">
-            <span className="h-2 w-2 rounded-full bg-[#22c55e]" /> {data.winLoss.wins} vitórias
+            <span className="h-2 w-2 rounded-full bg-[#2190ff]" /> {data.winLoss.wins} vitórias
           </span>
           <span className="flex items-center gap-2 text-gray-400">
             <span className="h-2 w-2 rounded-full bg-[#ef4444]" /> {data.winLoss.losses} derrotas
@@ -166,9 +166,9 @@ export function AdminCharts({ refreshKey }: { refreshKey: number }) {
               type="monotone"
               dataKey="lucro"
               name="Lucro"
-              stroke="#10b981"
+              stroke="#2190ff"
               strokeWidth={2.5}
-              dot={{ r: 3, fill: "#10b981", strokeWidth: 0 }}
+              dot={{ r: 3, fill: "#2190ff", strokeWidth: 0 }}
               activeDot={{ r: 5 }}
             />
           </LineChart>
@@ -212,7 +212,7 @@ export function AdminCharts({ refreshKey }: { refreshKey: number }) {
             <XAxis dataKey="date" stroke="#4b5563" fontSize={11} tickLine={false} axisLine={false} />
             <YAxis stroke="#4b5563" fontSize={11} tickLine={false} axisLine={false} width={40} />
             <Tooltip content={<TooltipBox />} cursor={{ fill: "#ffffff08" }} />
-            <Bar dataKey="trades" name="Trades" fill="#10b981" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="trades" name="Trades" fill="#2190ff" radius={[4, 4, 0, 0]} />
             <Bar dataKey="usuarios" name="Novos usuários" fill="#22d3ee" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>

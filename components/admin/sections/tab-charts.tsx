@@ -132,14 +132,14 @@ export function DepositsChart({ refreshKey }: { refreshKey: number }) {
     <ChartShell
       title="Depósitos"
       subtitle={`${fmtCurrency(total)} movimentados · últimos 14 dias`}
-      accent="#22c55e"
+      accent="#2190ff"
     >
       <ResponsiveContainer width="100%" height={220}>
         <AreaChart data={data.cashFlow} margin={{ left: -10, right: 8, top: 4 }}>
           <defs>
             <linearGradient id="gDepTab" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#22c55e" stopOpacity={0.4} />
-              <stop offset="100%" stopColor="#22c55e" stopOpacity={0} />
+              <stop offset="0%" stopColor="#2190ff" stopOpacity={0.4} />
+              <stop offset="100%" stopColor="#2190ff" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#1b2333" vertical={false} />
@@ -150,7 +150,7 @@ export function DepositsChart({ refreshKey }: { refreshKey: number }) {
             type="monotone"
             dataKey="depositosTotal"
             name="Depósitos"
-            stroke="#22c55e"
+            stroke="#2190ff"
             strokeWidth={2.5}
             fill="url(#gDepTab)"
           />

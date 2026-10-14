@@ -13,10 +13,10 @@
 
 /* Remove light mode - platform is always dark */
 .dark {
-  --primary: #10b981;
+  --primary: #2190ff;
   --primary-foreground: #ffffff;
-  --primary-hover: #34d399;
-  --primary-dark: #064e3b;
+  --primary-hover: #4da6ff;
+  --primary-dark: #0a1f44;
   --background: #0b0f14;
   --foreground: #ffffff;
   --card: #121826;
@@ -33,20 +33,20 @@
   --destructive-foreground: #ffffff;
   --border: #1f2933;
   --input: #121826;
-  --ring: #10b981;
-  --chart-1: #10b981;
+  --ring: #2190ff;
+  --chart-1: #2190ff;
   --chart-2: #ef4444;
-  --chart-3: #34d399;
+  --chart-3: #4da6ff;
   --chart-4: #f59e0b;
-  --chart-5: #064e3b;
-  --sidebar: #064e3b;
+  --chart-5: #0a1f44;
+  --sidebar: #0b1424;
   --sidebar-foreground: #ffffff;
-  --sidebar-primary: #10b981;
+  --sidebar-primary: #2190ff;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #1f2933;
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: #1f2933;
-  --sidebar-ring: #10b981;
+  --sidebar-ring: #2190ff;
 }
 
 @theme inline {
@@ -58,7 +58,7 @@
   --color-card-foreground: #ffffff;
   --color-popover: #121826;
   --color-popover-foreground: #ffffff;
-  --color-primary: #10b981;
+  --color-primary: #2190ff;
   --color-primary-foreground: #ffffff;
   --color-secondary: #1f2933;
   --color-secondary-foreground: #ffffff;
@@ -70,29 +70,29 @@
   --color-destructive-foreground: #ffffff;
   --color-border: #1f2933;
   --color-input: #121826;
-  --color-ring: #10b981;
-  --color-chart-1: #10b981;
+  --color-ring: #2190ff;
+  --color-chart-1: #2190ff;
   --color-chart-2: #ef4444;
-  --color-chart-3: #34d399;
+  --color-chart-3: #4da6ff;
   --color-chart-4: #f59e0b;
-  --color-chart-5: #064e3b;
+  --color-chart-5: #0a1f44;
   --radius-sm: 0.5rem;
   --radius-md: 0.625rem;
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
-  --color-sidebar: #064e3b;
+  --color-sidebar: #0b1424;
   --color-sidebar-foreground: #ffffff;
-  --color-sidebar-primary: #10b981;
+  --color-sidebar-primary: #2190ff;
   --color-sidebar-primary-foreground: #ffffff;
   --color-sidebar-accent: #1f2933;
   --color-sidebar-accent-foreground: #ffffff;
   --color-sidebar-border: #1f2933;
-  --color-sidebar-ring: #10b981;
+  --color-sidebar-ring: #2190ff;
 
   /* Custom Profit Trading Global colors */
-  --color-atlas-blue: #10b981;
-  --color-atlas-orange-hover: #34d399;
-  --color-atlas-orange-dark: #064e3b;
+  --color-atlas-blue: #2190ff;
+  --color-atlas-orange-hover: #4da6ff;
+  --color-atlas-orange-dark: #0a1f44;
   --color-atlas-bg: #0b0f14;
   --color-atlas-card: #121826;
   --color-atlas-alt: #1f2933;
@@ -101,7 +101,7 @@
   --color-atlas-text-disabled: #6b7280;
   --color-atlas-loss: #ef4444;
   --color-atlas-warning: #f59e0b;
-  --color-atlas-success: #22c55e;
+  --color-atlas-success: #2190ff;
 
   /* Terminal de derivativos (futuros/forex) */
   --color-term-bg: #0b0e11;
@@ -368,8 +368,8 @@
 
 .hero-grid {
   background-image:
-    linear-gradient(to right, rgba(16,185,129, 0.12) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(16,185,129, 0.12) 1px, transparent 1px);
+    linear-gradient(to right, rgba(33,144,255, 0.12) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(33,144,255, 0.12) 1px, transparent 1px);
   background-size: 60px 60px;
   animation: hero-grid-slide 8s linear infinite;
   will-change: background-position;
@@ -447,8 +447,8 @@
 
 .tech-grid {
   background-image:
-    linear-gradient(to right, rgba(16,185,129, 0.18) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(16,185,129, 0.18) 1px, transparent 1px);
+    linear-gradient(to right, rgba(33,144,255, 0.18) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(33,144,255, 0.18) 1px, transparent 1px);
   background-size: 44px 44px;
   animation: tech-grid 3s linear infinite;
   will-change: background-position;
@@ -520,12 +520,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #10b981;
+  background: #2190ff;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #34d399;
+  background: #4da6ff;
 }
 
 input[type="number"]::-webkit-inner-spin-button,

@@ -214,7 +214,7 @@ export function TradeEditor({ users, onRefresh }: TradeEditorProps) {
                 }}
                 className={`w-full text-left p-3 rounded-lg transition-colors ${
                   selectedUserId === user.id
-                    ? "bg-green-600/20 border border-green-600"
+                    ? "bg-blue-600/20 border border-blue-600"
                     : "bg-zinc-800 hover:bg-zinc-700"
                 }`}
               >
@@ -235,11 +235,11 @@ export function TradeEditor({ users, onRefresh }: TradeEditorProps) {
                 <div className="flex gap-4 mt-2">
                   <p className="text-xs text-zinc-400">
                     Saldo Real:{" "}
-                    <span className="text-green-400 font-medium">{formatCurrency(userBalance.balance_real)}</span>
+                    <span className="text-blue-400 font-medium">{formatCurrency(userBalance.balance_real)}</span>
                   </p>
                   <p className="text-xs text-zinc-400">
                     Saldo Demo:{" "}
-                    <span className="text-emerald-400 font-medium">{formatCurrency(userBalance.balance_demo)}</span>
+                    <span className="text-blue-400 font-medium">{formatCurrency(userBalance.balance_demo)}</span>
                   </p>
                 </div>
               </div>
@@ -305,7 +305,7 @@ export function TradeEditor({ users, onRefresh }: TradeEditorProps) {
                           <span
                             className={`text-xs px-2 py-0.5 rounded flex items-center gap-1 ${
                               trade.direction === "call"
-                                ? "bg-green-600/20 text-green-400"
+                                ? "bg-blue-600/20 text-blue-400"
                                 : "bg-red-600/20 text-red-400"
                             }`}
                           >
@@ -317,7 +317,7 @@ export function TradeEditor({ users, onRefresh }: TradeEditorProps) {
                             {trade.direction === "call" ? "COMPRA" : "VENDA"}
                           </span>
                           {trade.is_demo && (
-                            <span className="text-xs px-2 py-0.5 rounded bg-emerald-600/20 text-emerald-400">DEMO</span>
+                            <span className="text-xs px-2 py-0.5 rounded bg-blue-600/20 text-blue-400">DEMO</span>
                           )}
                           {trade.is_manually_adjusted && (
                             <span className="text-xs px-2 py-0.5 rounded bg-yellow-600/20 text-yellow-400">
@@ -335,7 +335,7 @@ export function TradeEditor({ users, onRefresh }: TradeEditorProps) {
                         <p
                           className={`text-sm font-medium ${
                             trade.result === "win"
-                              ? "text-green-400"
+                              ? "text-blue-400"
                               : trade.result === "loss"
                                 ? "text-red-400"
                                 : "text-yellow-400"
@@ -345,7 +345,7 @@ export function TradeEditor({ users, onRefresh }: TradeEditorProps) {
                         </p>
                         <p
                           className={`text-xs ${
-                            trade.profit > 0 ? "text-green-400" : trade.profit < 0 ? "text-red-400" : "text-zinc-500"
+                            trade.profit > 0 ? "text-blue-400" : trade.profit < 0 ? "text-red-400" : "text-zinc-500"
                           }`}
                         >
                           {trade.profit > 0 ? "+" : ""}
@@ -359,8 +359,8 @@ export function TradeEditor({ users, onRefresh }: TradeEditorProps) {
                           disabled={isSaving}
                           className={`px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-1 ${
                             trade.result === "win"
-                              ? "bg-green-600 text-white"
-                              : "bg-zinc-800 text-zinc-400 hover:bg-green-600/20 hover:text-green-400 border border-zinc-700 hover:border-green-600"
+                              ? "bg-blue-600 text-white"
+                              : "bg-zinc-800 text-zinc-400 hover:bg-blue-600/20 hover:text-blue-400 border border-zinc-700 hover:border-blue-600"
                           }`}
                           title={`Marcar como WIN (+${formatCurrency(expectedWinProfit)})`}
                         >

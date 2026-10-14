@@ -149,7 +149,7 @@ export default function TransactionsPage() {
               onClick={() => handleFilterChange(f.key as typeof filter)}
               className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all ${
                 filter === f.key
-                  ? "bg-[#10b981] text-white shadow-lg shadow-[#10b981]/20"
+                  ? "bg-[#2190ff] text-white shadow-lg shadow-[#2190ff]/20"
                   : "bg-[#1A2332] text-[#9CA3AF] hover:bg-[#243040]"
               }`}
             >
@@ -163,7 +163,7 @@ export default function TransactionsPage() {
       <div className="px-4 pb-8">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="w-8 h-8 border-2 border-[#10b981] border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-[#2190ff] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : trades.length === 0 ? (
           <div className="text-center py-16">
@@ -200,11 +200,11 @@ export default function TransactionsPage() {
                           {/* Direction Icon */}
                           <div
                             className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                              isCall ? "bg-[#10b981]/20" : "bg-[#EF4444]/20"
+                              isCall ? "bg-[#2190ff]/20" : "bg-[#EF4444]/20"
                             }`}
                           >
                             {isCall ? (
-                              <TrendingUp className="w-6 h-6 text-[#10b981]" />
+                              <TrendingUp className="w-6 h-6 text-[#2190ff]" />
                             ) : (
                               <TrendingDown className="w-6 h-6 text-[#EF4444]" />
                             )}
@@ -222,7 +222,7 @@ export default function TransactionsPage() {
                               )}
                             </div>
                             <div className="flex items-center gap-3 text-xs text-[#6B7280]">
-                              <span className={`font-medium ${isCall ? "text-[#10b981]" : "text-[#EF4444]"}`}>
+                              <span className={`font-medium ${isCall ? "text-[#2190ff]" : "text-[#EF4444]"}`}>
                                 {isCall ? "COMPRA" : "VENDA"}
                               </span>
                               <span className="flex items-center gap-1">
@@ -241,7 +241,7 @@ export default function TransactionsPage() {
                                   ABERTO
                                 </span>
                               ) : isWin ? (
-                                <span className="px-2 py-1 text-xs font-semibold bg-[#10b981]/20 text-[#10b981] rounded-lg">
+                                <span className="px-2 py-1 text-xs font-semibold bg-[#2190ff]/20 text-[#2190ff] rounded-lg">
                                   VITÓRIA
                                 </span>
                               ) : (
@@ -256,7 +256,7 @@ export default function TransactionsPage() {
                             </div>
                             {trade.profit !== null && trade.profit !== 0 && (
                               <p
-                                className={`text-xs font-semibold mt-1 ${trade.profit >= 0 ? "text-[#10b981]" : "text-[#EF4444]"}`}
+                                className={`text-xs font-semibold mt-1 ${trade.profit >= 0 ? "text-[#2190ff]" : "text-[#EF4444]"}`}
                               >
                                 {trade.profit >= 0 ? "+" : ""}R$ {trade.profit.toFixed(2)}
                               </p>
@@ -277,7 +277,7 @@ export default function TransactionsPage() {
                             )}
                           </div>
                           <span className="text-[#6B7280]">
-                            Payout: <span className="text-[#10b981]">{trade.payout_percentage}%</span>
+                            Payout: <span className="text-[#2190ff]">{trade.payout_percentage}%</span>
                           </span>
                         </div>
                       </div>

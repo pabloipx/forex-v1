@@ -104,7 +104,7 @@ interface Drawing {
   color: string
 }
 
-const DRAW_COLORS = ["#34d399", "#00E676", "#FF5252", "#FFC400", "#38bdf8", "#e2e8f0"]
+const DRAW_COLORS = ["#4da6ff", "#2190ff", "#FF5252", "#FFC400", "#38bdf8", "#e2e8f0"]
 const FIB_LEVELS = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1]
 
 // ========== INDICADORES TECNICOS ==========
@@ -184,7 +184,7 @@ function macdData(candles: Candle[], fast = 12, slow = 26, signalP = 9) {
     const t = candles[slow - 1 + i].time
     signal.push({ time: t, value: sigArr[i] })
     const h = macdSlice[i] - sigArr[i]
-    hist.push({ time: t, value: h, color: h >= 0 ? "rgba(0,230,118,0.55)" : "rgba(255,82,82,0.55)" })
+    hist.push({ time: t, value: h, color: h >= 0 ? "rgba(33,144,255,0.55)" : "rgba(255,82,82,0.55)" })
   }
   return { macd: macdLine, signal, hist }
 }
@@ -849,12 +849,12 @@ function ChartCore({
     const fp = (p: number) => fmtPrice(p, s)
     const pct = c.open > 0 ? ((price - c.open) / c.open) * 100 : 0
     const sym = s.replace("_OTC", "").replace("-OTC", "")
-    const clr = pct >= 0 ? "#00E676" : "#FF5252"
+    const clr = pct >= 0 ? "#2190ff" : "#FF5252"
     headerRef.current.innerHTML =
       `<span style="color:#E2E8F0;font-weight:700;font-size:13px">${sym}</span>` +
       `<span style="color:#334155;margin:0 6px">|</span>` +
       `<span style="color:#94A3B8;font-size:11px">O <span style="color:#E2E8F0">${fp(c.open)}</span></span>` +
-      `<span style="color:#94A3B8;font-size:11px;margin-left:8px">H <span style="color:#00E676">${fp(c.high)}</span></span>` +
+      `<span style="color:#94A3B8;font-size:11px;margin-left:8px">H <span style="color:#2190ff">${fp(c.high)}</span></span>` +
       `<span style="color:#94A3B8;font-size:11px;margin-left:8px">L <span style="color:#FF5252">${fp(c.low)}</span></span>` +
       `<span style="color:#94A3B8;font-size:11px;margin-left:8px">C <span style="color:${clr}">${fp(price)}</span></span>` +
       `<span style="color:${clr};font-size:11px;font-weight:700;margin-left:8px;padding:1px 5px;border-radius:4px;background:${clr}1a">${pct >= 0 ? "+" : ""}${pct.toFixed(3)}%</span>`
@@ -981,11 +981,11 @@ function ChartCore({
       // Precisao por ativo: garante que cada simbolo (inclusive memecoins com 8 casas) renderize corretamente
       const dec = getDecimals(latest.current.symbol, latest.current.currentPrice)
       const cOpts = {
-        upColor: "#00E676",
+        upColor: "#2190ff",
         downColor: "#FF5252",
-        borderUpColor: "#00E676",
+        borderUpColor: "#2190ff",
         borderDownColor: "#FF5252",
-        wickUpColor: "#00E676",
+        wickUpColor: "#2190ff",
         wickDownColor: "#FF5252",
         priceLineVisible: true,
         priceLineColor: "#787B86",
@@ -1528,7 +1528,7 @@ function ChartCore({
     // --- Bandas de Bollinger (20, 2) ---
     if (ind.boll && !S.bollM) {
       S.bollU = addLine(lineOpts("#787B86", { lineWidth: 1 }))
-      S.bollM = addLine(lineOpts("#34d399", { lineWidth: 1, lineStyle: lwc.LineStyle?.Dashed ?? 1 }))
+      S.bollM = addLine(lineOpts("#4da6ff", { lineWidth: 1, lineStyle: lwc.LineStyle?.Dashed ?? 1 }))
       S.bollL = addLine(lineOpts("#787B86", { lineWidth: 1 }))
     } else if (!ind.boll && S.bollM) {
       remove("bollU")
@@ -1638,7 +1638,7 @@ function ChartCore({
       if (cd <= 0) return
 
       const isCall = trade.direction === "call"
-      const color = cd <= 10 ? "#FFC400" : isCall ? "#00E676" : "#FF5252"
+      const color = cd <= 10 ? "#FFC400" : isCall ? "#2190ff" : "#FF5252"
       const label = isCall ? "CALL" : "PUT"
       const timeStr = `${String(Math.floor(cd / 60)).padStart(2, "0")}:${String(cd % 60).padStart(2, "0")}`
       const amount = trade.amount ? ` R$${trade.amount.toFixed(0)}` : ""
@@ -1777,7 +1777,7 @@ function ChartCore({
     if (!series) return
     try {
       series.applyOptions({
-        priceLineColor: hoverDirection === "call" ? "#00E676" : hoverDirection === "put" ? "#FF5252" : "#787B86",
+        priceLineColor: hoverDirection === "call" ? "#2190ff" : hoverDirection === "put" ? "#FF5252" : "#787B86",
         priceLineStyle: hoverDirection ? 2 : 0,
       })
     } catch {}
@@ -1854,7 +1854,7 @@ function ChartCore({
                 ? {
                     top: 0,
                     height: `${Math.max(0, hoverGeom.y)}px`,
-                    background: "linear-gradient(to top, rgba(0,230,118,0.20), rgba(0,230,118,0.02))",
+                    background: "linear-gradient(to top, rgba(33,144,255,0.20), rgba(33,144,255,0.02))",
                   }
                 : {
                     top: `${Math.max(0, hoverGeom.y)}px`,
@@ -1868,7 +1868,7 @@ function ChartCore({
             className="absolute left-0 right-0"
             style={{
               top: `${hoverGeom.y}px`,
-              borderTop: `1px dashed ${hoverDirection === "call" ? "#00E676" : "#FF5252"}`,
+              borderTop: `1px dashed ${hoverDirection === "call" ? "#2190ff" : "#FF5252"}`,
               opacity: 0.9,
             }}
           />
@@ -1878,7 +1878,7 @@ function ChartCore({
             style={{
               top: `${hoverGeom.y}px`,
               transform: hoverDirection === "call" ? "translateY(-115%)" : "translateY(15%)",
-              color: hoverDirection === "call" ? "#00E676" : "#FF5252",
+              color: hoverDirection === "call" ? "#2190ff" : "#FF5252",
             }}
           >
             <svg
@@ -1921,7 +1921,7 @@ function ChartCore({
               onClick={() => setTool(active && dt.id !== "cursor" ? "cursor" : dt.id)}
               className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
               style={{
-                backgroundColor: active ? "#10b981" : "transparent",
+                backgroundColor: active ? "#2190ff" : "transparent",
                 color: active ? "#fff" : "#94A3B8",
               }}
             >
@@ -1991,7 +1991,7 @@ function ChartCore({
             onClick={() => setShowIndicators((s) => !s)}
             className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
             style={{
-              backgroundColor: indicators.ma || indicators.boll || indicators.fractal || indicators.macd ? "#10b981" : "transparent",
+              backgroundColor: indicators.ma || indicators.boll || indicators.fractal || indicators.macd ? "#2190ff" : "transparent",
               color: indicators.ma || indicators.boll || indicators.fractal || indicators.macd ? "#fff" : "#94A3B8",
             }}
           >
@@ -2005,9 +2005,9 @@ function ChartCore({
               {(
                 [
                   { key: "ma", label: "Médias Móveis", desc: "SMA 9 / 21", color: "#FFC400" },
-                  { key: "boll", label: "Bandas de Bollinger", desc: "20, 2", color: "#34d399" },
+                  { key: "boll", label: "Bandas de Bollinger", desc: "20, 2", color: "#4da6ff" },
                   { key: "fractal", label: "Fractais", desc: "Bill Williams", color: "#38bdf8" },
-                  { key: "macd", label: "MACD", desc: "12, 26, 9", color: "#00E676" },
+                  { key: "macd", label: "MACD", desc: "12, 26, 9", color: "#2190ff" },
                 ] as const
               ).map((it) => {
                 const on = indicators[it.key]
@@ -2025,7 +2025,7 @@ function ChartCore({
                     </span>
                     <span
                       className="flex h-4 w-7 shrink-0 items-center rounded-full p-0.5 transition-colors"
-                      style={{ backgroundColor: on ? "#10b981" : "#2A2E39" }}
+                      style={{ backgroundColor: on ? "#2190ff" : "#2A2E39" }}
                     >
                       <span
                         className="h-3 w-3 rounded-full bg-white transition-transform"
@@ -2046,7 +2046,7 @@ function ChartCore({
           className="absolute bottom-2 left-3 z-20 pointer-events-none flex items-center gap-1"
           style={{ fontFamily: "'SF Mono',Consolas,monospace" }}
         >
-          <span className="w-1 h-1 rounded-full bg-[#00E676]" />
+          <span className="w-1 h-1 rounded-full bg-[#2190ff]" />
           <span className="text-[10px] font-medium text-[#787B86] tabular-nums tracking-tight">
             {clock} UTC-3
           </span>
@@ -2055,7 +2055,7 @@ function ChartCore({
 
       {/* Live floating P&L above each open operation */}
       {pnlOverlays.map((o) => {
-        const clr = o.inMoney ? "#00E676" : "#FF5252"
+        const clr = o.inMoney ? "#2190ff" : "#FF5252"
         return (
           <div
             key={o.id}
@@ -2088,7 +2088,7 @@ function ChartCore({
                 className="px-1.5 py-0.5 rounded text-[10px] font-semibold whitespace-nowrap"
                 style={{
                   background: "rgba(13,13,15,0.85)",
-                  color: o.isCall ? "#00E676" : "#FF5252",
+                  color: o.isCall ? "#2190ff" : "#FF5252",
                   fontFamily: "'SF Mono',Consolas,monospace",
                 }}
               >
@@ -2104,7 +2104,7 @@ function ChartCore({
         <div className="absolute inset-0 flex items-center justify-center z-30" style={{ backgroundColor: "#0d0d0f" }}>
           <div className="flex flex-col items-center gap-3">
             <div
-              className="w-8 h-8 rounded-full border-2 border-[#1a1a1e] border-t-[#00E676] animate-spin"
+              className="w-8 h-8 rounded-full border-2 border-[#1a1a1e] border-t-[#2190ff] animate-spin"
               aria-hidden
             />
             <span className="text-[#787B86] text-xs">Carregando grafico...</span>
@@ -2118,7 +2118,7 @@ function ChartCore({
           key={flash.id}
           className="absolute inset-0 z-10 pointer-events-none"
           style={{
-            background: `radial-gradient(circle at center, ${flash.dir === "call" ? "rgba(0,230,118,0.25)" : "rgba(255,82,82,0.25)"} 0%, transparent 60%)`,
+            background: `radial-gradient(circle at center, ${flash.dir === "call" ? "rgba(33,144,255,0.25)" : "rgba(255,82,82,0.25)"} 0%, transparent 60%)`,
             animation: "chartFlash 0.7s ease-out forwards",
           }}
         />

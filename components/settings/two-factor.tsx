@@ -156,15 +156,15 @@ export function TwoFactor({ onBack }: Props) {
 
         {loading ? (
           <div className="flex justify-center py-16">
-            <Loader2 className="w-6 h-6 text-[#10b981] animate-spin" />
+            <Loader2 className="w-6 h-6 text-[#2190ff] animate-spin" />
           </div>
         ) : activeFactor ? (
           // ===== 2FA ATIVO =====
           <div className="space-y-4">
             <div className="relative overflow-hidden rounded-2xl border border-[#1b5e20]/40 bg-gradient-to-br from-[#0f2318] to-[#0B0F14] p-6">
               <div className="flex flex-col items-center text-center gap-3">
-                <div className="w-16 h-16 rounded-full bg-[#00E676]/15 flex items-center justify-center ring-4 ring-[#00E676]/10">
-                  <ShieldCheck className="w-8 h-8 text-[#00E676]" />
+                <div className="w-16 h-16 rounded-full bg-[#2190ff]/15 flex items-center justify-center ring-4 ring-[#2190ff]/10">
+                  <ShieldCheck className="w-8 h-8 text-[#2190ff]" />
                 </div>
                 <div>
                   <p className="text-white font-bold text-lg">Proteção ativada</p>
@@ -172,8 +172,8 @@ export function TwoFactor({ onBack }: Props) {
                     Sua conta está protegida. A cada login será solicitado um código do seu app autenticador.
                   </p>
                 </div>
-                <span className="mt-1 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#00E676]/10 text-[#00E676] text-xs font-semibold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#00E676] animate-pulse" />
+                <span className="mt-1 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#2190ff]/10 text-[#2190ff] text-xs font-semibold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#2190ff] animate-pulse" />
                   Autenticador conectado
                 </span>
               </div>
@@ -181,14 +181,14 @@ export function TwoFactor({ onBack }: Props) {
 
             <div className="rounded-xl border border-[#1F2933] bg-[#121826] divide-y divide-[#1F2933]">
               <div className="flex items-center gap-3 p-4">
-                <KeyRound className="w-5 h-5 text-[#10b981] shrink-0" />
+                <KeyRound className="w-5 h-5 text-[#2190ff] shrink-0" />
                 <div>
                   <p className="text-white text-sm font-medium">App autenticador</p>
                   <p className="text-xs text-[#6B7280]">Código TOTP de 6 dígitos, renovado a cada 30 segundos</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-4">
-                <Lock className="w-5 h-5 text-[#10b981] shrink-0" />
+                <Lock className="w-5 h-5 text-[#2190ff] shrink-0" />
                 <div>
                   <p className="text-white text-sm font-medium">Login protegido</p>
                   <p className="text-xs text-[#6B7280]">Ninguém entra sem a senha e o código do seu dispositivo</p>
@@ -210,11 +210,11 @@ export function TwoFactor({ onBack }: Props) {
             {/* Etapa 1 - Escanear */}
             <div className="rounded-2xl border border-[#1F2933] bg-[#121826] p-5">
               <div className="flex items-center gap-3 mb-4">
-                <span className="w-7 h-7 rounded-full bg-[#10b981] text-white text-sm font-bold flex items-center justify-center shrink-0">
+                <span className="w-7 h-7 rounded-full bg-[#2190ff] text-white text-sm font-bold flex items-center justify-center shrink-0">
                   1
                 </span>
                 <div className="flex items-center gap-2">
-                  <ScanLine className="w-4 h-4 text-[#10b981]" />
+                  <ScanLine className="w-4 h-4 text-[#2190ff]" />
                   <p className="text-white font-semibold">Escaneie o QR Code</p>
                 </div>
               </div>
@@ -227,10 +227,10 @@ export function TwoFactor({ onBack }: Props) {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={qrImage || "/placeholder.svg"} alt="QR Code para autenticação" className="w-52 h-52 block" />
                   {/* Cantos decorativos do "scanner" */}
-                  <span className="pointer-events-none absolute left-1 top-1 w-6 h-6 border-l-2 border-t-2 border-[#10b981] rounded-tl-lg" />
-                  <span className="pointer-events-none absolute right-1 top-1 w-6 h-6 border-r-2 border-t-2 border-[#10b981] rounded-tr-lg" />
-                  <span className="pointer-events-none absolute left-1 bottom-1 w-6 h-6 border-l-2 border-b-2 border-[#10b981] rounded-bl-lg" />
-                  <span className="pointer-events-none absolute right-1 bottom-1 w-6 h-6 border-r-2 border-b-2 border-[#10b981] rounded-br-lg" />
+                  <span className="pointer-events-none absolute left-1 top-1 w-6 h-6 border-l-2 border-t-2 border-[#2190ff] rounded-tl-lg" />
+                  <span className="pointer-events-none absolute right-1 top-1 w-6 h-6 border-r-2 border-t-2 border-[#2190ff] rounded-tr-lg" />
+                  <span className="pointer-events-none absolute left-1 bottom-1 w-6 h-6 border-l-2 border-b-2 border-[#2190ff] rounded-bl-lg" />
+                  <span className="pointer-events-none absolute right-1 bottom-1 w-6 h-6 border-r-2 border-b-2 border-[#2190ff] rounded-br-lg" />
                 </div>
               </div>
 
@@ -243,11 +243,11 @@ export function TwoFactor({ onBack }: Props) {
                   </div>
                   <button
                     onClick={copySecret}
-                    className="w-full flex items-center justify-between gap-2 p-3 rounded-lg bg-[#0B0F14] border border-[#1F2933] hover:border-[#10b981]/50 transition-colors text-left group"
+                    className="w-full flex items-center justify-between gap-2 p-3 rounded-lg bg-[#0B0F14] border border-[#1F2933] hover:border-[#2190ff]/50 transition-colors text-left group"
                   >
                     <code className="text-sm text-white break-all font-mono tracking-wide">{secret}</code>
                     {copied ? (
-                      <span className="flex items-center gap-1 text-[#00E676] text-xs shrink-0">
+                      <span className="flex items-center gap-1 text-[#2190ff] text-xs shrink-0">
                         <Check className="w-4 h-4" /> Copiado
                       </span>
                     ) : (
@@ -261,11 +261,11 @@ export function TwoFactor({ onBack }: Props) {
             {/* Etapa 2 - Confirmar código */}
             <div className="rounded-2xl border border-[#1F2933] bg-[#121826] p-5">
               <div className="flex items-center gap-3 mb-4">
-                <span className="w-7 h-7 rounded-full bg-[#10b981] text-white text-sm font-bold flex items-center justify-center shrink-0">
+                <span className="w-7 h-7 rounded-full bg-[#2190ff] text-white text-sm font-bold flex items-center justify-center shrink-0">
                   2
                 </span>
                 <div className="flex items-center gap-2">
-                  <Smartphone className="w-4 h-4 text-[#10b981]" />
+                  <Smartphone className="w-4 h-4 text-[#2190ff]" />
                   <p className="text-white font-semibold">Digite o código gerado</p>
                 </div>
               </div>
@@ -278,7 +278,7 @@ export function TwoFactor({ onBack }: Props) {
                 inputMode="numeric"
                 autoFocus
                 placeholder="000000"
-                className="w-full py-3.5 px-4 rounded-xl text-white text-center text-3xl tracking-[0.4em] font-mono bg-[#0B0F14] border border-[#1F2933] focus:border-[#10b981] outline-none placeholder:text-[#2A3441]"
+                className="w-full py-3.5 px-4 rounded-xl text-white text-center text-3xl tracking-[0.4em] font-mono bg-[#0B0F14] border border-[#1F2933] focus:border-[#2190ff] outline-none placeholder:text-[#2A3441]"
               />
             </div>
 
@@ -292,7 +292,7 @@ export function TwoFactor({ onBack }: Props) {
               <button
                 onClick={verifyEnroll}
                 disabled={code.length < 6 || verifying}
-                className="flex-1 py-3 rounded-xl text-white bg-[#10b981] hover:bg-[#047857] transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 py-3 rounded-xl text-white bg-[#2190ff] hover:bg-[#0b5ed7] transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {verifying ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
                 Ativar proteção
@@ -304,8 +304,8 @@ export function TwoFactor({ onBack }: Props) {
           <div className="space-y-5">
             <div className="relative overflow-hidden rounded-2xl border border-[#1F2933] bg-gradient-to-br from-[#1A1030] to-[#0B0F14] p-6">
               <div className="flex flex-col items-center text-center gap-3">
-                <div className="w-16 h-16 rounded-2xl bg-[#10b981]/15 flex items-center justify-center ring-4 ring-[#10b981]/10">
-                  <ShieldAlert className="w-8 h-8 text-[#10b981]" />
+                <div className="w-16 h-16 rounded-2xl bg-[#2190ff]/15 flex items-center justify-center ring-4 ring-[#2190ff]/10">
+                  <ShieldAlert className="w-8 h-8 text-[#2190ff]" />
                 </div>
                 <div>
                   <p className="text-white font-bold text-lg text-balance">Adicione uma camada extra de segurança</p>
@@ -323,8 +323,8 @@ export function TwoFactor({ onBack }: Props) {
                 { icon: Lock, title: "Proteção contra invasões", desc: "Mesmo que descubram sua senha, não conseguem entrar" },
               ].map((item) => (
                 <div key={item.title} className="flex items-start gap-3 p-4 rounded-xl bg-[#121826] border border-[#1F2933]">
-                  <div className="w-9 h-9 rounded-lg bg-[#10b981]/15 flex items-center justify-center shrink-0">
-                    <item.icon className="w-5 h-5 text-[#10b981]" />
+                  <div className="w-9 h-9 rounded-lg bg-[#2190ff]/15 flex items-center justify-center shrink-0">
+                    <item.icon className="w-5 h-5 text-[#2190ff]" />
                   </div>
                   <div>
                     <p className="text-white text-sm font-medium">{item.title}</p>
@@ -337,7 +337,7 @@ export function TwoFactor({ onBack }: Props) {
             <button
               onClick={startEnroll}
               disabled={starting}
-              className="w-full py-3.5 rounded-xl text-white bg-[#10b981] hover:bg-[#047857] transition-colors font-semibold disabled:opacity-60 flex items-center justify-center gap-2"
+              className="w-full py-3.5 rounded-xl text-white bg-[#2190ff] hover:bg-[#0b5ed7] transition-colors font-semibold disabled:opacity-60 flex items-center justify-center gap-2"
             >
               {starting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
               Ativar verificação em duas etapas

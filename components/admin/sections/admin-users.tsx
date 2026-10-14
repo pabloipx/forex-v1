@@ -243,7 +243,7 @@ export function AdminUsers() {
                       onClick={() => toggleBlockUser(user)}
                       className={
                         user.is_blocked
-                          ? "text-green-400 hover:text-green-300 hover:bg-[#2A3142]"
+                          ? "text-blue-400 hover:text-blue-300 hover:bg-[#2A3142]"
                           : "text-red-400 hover:text-red-300 hover:bg-[#2A3142]"
                       }
                     >
@@ -265,7 +265,7 @@ export function AdminUsers() {
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
                   <span className="text-gray-500">Real:</span>
-                  <span className="text-green-500 font-semibold ml-1">{formatCurrency(user.balance_real)}</span>
+                  <span className="text-blue-500 font-semibold ml-1">{formatCurrency(user.balance_real)}</span>
                 </div>
                 <div>
                   <span className="text-gray-500">Demo:</span>
@@ -277,7 +277,7 @@ export function AdminUsers() {
                 {user.is_blocked ? (
                   <span className="px-2 py-0.5 rounded-full text-xs bg-red-500/20 text-red-400">Bloqueado</span>
                 ) : (
-                  <span className="px-2 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">Ativo</span>
+                  <span className="px-2 py-0.5 rounded-full text-xs bg-blue-500/20 text-blue-400">Ativo</span>
                 )}
               </div>
             </div>
@@ -335,7 +335,7 @@ export function AdminUsers() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-green-500 font-semibold">{formatCurrency(user.balance_real)}</span>
+                      <span className="text-blue-500 font-semibold">{formatCurrency(user.balance_real)}</span>
                     </td>
                     <td className="px-4 py-3">
                       <span className="text-gray-400">{formatCurrency(user.balance_demo)}</span>
@@ -346,7 +346,7 @@ export function AdminUsers() {
                           Bloqueado
                         </span>
                       ) : (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400">
                           Ativo
                         </span>
                       )}
@@ -374,7 +374,7 @@ export function AdminUsers() {
                             onClick={() => toggleBlockUser(user)}
                             className={
                               user.is_blocked
-                                ? "text-green-400 hover:text-green-300 hover:bg-[#2A3142]"
+                                ? "text-blue-400 hover:text-blue-300 hover:bg-[#2A3142]"
                                 : "text-red-400 hover:text-red-300 hover:bg-[#2A3142]"
                             }
                           >
@@ -443,7 +443,7 @@ export function AdminUsers() {
                       step="0.01"
                       value={editForm.balance_real}
                       onChange={(e) => setEditForm({ ...editForm, balance_real: e.target.value })}
-                      className="mt-1 bg-[#0D1117] border-[#2A3142] text-green-500 font-semibold"
+                      className="mt-1 bg-[#0D1117] border-[#2A3142] text-blue-500 font-semibold"
                     />
                   </div>
                   <div>
@@ -466,7 +466,7 @@ export function AdminUsers() {
                     <span className="text-white text-sm">Conta Verificada</span>
                     <div
                       onClick={() => setEditForm({ ...editForm, is_verified: !editForm.is_verified })}
-                      className={`w-12 h-6 rounded-full transition-colors ${editForm.is_verified ? "bg-green-600" : "bg-gray-600"}`}
+                      className={`w-12 h-6 rounded-full transition-colors ${editForm.is_verified ? "bg-blue-600" : "bg-gray-600"}`}
                     >
                       <div
                         className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform mt-0.5 ${editForm.is_verified ? "translate-x-6 ml-0.5" : "translate-x-0.5"}`}
@@ -499,7 +499,7 @@ export function AdminUsers() {
               <Button
                 onClick={handleSaveUser}
                 disabled={saving}
-                className="flex-1 bg-gradient-to-r from-[#10b981] to-[#34d399] hover:from-[#047857] hover:to-[#10b981] text-white"
+                className="flex-1 bg-gradient-to-r from-[#2190ff] to-[#4da6ff] hover:from-[#0b5ed7] hover:to-[#2190ff] text-white"
               >
                 {saving ? "Salvando..." : "Salvar"}
               </Button>

@@ -57,19 +57,19 @@ export function SectionOffers({ affiliate }: SectionOffersProps) {
         <section key={offer.id} className="rounded-xl border border-gray-200 bg-white">
           <div className="flex flex-wrap items-center justify-between gap-4 p-6">
             <div className="flex items-center gap-4">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-900 text-sm font-semibold text-emerald-400">
+              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-900 text-sm font-semibold text-blue-400">
                 UB
               </span>
               <div>
                 <p className="text-[17px] font-medium text-gray-900">{offer.title}</p>
-                <p className="text-[15px] text-emerald-600">Ativa</p>
+                <p className="text-[15px] text-blue-600">Ativa</p>
               </div>
             </div>
 
             <button
               type="button"
               onClick={() => setSelected(offer)}
-              className="flex h-11 items-center gap-2 rounded-lg bg-emerald-400 px-5 text-[15px] font-medium text-gray-900 transition-colors hover:bg-emerald-500"
+              className="flex h-11 items-center gap-2 rounded-lg bg-blue-400 px-5 text-[15px] font-medium text-gray-900 transition-colors hover:bg-blue-500"
             >
               Obtenha um link
               <ChevronRight className="h-4 w-4" />

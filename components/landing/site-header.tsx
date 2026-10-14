@@ -36,7 +36,7 @@ export function SiteHeader() {
           </Link>
           <Link
             href="/auth/sign-up"
-            className="whitespace-nowrap rounded-full bg-[#10b981] px-3 py-2 text-sm font-semibold text-[#03140d] transition-colors hover:bg-[#34d399] sm:px-4"
+            className="whitespace-nowrap rounded-full bg-[#2190ff] px-3 py-2 text-sm font-semibold text-[#03140d] transition-colors hover:bg-[#4da6ff] sm:px-4"
           >
             Abrir conta
           </Link>

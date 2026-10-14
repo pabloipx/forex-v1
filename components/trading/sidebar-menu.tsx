@@ -104,19 +104,19 @@ function SidebarMenuBase({
 
           {/* User Profile Card */}
           <div className="relative rounded-2xl overflow-hidden mb-5 bg-[#12100e] border border-white/[0.08]">
-            <div className="absolute -top-16 -right-10 w-40 h-40 rounded-full bg-[#10b981]/20 blur-3xl pointer-events-none" />
+            <div className="absolute -top-16 -right-10 w-40 h-40 rounded-full bg-[#2190ff]/20 blur-3xl pointer-events-none" />
             <div className="relative p-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#34d399] to-[#047857] flex items-center justify-center shadow-lg shadow-emerald-500/25 ring-2 ring-[#10b981]/20">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#4da6ff] to-[#0b5ed7] flex items-center justify-center shadow-lg shadow-blue-500/25 ring-2 ring-[#2190ff]/20">
                   <span className="text-white font-bold text-lg">
                     {userName ? userName.charAt(0).toUpperCase() : "U"}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-white font-semibold text-sm truncate">{userName || "Trader"}</div>
-                  <div className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-[#10b981]/10 border border-[#10b981]/20">
-                    <Shield className="w-3 h-3 text-[#34d399]" />
-                    <span className="text-[#34d399] text-[10px] font-semibold tracking-wide">VIP Bronze</span>
+                  <div className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-[#2190ff]/10 border border-[#2190ff]/20">
+                    <Shield className="w-3 h-3 text-[#4da6ff]" />
+                    <span className="text-[#4da6ff] text-[10px] font-semibold tracking-wide">VIP Bronze</span>
                   </div>
                 </div>
               </div>
@@ -132,7 +132,7 @@ function SidebarMenuBase({
           <div className="grid grid-cols-2 gap-2 mb-4">
             <button
               onClick={() => handleNavigation("/deposit")}
-              className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#10b981] hover:bg-[#047857] text-white text-xs font-semibold transition shadow-lg shadow-emerald-500/20"
+              className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#2190ff] hover:bg-[#0b5ed7] text-white text-xs font-semibold transition shadow-lg shadow-blue-500/20"
             >
               <Wallet className="w-3.5 h-3.5" />
               Depositar
@@ -161,8 +161,8 @@ function SidebarMenuBase({
               onClick={() => handleNavigation(item.href)}
               className="w-full flex items-center gap-3 px-3 py-2.5 text-white/60 hover:text-white hover:bg-white/[0.04] rounded-xl transition group"
             >
-              <div className="w-8 h-8 rounded-lg bg-white/[0.04] group-hover:bg-[#10b981]/10 flex items-center justify-center transition">
-                <item.icon className="w-4 h-4 text-white/40 group-hover:text-[#34d399] transition" />
+              <div className="w-8 h-8 rounded-lg bg-white/[0.04] group-hover:bg-[#2190ff]/10 flex items-center justify-center transition">
+                <item.icon className="w-4 h-4 text-white/40 group-hover:text-[#4da6ff] transition" />
               </div>
               <span className="flex-1 text-left text-[13px] font-medium">{item.label}</span>
               <ChevronRight className="w-3.5 h-3.5 text-white/15 group-hover:text-white/30 transition" />
@@ -178,8 +178,8 @@ function SidebarMenuBase({
               onClick={() => handleNavigation(item.href)}
               className="w-full flex items-center gap-3 px-3 py-2.5 text-white/60 hover:text-white hover:bg-white/[0.04] rounded-xl transition group"
             >
-              <div className="w-8 h-8 rounded-lg bg-white/[0.04] group-hover:bg-[#10b981]/10 flex items-center justify-center transition">
-                <item.icon className="w-4 h-4 text-white/40 group-hover:text-[#34d399] transition" />
+              <div className="w-8 h-8 rounded-lg bg-white/[0.04] group-hover:bg-[#2190ff]/10 flex items-center justify-center transition">
+                <item.icon className="w-4 h-4 text-white/40 group-hover:text-[#4da6ff] transition" />
               </div>
               <span className="flex-1 text-left text-[13px] font-medium">{item.label}</span>
               <ChevronRight className="w-3.5 h-3.5 text-white/15 group-hover:text-white/30 transition" />
@@ -195,8 +195,8 @@ function SidebarMenuBase({
               onClick={() => handleNavigation(item.href)}
               className="w-full flex items-center gap-3 px-3 py-2.5 text-white/60 hover:text-white hover:bg-white/[0.04] rounded-xl transition group"
             >
-              <div className="w-8 h-8 rounded-lg bg-white/[0.04] group-hover:bg-[#10b981]/10 flex items-center justify-center transition">
-                <item.icon className="w-4 h-4 text-white/40 group-hover:text-[#34d399] transition" />
+              <div className="w-8 h-8 rounded-lg bg-white/[0.04] group-hover:bg-[#2190ff]/10 flex items-center justify-center transition">
+                <item.icon className="w-4 h-4 text-white/40 group-hover:text-[#4da6ff] transition" />
               </div>
               <span className="flex-1 text-left text-[13px] font-medium">{item.label}</span>
               <ChevronRight className="w-3.5 h-3.5 text-white/15 group-hover:text-white/30 transition" />

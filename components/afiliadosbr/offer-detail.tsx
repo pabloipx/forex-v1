@@ -110,12 +110,12 @@ export function OfferDetail({ offer, affiliate, onBack }: OfferDetailProps) {
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <span className="flex h-14 w-14 items-center justify-center rounded-full border border-gray-200 bg-gray-900 text-sm font-semibold text-emerald-400">
+        <span className="flex h-14 w-14 items-center justify-center rounded-full border border-gray-200 bg-gray-900 text-sm font-semibold text-blue-400">
           UB
         </span>
         <div>
           <h2 className="text-[26px] font-normal leading-tight text-gray-900">{offer.title}</h2>
-          <p className="text-[15px] text-emerald-600">Ativa</p>
+          <p className="text-[15px] text-blue-600">Ativa</p>
         </div>
       </header>
 
@@ -127,7 +127,7 @@ export function OfferDetail({ offer, affiliate, onBack }: OfferDetailProps) {
             onClick={() => setTab(item)}
             className={`-mb-px border-b-2 pb-3 text-[15px] transition-colors ${
               tab === item
-                ? "border-emerald-600 text-emerald-700"
+                ? "border-blue-600 text-blue-700"
                 : "border-transparent text-gray-600 hover:text-gray-900"
             }`}
           >
@@ -158,7 +158,7 @@ export function OfferDetail({ offer, affiliate, onBack }: OfferDetailProps) {
                 value={afftrack}
                 onChange={(event) => setAfftrack(event.target.value.replace(/\s/g, ""))}
                 placeholder="Inserir afftrack"
-                className="h-12 rounded-lg border border-gray-300 px-4 text-[15px] text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-emerald-500"
+                className="h-12 rounded-lg border border-gray-300 px-4 text-[15px] text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-blue-500"
               />
             </div>
 
@@ -175,10 +175,10 @@ export function OfferDetail({ offer, affiliate, onBack }: OfferDetailProps) {
                   aria-label="Copiar link"
                   className="flex h-8 w-8 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-800"
                 >
-                  {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                  {copied ? <Check className="h-4 w-4 text-blue-600" /> : <Copy className="h-4 w-4" />}
                 </button>
               </div>
-              {copied && <span className="text-sm text-emerald-600">Link copiado para a área de transferência</span>}
+              {copied && <span className="text-sm text-blue-600">Link copiado para a área de transferência</span>}
             </div>
           </div>
 
@@ -285,7 +285,7 @@ export function OfferDetail({ offer, affiliate, onBack }: OfferDetailProps) {
             <div className="flex flex-col gap-5 rounded-xl border border-gray-200 p-5">
               <div>
                 <p className="text-[15px] text-gray-500">Site</p>
-                <a href="/" className="text-[15px] text-emerald-700 hover:underline">
+                <a href="/" className="text-[15px] text-blue-700 hover:underline">
                   https://profittradingglobal.com
                 </a>
               </div>

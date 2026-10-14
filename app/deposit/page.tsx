@@ -505,10 +505,10 @@ export default function DepositPage() {
           {/* Animated spinner */}
           <div className="relative w-24 h-24 mx-auto mb-8">
             <div className="absolute inset-0 rounded-full border-4 border-[#1F2933]" />
-            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[#10b981] animate-spin" />
-            <div className="absolute inset-3 rounded-full border-4 border-transparent border-t-[#10b981]/50 animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
+            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[#2190ff] animate-spin" />
+            <div className="absolute inset-3 rounded-full border-4 border-transparent border-t-[#2190ff]/50 animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
             <div className="absolute inset-0 flex items-center justify-center">
-              <CreditCard className="w-8 h-8 text-[#10b981]" />
+              <CreditCard className="w-8 h-8 text-[#2190ff]" />
             </div>
           </div>
 
@@ -529,11 +529,11 @@ export default function DepositPage() {
                 }`}
               >
                 {processingStep > i ? (
-                  <div className="w-5 h-5 rounded-full bg-[#10b981]/20 flex items-center justify-center flex-shrink-0">
-                    <Check className="w-3 h-3 text-[#10b981]" />
+                  <div className="w-5 h-5 rounded-full bg-[#2190ff]/20 flex items-center justify-center flex-shrink-0">
+                    <Check className="w-3 h-3 text-[#2190ff]" />
                   </div>
                 ) : processingStep === i ? (
-                  <Loader2 className="w-5 h-5 text-[#10b981] animate-spin flex-shrink-0" />
+                  <Loader2 className="w-5 h-5 text-[#2190ff] animate-spin flex-shrink-0" />
                 ) : (
                   <div className="w-5 h-5 rounded-full border border-[#1F2933] flex-shrink-0" />
                 )}
@@ -572,13 +572,13 @@ export default function DepositPage() {
           <div className="flex flex-col gap-3">
             <button
               onClick={handleNewDeposit}
-              className="w-full py-4 rounded-xl font-semibold text-white bg-[#10b981] hover:bg-[#047857] transition-colors"
+              className="w-full py-4 rounded-xl font-semibold text-white bg-[#2190ff] hover:bg-[#0b5ed7] transition-colors"
             >
               Tentar novamente
             </button>
             <button
               onClick={() => router.push("/futures")}
-              className="w-full py-4 rounded-xl font-semibold text-white bg-[#1A2332] border border-[#1F2933] hover:border-[#10b981] transition-colors"
+              className="w-full py-4 rounded-xl font-semibold text-white bg-[#1A2332] border border-[#1F2933] hover:border-[#2190ff] transition-colors"
             >
               Voltar para o Trade
             </button>
@@ -647,7 +647,7 @@ export default function DepositPage() {
               </div>
               <button
                 onClick={handleCopyPaste}
-                className="w-full py-4 rounded-xl font-semibold text-white bg-[#10b981] hover:bg-[#34d399] transition-colors flex items-center justify-center gap-2"
+                className="w-full py-4 rounded-xl font-semibold text-white bg-[#2190ff] hover:bg-[#4da6ff] transition-colors flex items-center justify-center gap-2"
               >
                 {copied ? (
                   <>
@@ -667,7 +667,7 @@ export default function DepositPage() {
           <button
             onClick={handleCheckStatus}
             disabled={checkingStatus}
-            className="w-full py-4 rounded-xl font-semibold text-white bg-[#1A2332] border border-[#1F2933] hover:border-[#10b981] transition-colors flex items-center justify-center gap-2"
+            className="w-full py-4 rounded-xl font-semibold text-white bg-[#1A2332] border border-[#1F2933] hover:border-[#2190ff] transition-colors flex items-center justify-center gap-2"
           >
             {checkingStatus ? <Loader2 className="w-5 h-5 animate-spin" /> : <RefreshCw className="w-5 h-5" />}
             <span>Ja fiz o pagamento</span>
@@ -675,14 +675,14 @@ export default function DepositPage() {
 
           <div className="bg-[#121826] border border-[#1F2933] rounded-xl p-4 space-y-3">
             <div className="flex items-start gap-3">
-              <div className="w-2 h-2 rounded-full bg-[#10b981] mt-2 flex-shrink-0" />
+              <div className="w-2 h-2 rounded-full bg-[#2190ff] mt-2 flex-shrink-0" />
               <div>
                 <p className="text-white text-sm font-medium">Pagamento instantaneo</p>
                 <p className="text-[#9CA3AF] text-xs">Seu saldo sera creditado automaticamente apos a confirmacao</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-2 h-2 rounded-full bg-[#10b981] mt-2 flex-shrink-0" />
+              <div className="w-2 h-2 rounded-full bg-[#2190ff] mt-2 flex-shrink-0" />
               <div>
                 <p className="text-white text-sm font-medium">Seguro e protegido</p>
                 <p className="text-[#9CA3AF] text-xs">Todas as transacoes sao criptografadas</p>
@@ -735,12 +735,12 @@ export default function DepositPage() {
               aria-pressed={method === "pix"}
               className={`group relative flex flex-col items-center gap-2 px-3 py-4 rounded-2xl border transition-all duration-200 overflow-hidden ${
                 method === "pix"
-                  ? "border-[#10b981] bg-gradient-to-b from-[#10b981]/15 to-transparent shadow-[0_0_0_1px_rgba(16,185,129,0.35),0_8px_24px_-8px_rgba(16,185,129,0.5)]"
+                  ? "border-[#2190ff] bg-gradient-to-b from-[#2190ff]/15 to-transparent shadow-[0_0_0_1px_rgba(33,144,255,0.35),0_8px_24px_-8px_rgba(33,144,255,0.5)]"
                   : "border-[#1F2933] bg-[#121826] hover:border-[#374151] hover:bg-[#161d2b]"
               }`}
             >
               {method === "pix" && (
-                <span className="absolute top-2 right-2 flex items-center justify-center w-4 h-4 rounded-full bg-[#10b981]">
+                <span className="absolute top-2 right-2 flex items-center justify-center w-4 h-4 rounded-full bg-[#2190ff]">
                   <Check className="w-3 h-3 text-white" strokeWidth={3} />
                 </span>
               )}
@@ -764,16 +764,16 @@ export default function DepositPage() {
                 aria-pressed={method === "card"}
                 className={`group relative flex flex-col items-center gap-2 px-3 py-4 rounded-2xl border transition-all duration-200 overflow-hidden ${
                   method === "card"
-                    ? "border-[#10b981] bg-gradient-to-b from-[#10b981]/15 to-transparent shadow-[0_0_0_1px_rgba(16,185,129,0.35),0_8px_24px_-8px_rgba(16,185,129,0.5)]"
+                    ? "border-[#2190ff] bg-gradient-to-b from-[#2190ff]/15 to-transparent shadow-[0_0_0_1px_rgba(33,144,255,0.35),0_8px_24px_-8px_rgba(33,144,255,0.5)]"
                     : "border-[#1F2933] bg-[#121826] hover:border-[#374151] hover:bg-[#161d2b]"
                 }`}
               >
                 {method === "card" && (
-                  <span className="absolute top-2 right-2 flex items-center justify-center w-4 h-4 rounded-full bg-[#10b981]">
+                  <span className="absolute top-2 right-2 flex items-center justify-center w-4 h-4 rounded-full bg-[#2190ff]">
                     <Check className="w-3 h-3 text-white" strokeWidth={3} />
                   </span>
                 )}
-                <span className={`flex items-center justify-center w-10 h-10 rounded-xl transition-colors ${method === "card" ? "bg-[#10b981]" : "bg-[#0d0d0f] group-hover:bg-[#161d2b]"}`}>
+                <span className={`flex items-center justify-center w-10 h-10 rounded-xl transition-colors ${method === "card" ? "bg-[#2190ff]" : "bg-[#0d0d0f] group-hover:bg-[#161d2b]"}`}>
                   <CreditCard className={`w-5 h-5 ${method === "card" ? "text-white" : "text-white/70"}`} />
                 </span>
                 <span className="flex flex-col items-center leading-tight">
@@ -788,12 +788,12 @@ export default function DepositPage() {
                 aria-pressed={method === "crypto"}
                 className={`group relative flex flex-col items-center gap-2 px-3 py-4 rounded-2xl border transition-all duration-200 overflow-hidden ${
                   method === "crypto"
-                    ? "border-[#10b981] bg-gradient-to-b from-[#10b981]/15 to-transparent shadow-[0_0_0_1px_rgba(16,185,129,0.35),0_8px_24px_-8px_rgba(16,185,129,0.5)]"
+                    ? "border-[#2190ff] bg-gradient-to-b from-[#2190ff]/15 to-transparent shadow-[0_0_0_1px_rgba(33,144,255,0.35),0_8px_24px_-8px_rgba(33,144,255,0.5)]"
                     : "border-[#1F2933] bg-[#121826] hover:border-[#374151] hover:bg-[#161d2b]"
                 }`}
               >
                 {method === "crypto" && (
-                  <span className="absolute top-2 right-2 flex items-center justify-center w-4 h-4 rounded-full bg-[#10b981]">
+                  <span className="absolute top-2 right-2 flex items-center justify-center w-4 h-4 rounded-full bg-[#2190ff]">
                     <Check className="w-3 h-3 text-white" strokeWidth={3} />
                   </span>
                 )}
@@ -841,7 +841,7 @@ export default function DepositPage() {
                 value={amount}
                 onChange={handleAmountChange}
                 placeholder="50,00"
-                className="w-full py-2 pl-8 pr-4 text-white text-lg bg-transparent border-0 border-b border-[#2a2a2e] focus:border-[#10b981] outline-none"
+                className="w-full py-2 pl-8 pr-4 text-white text-lg bg-transparent border-0 border-b border-[#2a2a2e] focus:border-[#2190ff] outline-none"
                 inputMode="numeric"
               />
             </div>
@@ -855,7 +855,7 @@ export default function DepositPage() {
               <button
                 key={value}
                 onClick={() => handleQuickAmount(value)}
-                className="py-3 px-2 rounded-lg text-sm font-medium text-white bg-[#151517] border border-[#26262a] hover:border-[#10b981] transition-colors"
+                className="py-3 px-2 rounded-lg text-sm font-medium text-white bg-[#151517] border border-[#26262a] hover:border-[#2190ff] transition-colors"
               >
                 R$ {value.toLocaleString("pt-BR")}
               </button>
@@ -886,7 +886,7 @@ export default function DepositPage() {
                   setPromoMsg(null)
                 }}
                 placeholder="Insira seu código promocional"
-                className="flex-1 border-b border-[#2a2a2e] bg-transparent py-2 text-white outline-none placeholder:text-[#4b5563] focus:border-[#10b981]"
+                className="flex-1 border-b border-[#2a2a2e] bg-transparent py-2 text-white outline-none placeholder:text-[#4b5563] focus:border-[#2190ff]"
               />
               <button
                 type="button"
@@ -923,7 +923,7 @@ export default function DepositPage() {
               value={pixCpf}
               onChange={(e) => setPixCpf(formatCpf(e.target.value))}
               placeholder="000.000.000-00"
-              className="w-full py-4 px-4 rounded-xl text-white bg-[#121826] border border-[#1F2933] focus:border-[#10b981] outline-none"
+              className="w-full py-4 px-4 rounded-xl text-white bg-[#121826] border border-[#1F2933] focus:border-[#2190ff] outline-none"
               inputMode="numeric"
               autoComplete="off"
             />
@@ -948,7 +948,7 @@ export default function DepositPage() {
                 value={cardName}
                 onChange={(e) => setCardName(e.target.value)}
                 placeholder="Nome como esta no cartao"
-                className="w-full py-4 px-4 rounded-xl text-white bg-[#121826] border border-[#1F2933] focus:border-[#10b981] outline-none"
+                className="w-full py-4 px-4 rounded-xl text-white bg-[#121826] border border-[#1F2933] focus:border-[#2190ff] outline-none"
                 autoComplete="cc-name"
               />
             </div>
@@ -961,7 +961,7 @@ export default function DepositPage() {
                 onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
                 placeholder="0000 0000 0000 0000"
                 maxLength={19}
-                className="w-full py-4 px-4 rounded-xl text-white bg-[#121826] border border-[#1F2933] focus:border-[#10b981] outline-none font-mono tracking-wider"
+                className="w-full py-4 px-4 rounded-xl text-white bg-[#121826] border border-[#1F2933] focus:border-[#2190ff] outline-none font-mono tracking-wider"
                 inputMode="numeric"
                 autoComplete="cc-number"
               />
@@ -976,7 +976,7 @@ export default function DepositPage() {
                   onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
                   placeholder="MM/AA"
                   maxLength={5}
-                  className="w-full py-4 px-4 rounded-xl text-white bg-[#121826] border border-[#1F2933] focus:border-[#10b981] outline-none font-mono"
+                  className="w-full py-4 px-4 rounded-xl text-white bg-[#121826] border border-[#1F2933] focus:border-[#2190ff] outline-none font-mono"
                   inputMode="numeric"
                   autoComplete="cc-exp"
                 />
@@ -989,7 +989,7 @@ export default function DepositPage() {
                   onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
                   placeholder="000"
                   maxLength={4}
-                  className="w-full py-4 px-4 rounded-xl text-white bg-[#121826] border border-[#1F2933] focus:border-[#10b981] outline-none font-mono"
+                  className="w-full py-4 px-4 rounded-xl text-white bg-[#121826] border border-[#1F2933] focus:border-[#2190ff] outline-none font-mono"
                   inputMode="numeric"
                   autoComplete="cc-csc"
                 />
@@ -1004,7 +1004,7 @@ export default function DepositPage() {
                 onChange={(e) => setCardCpf(formatCpf(e.target.value))}
                 placeholder="000.000.000-00"
                 maxLength={14}
-                className="w-full py-4 px-4 rounded-xl text-white bg-[#121826] border border-[#1F2933] focus:border-[#10b981] outline-none font-mono"
+                className="w-full py-4 px-4 rounded-xl text-white bg-[#121826] border border-[#1F2933] focus:border-[#2190ff] outline-none font-mono"
                 inputMode="numeric"
               />
             </div>
@@ -1015,9 +1015,9 @@ export default function DepositPage() {
         {method === "crypto" && (
           <div className="space-y-4">
             {cryptoSuccess ? (
-              <div className="bg-[#121826] border border-green-500/30 rounded-xl p-6 text-center space-y-4">
-                <div className="w-16 h-16 mx-auto rounded-full bg-green-500/20 flex items-center justify-center">
-                  <CheckCircle2 className="w-8 h-8 text-green-500" />
+              <div className="bg-[#121826] border border-blue-500/30 rounded-xl p-6 text-center space-y-4">
+                <div className="w-16 h-16 mx-auto rounded-full bg-blue-500/20 flex items-center justify-center">
+                  <CheckCircle2 className="w-8 h-8 text-blue-500" />
                 </div>
                 <div>
                   <h3 className="text-white font-semibold text-lg">Deposito Registrado!</h3>
@@ -1026,7 +1026,7 @@ export default function DepositPage() {
                 </div>
                 <button
                   onClick={() => router.push("/dashboard")}
-                  className="w-full py-3 rounded-xl font-semibold text-white bg-[#10b981] hover:bg-[#047857] transition-colors"
+                  className="w-full py-3 rounded-xl font-semibold text-white bg-[#2190ff] hover:bg-[#0b5ed7] transition-colors"
                 >
                   Voltar ao Dashboard
                 </button>
@@ -1123,8 +1123,8 @@ export default function DepositPage() {
                     </p>
                   </div>
                   <div className="flex items-start gap-2">
-                    <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-green-500 text-xs">$</span>
+                    <div className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-blue-500 text-xs">$</span>
                     </div>
                     <p className="text-[#9CA3AF] text-xs">Deposito minimo: <span className="text-white font-medium">${CRYPTO_MIN_USD} USD (R$ {(CRYPTO_MIN_USD * USD_TO_BRL).toFixed(2)})</span></p>
                   </div>
@@ -1193,7 +1193,7 @@ export default function DepositPage() {
                         className="p-2 rounded-lg bg-[#1A2332] hover:bg-[#2A3442] transition-colors"
                       >
                         {cryptoCopied ? (
-                          <Check className="w-4 h-4 text-green-500" />
+                          <Check className="w-4 h-4 text-blue-500" />
                         ) : (
                           <Copy className="w-4 h-4 text-[#9CA3AF]" />
                         )}
@@ -1232,7 +1232,7 @@ export default function DepositPage() {
                       value={cryptoTxHash}
                       onChange={(e) => setCryptoTxHash(e.target.value)}
                       placeholder="0x..."
-                      className="w-full bg-[#0B0F14] border border-[#1F2933] rounded-lg py-3 px-4 text-white text-sm font-mono placeholder:text-[#4B5563] focus:outline-none focus:border-[#10b981]"
+                      className="w-full bg-[#0B0F14] border border-[#1F2933] rounded-lg py-3 px-4 text-white text-sm font-mono placeholder:text-[#4B5563] focus:outline-none focus:border-[#2190ff]"
                     />
                     <p className="text-[#6B7280] text-xs">Copie o hash da transacao da sua carteira ou exchange</p>
                   </div>
@@ -1270,16 +1270,16 @@ export default function DepositPage() {
 
         {/* Terms - only for PIX and Card */}
         {method !== "crypto" && (
-          <div className="p-4 rounded-xl border-2 border-[#10b981] bg-[#121826]">
+          <div className="p-4 rounded-xl border-2 border-[#2190ff] bg-[#121826]">
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
                 checked={acceptTerms}
                 onChange={(e) => setAcceptTerms(e.target.checked)}
-                className="mt-0.5 w-5 h-5 rounded border-[#10b981] bg-[#0B0F14] text-[#10b981] focus:ring-[#10b981] focus:ring-offset-0"
+                className="mt-0.5 w-5 h-5 rounded border-[#2190ff] bg-[#0B0F14] text-[#2190ff] focus:ring-[#2190ff] focus:ring-offset-0"
               />
               <div>
-                <p className="text-[#10b981] text-sm font-medium">Termos e condicoes</p>
+                <p className="text-[#2190ff] text-sm font-medium">Termos e condicoes</p>
                 <p className="text-[#9CA3AF] text-sm mt-1">Ao continuar, concordo com os Termos e condicoes.</p>
               </div>
             </label>
@@ -1291,7 +1291,7 @@ export default function DepositPage() {
           <button
             onClick={method === "pix" ? handlePixDeposit : handleCardDeposit}
             disabled={!acceptTerms || parseAmount() < 50 || isLoading}
-            className="w-full py-4 rounded-xl font-semibold text-white bg-[#10b981] hover:bg-[#047857] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            className="w-full py-4 rounded-xl font-semibold text-white bg-[#2190ff] hover:bg-[#0b5ed7] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>
@@ -1310,14 +1310,14 @@ export default function DepositPage() {
         {method === "card" && (
           <div className="bg-[#121826] border border-[#1F2933] rounded-xl p-4 space-y-3">
             <div className="flex items-start gap-3">
-              <div className="w-2 h-2 rounded-full bg-[#10b981] mt-2 flex-shrink-0" />
+              <div className="w-2 h-2 rounded-full bg-[#2190ff] mt-2 flex-shrink-0" />
               <div>
                 <p className="text-white text-sm font-medium">Processamento seguro</p>
                 <p className="text-[#9CA3AF] text-xs">Seus dados sao protegidos com criptografia de ponta a ponta</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-2 h-2 rounded-full bg-[#10b981] mt-2 flex-shrink-0" />
+              <div className="w-2 h-2 rounded-full bg-[#2190ff] mt-2 flex-shrink-0" />
               <div>
                 <p className="text-white text-sm font-medium">Aprovacao manual</p>
                 <p className="text-[#9CA3AF] text-xs">Depositos via cartao sao verificados e aprovados pela equipe</p>

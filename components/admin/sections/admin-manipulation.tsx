@@ -179,7 +179,7 @@ export function AdminManipulation() {
     if (!m.active) return { key: "stopped", label: "Encerrada", color: "text-gray-500 bg-gray-500/10" }
     if (now < start) return { key: "scheduled", label: "Agendada", color: "text-blue-400 bg-blue-500/10" }
     if (now > end) return { key: "done", label: "Concluida", color: "text-gray-500 bg-gray-500/10" }
-    return { key: "active", label: "Ativa", color: "text-emerald-400 bg-emerald-500/10" }
+    return { key: "active", label: "Ativa", color: "text-blue-400 bg-blue-500/10" }
   }
 
   const remainingLabel = (m: Manipulation) => {
@@ -214,7 +214,7 @@ export function AdminManipulation() {
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-emerald-500" />
+            <Zap className="h-5 w-5 text-blue-500" />
             <h1 className="text-2xl font-bold tracking-tight text-white">Manipulacao</h1>
           </div>
           <p className="mt-1 text-sm text-gray-400">
@@ -254,7 +254,7 @@ export function AdminManipulation() {
                 key={a.symbol}
                 onClick={() => setSymbol(a.symbol)}
                 className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm transition-colors ${
-                  symbol === a.symbol ? "bg-emerald-500/15 text-emerald-400" : "text-gray-300 hover:bg-white/[0.04]"
+                  symbol === a.symbol ? "bg-blue-500/15 text-blue-400" : "text-gray-300 hover:bg-white/[0.04]"
                 }`}
               >
                 <span className="truncate">{a.name}</span>
@@ -273,7 +273,7 @@ export function AdminManipulation() {
               onClick={() => setDirection("up")}
               className={`flex items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-semibold transition-all ${
                 direction === "up"
-                  ? "border-emerald-500 bg-emerald-500/15 text-emerald-400"
+                  ? "border-blue-500 bg-blue-500/15 text-blue-400"
                   : "border-white/[0.06] bg-[#0a0e16] text-gray-400 hover:text-gray-200"
               }`}
             >
@@ -300,7 +300,7 @@ export function AdminManipulation() {
                 onClick={() => setStyle(s.value)}
                 className={`rounded-lg border px-3 py-2 text-left text-sm font-semibold transition-all ${
                   style === s.value
-                    ? "border-emerald-500 bg-emerald-500/15 text-emerald-400"
+                    ? "border-blue-500 bg-blue-500/15 text-blue-400"
                     : "border-white/[0.06] bg-[#0a0e16] text-gray-400 hover:text-gray-200"
                 }`}
               >
@@ -321,7 +321,7 @@ export function AdminManipulation() {
                 onClick={() => setTimeframe(t.value)}
                 className={`rounded-lg border py-2 text-sm font-semibold transition-all ${
                   timeframe === t.value
-                    ? "border-emerald-500 bg-emerald-500/15 text-emerald-400"
+                    ? "border-blue-500 bg-blue-500/15 text-blue-400"
                     : "border-white/[0.06] bg-[#0a0e16] text-gray-400 hover:text-gray-200"
                 }`}
               >
@@ -337,7 +337,7 @@ export function AdminManipulation() {
               onClick={() => setMode("now")}
               className={`flex items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-semibold transition-all ${
                 mode === "now"
-                  ? "border-emerald-500 bg-emerald-500/15 text-emerald-400"
+                  ? "border-blue-500 bg-blue-500/15 text-blue-400"
                   : "border-white/[0.06] bg-[#0a0e16] text-gray-400 hover:text-gray-200"
               }`}
             >
@@ -347,7 +347,7 @@ export function AdminManipulation() {
               onClick={() => setMode("scheduled")}
               className={`flex items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-semibold transition-all ${
                 mode === "scheduled"
-                  ? "border-emerald-500 bg-emerald-500/15 text-emerald-400"
+                  ? "border-blue-500 bg-blue-500/15 text-blue-400"
                   : "border-white/[0.06] bg-[#0a0e16] text-gray-400 hover:text-gray-200"
               }`}
             >
@@ -374,7 +374,7 @@ export function AdminManipulation() {
             max={30}
             value={durationCandles}
             onChange={(e) => setDurationCandles(Number(e.target.value))}
-            className="mb-4 w-full accent-emerald-500"
+            className="mb-4 w-full accent-blue-500"
           />
 
           {/* Forca */}
@@ -385,7 +385,7 @@ export function AdminManipulation() {
             max={100}
             value={strength}
             onChange={(e) => setStrength(Number(e.target.value))}
-            className="mb-4 w-full accent-emerald-500"
+            className="mb-4 w-full accent-blue-500"
           />
 
           {error && (
@@ -398,7 +398,7 @@ export function AdminManipulation() {
             onClick={createManipulation}
             disabled={creating}
             className={`w-full font-semibold text-white ${
-              direction === "up" ? "bg-emerald-600 hover:bg-emerald-500" : "bg-red-600 hover:bg-red-500"
+              direction === "up" ? "bg-blue-600 hover:bg-blue-500" : "bg-red-600 hover:bg-red-500"
             }`}
           >
             {creating ? (
@@ -441,7 +441,7 @@ export function AdminManipulation() {
                     <div className="flex items-center gap-3">
                       <div
                         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-                          m.direction === "up" ? "bg-emerald-500/15 text-emerald-400" : "bg-red-500/15 text-red-400"
+                          m.direction === "up" ? "bg-blue-500/15 text-blue-400" : "bg-red-500/15 text-red-400"
                         }`}
                       >
                         {m.direction === "up" ? (

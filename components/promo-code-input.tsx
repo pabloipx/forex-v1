@@ -107,19 +107,19 @@ export function PromoCodeInput({ amount, onApplied }: PromoCodeInputProps) {
 
   if (applied) {
     return (
-      <div className="p-4 rounded-xl border-2 border-green-500/60 bg-[#121826]">
+      <div className="p-4 rounded-xl border-2 border-blue-500/60 bg-[#121826]">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 min-w-0">
-            <span className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-green-500/20">
-              <Check className="w-3.5 h-3.5 text-green-400" />
+            <span className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/20">
+              <Check className="w-3.5 h-3.5 text-blue-400" />
             </span>
             <div className="min-w-0">
-              <p className="text-green-400 text-sm font-medium">
+              <p className="text-blue-400 text-sm font-medium">
                 Código <span className="font-mono">{applied.code}</span> aplicado
               </p>
               {applied.description && <p className="text-[#9CA3AF] text-xs mt-1">{applied.description}</p>}
               <p className="text-white text-sm mt-2">
-                Bônus de <span className="font-semibold text-green-400">{brl(applied.bonusAmount)}</span> — você recebe{" "}
+                Bônus de <span className="font-semibold text-blue-400">{brl(applied.bonusAmount)}</span> — você recebe{" "}
                 {brl(applied.totalCredit)}
               </p>
               {applied.rolloverRequired > 0 && (
@@ -163,7 +163,7 @@ export function PromoCodeInput({ amount, onApplied }: PromoCodeInputProps) {
             }
           }}
           placeholder="Digite seu código"
-          className="flex-1 px-3 py-2.5 rounded-lg bg-[#0B0F14] border border-[#1E2633] text-white font-mono placeholder:font-sans placeholder:text-[#6B7280] focus:outline-none focus:border-[#10b981]"
+          className="flex-1 px-3 py-2.5 rounded-lg bg-[#0B0F14] border border-[#1E2633] text-white font-mono placeholder:font-sans placeholder:text-[#6B7280] focus:outline-none focus:border-[#2190ff]"
         />
         <button
           onClick={handleApply}

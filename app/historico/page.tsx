@@ -144,7 +144,7 @@ export default function HistoricoPage() {
           <button
             onClick={() => setFilter("all")}
             className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
-              filter === "all" ? "bg-emerald-600 text-white" : "text-white/60 hover:text-white"
+              filter === "all" ? "bg-blue-600 text-white" : "text-white/60 hover:text-white"
             }`}
           >
             Todos
@@ -152,7 +152,7 @@ export default function HistoricoPage() {
           <button
             onClick={() => setFilter("WIN")}
             className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
-              filter === "WIN" ? "bg-green-600 text-white" : "text-white/60 hover:text-white"
+              filter === "WIN" ? "bg-blue-600 text-white" : "text-white/60 hover:text-white"
             }`}
           >
             Vitórias
@@ -180,13 +180,13 @@ export default function HistoricoPage() {
       <div className="px-4 pb-8">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
           </div>
         ) : filteredTrades.length === 0 ? (
           <div className="text-center py-12">
             <Clock className="w-12 h-12 mx-auto text-white/20 mb-4" />
             <p className="text-white/60">Nenhuma operação encontrada</p>
-            <Link href="/futures" className="mt-4 inline-block text-emerald-500 hover:underline">
+            <Link href="/futures" className="mt-4 inline-block text-blue-500 hover:underline">
               Fazer primeira operação
             </Link>
           </div>
@@ -203,7 +203,7 @@ export default function HistoricoPage() {
                     isPending
                       ? "border-white/10"
                       : trade.result === "WIN"
-                        ? "border-l-4 border-green-500 border-t border-r border-b border-white/10"
+                        ? "border-l-4 border-blue-500 border-t border-r border-b border-white/10"
                         : "border-l-4 border-red-500 border-t border-r border-b border-white/10"
                   }`}
                 >
@@ -211,11 +211,11 @@ export default function HistoricoPage() {
                     <div className="flex items-center gap-3">
                       <div
                         className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          trade.direction === "CALL" ? "bg-emerald-500/20" : "bg-red-500/20"
+                          trade.direction === "CALL" ? "bg-blue-500/20" : "bg-red-500/20"
                         }`}
                       >
                         {trade.direction === "CALL" ? (
-                          <TrendingUp className="w-5 h-5 text-emerald-500" />
+                          <TrendingUp className="w-5 h-5 text-blue-500" />
                         ) : (
                           <TrendingDown className="w-5 h-5 text-red-500" />
                         )}
@@ -240,7 +240,7 @@ export default function HistoricoPage() {
                     <div
                       className={`px-3 py-1 rounded-full text-xs font-bold ${
                         trade.result === "WIN"
-                          ? "bg-emerald-500 text-white"
+                          ? "bg-blue-500 text-white"
                           : trade.result === "LOSS"
                             ? "bg-red-500 text-white"
                             : "bg-yellow-500/20 text-yellow-500"
@@ -257,7 +257,7 @@ export default function HistoricoPage() {
                     </div>
                     <div className="text-right">
                       <p className="text-white/40 text-xs">Resultado</p>
-                      <p className={`font-medium ${(trade.profit || 0) >= 0 ? "text-emerald-500" : "text-red-500"}`}>
+                      <p className={`font-medium ${(trade.profit || 0) >= 0 ? "text-blue-500" : "text-red-500"}`}>
                         {trade.profit !== null ? formatCurrency(trade.profit) : "-"}
                       </p>
                     </div>

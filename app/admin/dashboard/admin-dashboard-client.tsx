@@ -283,7 +283,7 @@ export default function AdminDashboardClient() {
     switch (status) {
       case "approved":
       case "completed":
-        return "bg-green-500/20 text-green-500"
+        return "bg-blue-500/20 text-blue-500"
       case "pending":
         return "bg-yellow-500/20 text-yellow-500"
       case "rejected":
@@ -1016,7 +1016,7 @@ export default function AdminDashboardClient() {
                     setSidebarOpen(false)
                   }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg ${
-                    activeTab === item.id ? "bg-emerald-500/20 text-emerald-500" : "text-gray-400 hover:bg-[#1A1F2E]"
+                    activeTab === item.id ? "bg-blue-500/20 text-blue-500" : "text-gray-400 hover:bg-[#1A1F2E]"
                   }`}
                 >
                   <item.icon className="w-5 h-5" />
@@ -1053,7 +1053,7 @@ export default function AdminDashboardClient() {
                 key={item.id}
                 onClick={() => setActiveTab(item.id as any)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg ${
-                  activeTab === item.id ? "bg-emerald-500/20 text-emerald-500" : "text-gray-400 hover:bg-[#1A1F2E]"
+                  activeTab === item.id ? "bg-blue-500/20 text-blue-500" : "text-gray-400 hover:bg-[#1A1F2E]"
                 }`}
               >
                 <item.icon className="w-5 h-5" />
@@ -1083,8 +1083,8 @@ export default function AdminDashboardClient() {
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="relative flex h-2.5 w-2.5">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#22c55e] opacity-60" />
-                      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#22c55e]" />
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#2190ff] opacity-60" />
+                      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#2190ff]" />
                     </span>
                     <h1 className="text-2xl font-bold tracking-tight text-white">Dashboard</h1>
                   </div>
@@ -1196,7 +1196,7 @@ export default function AdminDashboardClient() {
                       onClick={() => setUserDaysFilter(opt.value)}
                       className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
                         active
-                          ? "bg-emerald-500 text-white"
+                          ? "bg-blue-500 text-white"
                           : "border border-[#2A3142] bg-[#11161f] text-gray-400 hover:bg-[#171d28] hover:text-gray-200"
                       }`}
                     >
@@ -1224,12 +1224,12 @@ export default function AdminDashboardClient() {
                               <span className="px-2 py-0.5 bg-red-500/20 text-red-500 text-xs rounded">Bloqueado</span>
                             )}
   {user.is_verified && (
-  <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-500 text-xs rounded">
+  <span className="px-2 py-0.5 bg-blue-500/20 text-blue-500 text-xs rounded">
   Verificado
   </span>
   )}
   {user.is_affiliate && (
-  <span className="px-2 py-0.5 bg-green-500/20 text-green-500 text-xs rounded">
+  <span className="px-2 py-0.5 bg-blue-500/20 text-blue-500 text-xs rounded">
   Afiliado
   </span>
   )}
@@ -1239,23 +1239,23 @@ export default function AdminDashboardClient() {
                         </div>
                         <div className="flex items-center gap-4">
                           <div className="text-right">
-                            <p className="text-green-500 font-bold">{formatCurrency(user.balance_real)}</p>
+                            <p className="text-blue-500 font-bold">{formatCurrency(user.balance_real)}</p>
                             <p className="text-gray-500 text-xs">Demo: {formatCurrency(user.balance_demo)}</p>
                             {user.rollover && user.rollover.remaining > 0 && (
-                              <p className="text-emerald-400 text-xs mt-1 flex items-center justify-end gap-1">
+                              <p className="text-blue-400 text-xs mt-1 flex items-center justify-end gap-1">
                                 <Repeat className="w-3 h-3" />
                                 Rollover: falta {formatCurrency(user.rollover.remaining)}
                               </p>
                             )}
                             {user.rollover && user.rollover.remaining <= 0 && (
-                              <p className="text-green-400 text-xs mt-1">Rollover concluído</p>
+                              <p className="text-blue-400 text-xs mt-1">Rollover concluído</p>
                             )}
                           </div>
                           <Button
                             onClick={() => openRolloverModal(user)}
                             size="sm"
                             variant="outline"
-                            className="border-[#2A3142] text-emerald-400 hover:text-emerald-300"
+                            className="border-[#2A3142] text-blue-400 hover:text-blue-300"
                           >
                             <Repeat className="w-4 h-4" />
                             <span className="ml-1 hidden sm:inline">Rollover</span>
@@ -1312,8 +1312,8 @@ export default function AdminDashboardClient() {
                             <p className="text-white font-medium">{deposit.user_email || "Usuário"}</p>
                             <span className={`px-2 py-0.5 text-xs rounded ${
                               deposit.method === "crypto" ? "bg-yellow-500/20 text-yellow-500" :
-                              deposit.method === "card" ? "bg-emerald-500/20 text-emerald-500" :
-                              "bg-green-500/20 text-green-500"
+                              deposit.method === "card" ? "bg-blue-500/20 text-blue-500" :
+                              "bg-blue-500/20 text-blue-500"
                             }`}>
                               {deposit.method === "crypto" ? "USDT" : deposit.method === "card" ? "Cartao" : "PIX"}
                             </span>
@@ -1345,7 +1345,7 @@ export default function AdminDashboardClient() {
                               <Button
                                 onClick={() => handleApproveDeposit(deposit)}
                                 size="sm"
-                                className="bg-green-500 hover:bg-green-600"
+                                className="bg-blue-500 hover:bg-blue-600"
                               >
                                 <Check className="w-4 h-4" />
                               </Button>
@@ -1428,7 +1428,7 @@ export default function AdminDashboardClient() {
                               <Button
                                 onClick={() => handleApproveWithdrawal(withdrawal)}
                                 size="sm"
-                                className="bg-green-500 hover:bg-green-600"
+                                className="bg-blue-500 hover:bg-blue-600"
                               >
                                 <Check className="w-4 h-4" />
                               </Button>
@@ -1500,10 +1500,10 @@ export default function AdminDashboardClient() {
                             <button
                               onClick={() => openDocument(kyc.document_front_url, "Documento - Frente")}
                               disabled={!kyc.document_front_url || kycLoading || loading}
-                              className="w-full aspect-video bg-[#0B0F14] rounded-lg border border-[#2A3142] flex items-center justify-center hover:border-green-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="w-full aspect-video bg-[#0B0F14] rounded-lg border border-[#2A3142] flex items-center justify-center hover:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               {kyc.document_front_url ? (
-                                <Eye className="h-5 w-5 text-green-500" />
+                                <Eye className="h-5 w-5 text-blue-500" />
                               ) : (
                                 <span className="text-gray-500 text-xs">Não enviado</span>
                               )}
@@ -1514,10 +1514,10 @@ export default function AdminDashboardClient() {
                             <button
                               onClick={() => openDocument(kyc.document_back_url, "Documento - Verso")}
                               disabled={!kyc.document_back_url || kycLoading || loading}
-                              className="w-full aspect-video bg-[#0B0F14] rounded-lg border border-[#2A3142] flex items-center justify-center hover:border-green-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="w-full aspect-video bg-[#0B0F14] rounded-lg border border-[#2A3142] flex items-center justify-center hover:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               {kyc.document_back_url ? (
-                                <Eye className="h-5 w-5 text-green-500" />
+                                <Eye className="h-5 w-5 text-blue-500" />
                               ) : (
                                 <span className="text-gray-500 text-xs">Não enviado</span>
                               )}
@@ -1528,10 +1528,10 @@ export default function AdminDashboardClient() {
                             <button
                               onClick={() => openDocument(kyc.selfie_with_document_url, "Selfie com Documento")}
                               disabled={!kyc.selfie_with_document_url || kycLoading || loading}
-                              className="w-full aspect-video bg-[#0B0F14] rounded-lg border border-[#2A3142] flex items-center justify-center hover:border-green-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="w-full aspect-video bg-[#0B0F14] rounded-lg border border-[#2A3142] flex items-center justify-center hover:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               {kyc.selfie_with_document_url ? (
-                                <Eye className="h-5 w-5 text-green-500" />
+                                <Eye className="h-5 w-5 text-blue-500" />
                               ) : (
                                 <span className="text-gray-500 text-xs">Não enviado</span>
                               )}
@@ -1543,9 +1543,9 @@ export default function AdminDashboardClient() {
 
                         {/* Success animation */}
                         {kycSuccess === kyc.id && (
-                          <div className="flex items-center justify-center py-4 bg-green-500/20 rounded-lg border border-green-500/50 animate-pulse">
-                            <Check className="w-6 h-6 text-green-500 mr-2" />
-                            <span className="text-green-500 font-medium">Aprovado com sucesso!</span>
+                          <div className="flex items-center justify-center py-4 bg-blue-500/20 rounded-lg border border-blue-500/50 animate-pulse">
+                            <Check className="w-6 h-6 text-blue-500 mr-2" />
+                            <span className="text-blue-500 font-medium">Aprovado com sucesso!</span>
                           </div>
                         )}
 
@@ -1595,7 +1595,7 @@ export default function AdminDashboardClient() {
                                 <Button
                                   onClick={() => handleKycAction("approve", kyc.id, kyc.user_id)}
                                   size="sm"
-                                  className="flex-1 bg-green-500 hover:bg-green-600"
+                                  className="flex-1 bg-blue-500 hover:bg-blue-600"
                                   disabled={processingKycId === kyc.id}
                                 >
                                   {processingKycId === kyc.id ? (
@@ -1714,7 +1714,7 @@ export default function AdminDashboardClient() {
                 </div>
                 <div className="bg-[#1A1F2E] rounded-xl p-4 border border-[#2A3142]">
                   <p className="text-xs text-gray-400">Rendimento gerado</p>
-                  <p className="text-lg font-bold text-green-500">
+                  <p className="text-lg font-bold text-blue-500">
                     {formatCurrency(iaUsers.reduce((s, u) => s + Number(u.totalCredited || 0), 0))}
                   </p>
                 </div>
@@ -1727,7 +1727,7 @@ export default function AdminDashboardClient() {
                       0,
                     )
                     return (
-                      <p className={`text-lg font-bold ${sum < 0 ? "text-red-400" : "text-green-500"}`}>
+                      <p className={`text-lg font-bold ${sum < 0 ? "text-red-400" : "text-blue-500"}`}>
                         {formatCurrency(sum)}
                       </p>
                     )
@@ -1773,8 +1773,8 @@ export default function AdminDashboardClient() {
                         ? { label: "Sem rendimento", cls: "bg-red-500/20 text-red-400" }
                         : negative
                           ? { label: "Perdendo hoje", cls: "bg-red-500/20 text-red-400" }
-                          : { label: "Ganhando", cls: "bg-green-500/10 text-green-400" }
-                    const valueColor = (n: number) => (n < 0 ? "text-red-400" : "text-green-500")
+                          : { label: "Ganhando", cls: "bg-blue-500/10 text-blue-400" }
+                    const valueColor = (n: number) => (n < 0 ? "text-red-400" : "text-blue-500")
                     return (
                       <div
                         key={u.userId}
@@ -1786,7 +1786,7 @@ export default function AdminDashboardClient() {
                               <p className="font-semibold text-white truncate">{u.user_name}</p>
                               <span
                                 className={`text-[11px] px-2 py-0.5 rounded-full ${
-                                  u.paused ? "bg-gray-500/20 text-gray-400" : "bg-green-500/20 text-green-500"
+                                  u.paused ? "bg-gray-500/20 text-gray-400" : "bg-blue-500/20 text-blue-500"
                                 }`}
                               >
                                 {u.paused ? "Pausada" : "Operando"}
@@ -1839,7 +1839,7 @@ export default function AdminDashboardClient() {
                           <div className="h-2 rounded-full bg-[#0B0F14] overflow-hidden">
                             <div
                               className={`h-full rounded-full transition-all ${
-                                lossOn || negative ? "bg-red-500" : metaReached ? "bg-primary" : "bg-green-500"
+                                lossOn || negative ? "bg-red-500" : metaReached ? "bg-primary" : "bg-blue-500"
                               }`}
                               style={{ width: `${negative && !lossOn ? 100 : progress}%`, opacity: negative && !lossOn ? 0.35 : 1 }}
                             />
@@ -1961,7 +1961,7 @@ export default function AdminDashboardClient() {
                             disabled={iaLossSavingId === u.userId}
                             className={
                               lossOn
-                                ? "w-full bg-green-600 hover:bg-green-600/90 text-white h-11"
+                                ? "w-full bg-blue-600 hover:bg-blue-600/90 text-white h-11"
                                 : "w-full bg-red-600 hover:bg-red-600/90 text-white h-11"
                             }
                           >
@@ -1991,7 +1991,7 @@ export default function AdminDashboardClient() {
                             disabled={iaEarningSavingId === u.userId}
                             className={
                               earningOff
-                                ? "bg-green-600 hover:bg-green-600/90 text-white h-11"
+                                ? "bg-blue-600 hover:bg-blue-600/90 text-white h-11"
                                 : "bg-red-600 hover:bg-red-600/90 text-white h-11"
                             }
                           >
@@ -2068,7 +2068,7 @@ export default function AdminDashboardClient() {
                         <p className="font-semibold text-white">{iaDetail.user_name}</p>
                         <span
                           className={`text-[11px] px-2 py-0.5 rounded-full ${
-                            iaDetail.paused ? "bg-gray-500/20 text-gray-400" : "bg-green-500/20 text-green-500"
+                            iaDetail.paused ? "bg-gray-500/20 text-gray-400" : "bg-blue-500/20 text-blue-500"
                           }`}
                         >
                           {iaDetail.paused ? "Pausada" : "Operando"}
@@ -2110,11 +2110,11 @@ export default function AdminDashboardClient() {
                     <div className="grid grid-cols-2 gap-3">
                       <div className="bg-[#0B0F14] rounded-lg p-3">
                         <p className="text-[11px] text-gray-400">Rendimento total</p>
-                        <p className="font-semibold text-green-500">{formatCurrency(iaDetail.totalCredited)}</p>
+                        <p className="font-semibold text-blue-500">{formatCurrency(iaDetail.totalCredited)}</p>
                       </div>
                       <div className="bg-[#0B0F14] rounded-lg p-3">
                         <p className="text-[11px] text-gray-400">Creditado hoje</p>
-                        <p className="font-semibold text-green-500">{formatCurrency(iaDetail.creditedToday)}</p>
+                        <p className="font-semibold text-blue-500">{formatCurrency(iaDetail.creditedToday)}</p>
                       </div>
                       <div className="bg-[#0B0F14] rounded-lg p-3">
                         <p className="text-[11px] text-gray-400">Meta diaria</p>
@@ -2159,7 +2159,7 @@ export default function AdminDashboardClient() {
                                 </div>
                                 <p
                                   className={`text-sm font-semibold shrink-0 ${
-                                    isPositive ? "text-green-500" : "text-red-500"
+                                    isPositive ? "text-blue-500" : "text-red-500"
                                   }`}
                                 >
                                   {isPositive ? "+" : ""}
@@ -2202,8 +2202,8 @@ export default function AdminDashboardClient() {
                   {/* Card Deposit Toggle */}
                   <div className="flex items-center justify-between p-4 bg-[#0B0F14] rounded-lg">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                        <CreditCard className="w-5 h-5 text-emerald-500" />
+                      <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                        <CreditCard className="w-5 h-5 text-blue-500" />
                       </div>
                       <div>
                         <p className="text-white font-medium">Deposito via Cartao</p>
@@ -2214,7 +2214,7 @@ export default function AdminDashboardClient() {
                       onClick={toggleCardDeposit}
                       disabled={settingsLoading}
                       className={`relative w-14 h-7 rounded-full transition-colors ${
-                        cardDepositEnabled ? "bg-green-500" : "bg-gray-600"
+                        cardDepositEnabled ? "bg-blue-500" : "bg-gray-600"
                       } ${settingsLoading ? "opacity-50" : ""}`}
                     >
                       <span
@@ -2228,15 +2228,15 @@ export default function AdminDashboardClient() {
                   {/* PIX Always Enabled */}
                   <div className="flex items-center justify-between p-4 bg-[#0B0F14] rounded-lg opacity-60">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
-                        <DollarSign className="w-5 h-5 text-green-500" />
+                      <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                        <DollarSign className="w-5 h-5 text-blue-500" />
                       </div>
                       <div>
                         <p className="text-white font-medium">Deposito via PIX</p>
                         <p className="text-gray-400 text-sm">Sempre habilitado</p>
                       </div>
                     </div>
-                    <div className="w-14 h-7 rounded-full bg-green-500 relative">
+                    <div className="w-14 h-7 rounded-full bg-blue-500 relative">
                       <span className="absolute top-1 right-1 w-5 h-5 rounded-full bg-white" />
                     </div>
                   </div>
@@ -2256,7 +2256,7 @@ export default function AdminDashboardClient() {
                       onClick={toggleCryptoDeposit}
                       disabled={settingsLoading}
                       className={`relative w-14 h-7 rounded-full transition-colors ${
-                        cryptoDepositEnabled ? "bg-green-500" : "bg-gray-600"
+                        cryptoDepositEnabled ? "bg-blue-500" : "bg-gray-600"
                       } ${settingsLoading ? "opacity-50" : ""}`}
                     >
                       <span
@@ -2281,8 +2281,8 @@ export default function AdminDashboardClient() {
                   {/* Liga/desliga o rollover de deposito */}
                   <div className="flex items-center justify-between gap-4 p-4 bg-[#0B0F14] rounded-lg">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center shrink-0">
-                        <Repeat className="w-5 h-5 text-emerald-500" />
+                      <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center shrink-0">
+                        <Repeat className="w-5 h-5 text-blue-500" />
                       </div>
                       <div>
                         <p className="text-white font-medium">Rollover de Deposito</p>
@@ -2298,7 +2298,7 @@ export default function AdminDashboardClient() {
                       aria-checked={depositRolloverEnabled}
                       aria-label="Ativar rollover de deposito"
                       className={`relative w-14 h-7 rounded-full transition-colors shrink-0 ${
-                        depositRolloverEnabled ? "bg-green-500" : "bg-gray-600"
+                        depositRolloverEnabled ? "bg-blue-500" : "bg-gray-600"
                       } ${savingRollover ? "opacity-50" : ""}`}
                     >
                       <span
@@ -2357,14 +2357,14 @@ export default function AdminDashboardClient() {
                     <Button
                       onClick={saveRolloverSettings}
                       disabled={savingRollover}
-                      className="bg-emerald-500 hover:bg-emerald-600 text-white"
+                      className="bg-blue-500 hover:bg-blue-600 text-white"
                     >
                       {savingRollover ? "Salvando..." : "Salvar"}
                     </Button>
                     {rolloverMsg && (
                       <p
                         role="status"
-                        className={`text-sm ${rolloverMsg.type === "ok" ? "text-green-400" : "text-red-400"}`}
+                        className={`text-sm ${rolloverMsg.type === "ok" ? "text-blue-400" : "text-red-400"}`}
                       >
                         {rolloverMsg.text}
                       </p>
@@ -2387,13 +2387,13 @@ export default function AdminDashboardClient() {
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div className="bg-[#1A1F2E] rounded-xl p-6 w-full max-w-md border border-[#2A3142]">
             <div className="flex items-center gap-2 mb-1">
-              <Repeat className="w-5 h-5 text-emerald-400" />
+              <Repeat className="w-5 h-5 text-blue-400" />
               <h2 className="text-xl font-bold text-white">Aplicar Rollover</h2>
             </div>
             <p className="text-gray-400 text-sm mb-4">{rolloverUser.email}</p>
 
-            <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 mb-4">
-              <p className="text-emerald-300 text-xs leading-relaxed">
+            <div className="rounded-lg bg-blue-500/10 border border-blue-500/20 p-3 mb-4">
+              <p className="text-blue-300 text-xs leading-relaxed">
                 Trava o valor abaixo até o usuário negociar o volume exigido em entradas. Use para quem
                 depositou antes do rollover ser ativado.
               </p>
@@ -2438,8 +2438,8 @@ export default function AdminDashboardClient() {
               </div>
 
               {rolloverSuccess && (
-                <div className="rounded-lg bg-green-500/10 border border-green-500/20 p-3">
-                  <p className="text-green-400 text-sm">{rolloverSuccess}</p>
+                <div className="rounded-lg bg-blue-500/10 border border-blue-500/20 p-3">
+                  <p className="text-blue-400 text-sm">{rolloverSuccess}</p>
                 </div>
               )}
             </div>
@@ -2456,7 +2456,7 @@ export default function AdminDashboardClient() {
                 <Button
                   onClick={handleApplyRollover}
                   disabled={rolloverSaving}
-                  className="flex-1 bg-emerald-500 hover:bg-emerald-600"
+                  className="flex-1 bg-blue-500 hover:bg-blue-600"
                 >
                   {rolloverSaving ? "Aplicando..." : "Aplicar Rollover"}
                 </Button>
@@ -2532,7 +2532,7 @@ export default function AdminDashboardClient() {
                   />
                   Bloqueado
                 </label>
-                <label className="flex items-center gap-2 text-green-400">
+                <label className="flex items-center gap-2 text-blue-400">
                   <input
                     type="checkbox"
                     checked={editForm.is_affiliate}
@@ -2552,7 +2552,7 @@ export default function AdminDashboardClient() {
               >
                 Cancelar
               </Button>
-              <Button onClick={handleSaveUser} disabled={saving} className="flex-1 bg-green-500 hover:bg-green-600">
+              <Button onClick={handleSaveUser} disabled={saving} className="flex-1 bg-blue-500 hover:bg-blue-600">
                 {saving ? "Salvando..." : "Salvar"}
               </Button>
             </div>
@@ -2577,14 +2577,14 @@ function StatCard({
   badge?: string
 }) {
   const accents: Record<string, string> = {
-    blue: "#34d399",
-    green: "#22c55e",
+    blue: "#4da6ff",
+    green: "#2190ff",
     red: "#ef4444",
-    purple: "#6ee7b7",
+    purple: "#8cc4ff",
     cyan: "#22d3ee",
     yellow: "#eab308",
   }
-  const accent = accents[color] || "#34d399"
+  const accent = accents[color] || "#4da6ff"
 
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0c121c] p-5 transition-all duration-300 hover:border-white/[0.12] hover:-translate-y-0.5">

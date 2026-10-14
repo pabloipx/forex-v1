@@ -71,7 +71,7 @@ export function SymbolManager({ symbols, onUpdate }: SymbolManagerProps) {
                   onClick={() => handleToggleActive(symbol.id, symbol.is_active)}
                   className={
                     symbol.is_active
-                      ? "bg-emerald-600 hover:bg-emerald-700"
+                      ? "bg-blue-600 hover:bg-blue-700"
                       : "border-zinc-700 hover:bg-zinc-700 bg-transparent"
                   }
                 >
@@ -91,7 +91,7 @@ export function SymbolManager({ symbols, onUpdate }: SymbolManagerProps) {
                   className="bg-zinc-700 border-zinc-600 text-white"
                 />
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={() => handleUpdateVolatility(symbol.id)} className="bg-emerald-600">
+                  <Button size="sm" onClick={() => handleUpdateVolatility(symbol.id)} className="bg-blue-600">
                     Save
                   </Button>
                   <Button

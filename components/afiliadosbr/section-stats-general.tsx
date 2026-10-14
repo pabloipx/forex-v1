@@ -132,7 +132,7 @@ export function SectionStatsGeneral({ referrals }: SectionStatsGeneralProps) {
                 id="group-by"
                 value={groupBy}
                 onChange={(e) => setGroupBy(e.target.value as GroupBy)}
-                className="h-12 w-full appearance-none rounded-lg border border-gray-300 bg-white px-4 pr-10 text-[15px] text-gray-900 outline-none focus:border-emerald-500"
+                className="h-12 w-full appearance-none rounded-lg border border-gray-300 bg-white px-4 pr-10 text-[15px] text-gray-900 outline-none focus:border-blue-500"
               >
                 {Object.entries(groupLabels).map(([value, label]) => (
                   <option key={value} value={value}>
@@ -189,7 +189,7 @@ export function SectionStatsGeneral({ referrals }: SectionStatsGeneralProps) {
                 value={subId}
                 onChange={(e) => setSubId(e.target.value)}
                 disabled={subIdOptions.length === 0}
-                className="h-12 w-full appearance-none rounded-lg border border-gray-300 bg-white px-4 pr-10 text-[15px] text-gray-900 outline-none focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500"
+                className="h-12 w-full appearance-none rounded-lg border border-gray-300 bg-white px-4 pr-10 text-[15px] text-gray-900 outline-none focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
               >
                 <option value="all">Todos os subIDs</option>
                 {subIdOptions.map((option) => (
@@ -220,7 +220,7 @@ export function SectionStatsGeneral({ referrals }: SectionStatsGeneralProps) {
             <button
               type="button"
               onClick={() => setApplied({ groupBy, from, to, subId })}
-              className="h-11 rounded-lg bg-emerald-400 px-5 text-[15px] font-medium text-gray-900 transition-colors hover:bg-emerald-500"
+              className="h-11 rounded-lg bg-blue-400 px-5 text-[15px] font-medium text-gray-900 transition-colors hover:bg-blue-500"
             >
               Aplicar filtros
             </button>
@@ -270,7 +270,7 @@ export function SectionStatsGeneral({ referrals }: SectionStatsGeneralProps) {
                     <td className="px-6 py-4">{row.registrations}</td>
                     <td className="px-6 py-4">{row.withDeposit}</td>
                     <td className="px-6 py-4">{brl(row.deposits)}</td>
-                    <td className="px-6 py-4 font-medium text-emerald-700">{brl(row.commission)}</td>
+                    <td className="px-6 py-4 font-medium text-blue-700">{brl(row.commission)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -280,7 +280,7 @@ export function SectionStatsGeneral({ referrals }: SectionStatsGeneralProps) {
                   <td className="px-6 py-4">{totals.registrations}</td>
                   <td className="px-6 py-4">{totals.withDeposit}</td>
                   <td className="px-6 py-4">{brl(totals.deposits)}</td>
-                  <td className="px-6 py-4 text-emerald-700">{brl(totals.commission)}</td>
+                  <td className="px-6 py-4 text-blue-700">{brl(totals.commission)}</td>
                 </tr>
               </tfoot>
             </table>

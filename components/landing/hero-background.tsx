@@ -71,23 +71,23 @@ export function HeroBackground() {
 
       {/* Camada lenta — orbe grande central */}
       <div ref={slowRef} className="absolute inset-0">
-        <div className="animate-hero-float-a absolute left-1/2 top-1/4 h-[34rem] w-[34rem] -translate-x-1/2 rounded-full bg-[#10b981]/25 blur-[140px]" />
+        <div className="animate-hero-float-a absolute left-1/2 top-1/4 h-[34rem] w-[34rem] -translate-x-1/2 rounded-full bg-[#2190ff]/25 blur-[140px]" />
       </div>
 
       {/* Camada média — dois orbes laterais */}
       <div ref={midRef} className="absolute inset-0">
-        <div className="animate-hero-float-b absolute left-[8%] top-[30%] h-72 w-72 rounded-full bg-[#34d399]/20 blur-[110px]" />
-        <div className="animate-hero-float-c absolute right-[6%] top-[45%] h-80 w-80 rounded-full bg-[#10b981]/18 blur-[120px]" />
+        <div className="animate-hero-float-b absolute left-[8%] top-[30%] h-72 w-72 rounded-full bg-[#4da6ff]/20 blur-[110px]" />
+        <div className="animate-hero-float-c absolute right-[6%] top-[45%] h-80 w-80 rounded-full bg-[#2190ff]/18 blur-[120px]" />
       </div>
 
       {/* Camada rápida — brilho quente inferior + partículas */}
       <div ref={fastRef} className="absolute inset-0">
-        <div className="animate-hero-pulse absolute bottom-[12%] left-1/2 h-56 w-[38rem] max-w-[92%] -translate-x-1/2 rounded-full bg-[#6ee7b7]/15 blur-[100px]" />
+        <div className="animate-hero-pulse absolute bottom-[12%] left-1/2 h-56 w-[38rem] max-w-[92%] -translate-x-1/2 rounded-full bg-[#8cc4ff]/15 blur-[100px]" />
 
         {particles.map((p) => (
           <span
             key={p.id}
-            className="animate-hero-particle absolute rounded-full bg-[#6ee7b7] shadow-[0_0_8px_2px_rgba(52,211,153,0.6)]"
+            className="animate-hero-particle absolute rounded-full bg-[#8cc4ff] shadow-[0_0_8px_2px_rgba(77,166,255,0.6)]"
             style={
               {
                 left: `${p.left}%`,

@@ -80,7 +80,7 @@ const EMPTY_SETTINGS: AdminSettings = {
 
 const cardClass = "rounded-xl bg-[#121826] border border-[#1F2933]"
 const inputClass =
-  "h-10 rounded-lg bg-[#0a0e17] border border-[#1F2933] px-3 text-sm text-white outline-none focus:border-[#10b981]"
+  "h-10 rounded-lg bg-[#0a0e17] border border-[#1F2933] px-3 text-sm text-white outline-none focus:border-[#2190ff]"
 const thClass = "px-3 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-white/40"
 
 type SortKey = "recent" | "earned" | "referrals" | "deposits" | "balance"
@@ -172,7 +172,7 @@ export function AdminAffiliates() {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-[#10b981]" />
+        <Loader2 className="h-6 w-6 animate-spin text-[#2190ff]" />
       </div>
     )
   }
@@ -205,7 +205,7 @@ export function AdminAffiliates() {
             type="button"
             onClick={() => setTab(t.id)}
             className={`flex shrink-0 items-center gap-2 border-b-2 px-4 py-3 text-sm transition-colors ${
-              tab === t.id ? "border-[#10b981] text-white" : "border-transparent text-white/40 hover:text-white/70"
+              tab === t.id ? "border-[#2190ff] text-white" : "border-transparent text-white/40 hover:text-white/70"
             }`}
           >
             {t.label}
@@ -246,7 +246,7 @@ export function AdminAffiliates() {
                 <button
                   type="button"
                   onClick={() => setTab("affiliates")}
-                  className="flex items-center gap-1 text-[11px] text-[#10b981] hover:underline"
+                  className="flex items-center gap-1 text-[11px] text-[#2190ff] hover:underline"
                 >
                   Ver todos <ArrowUpRight className="h-3 w-3" />
                 </button>
@@ -269,7 +269,7 @@ export function AdminAffiliates() {
                             {a.code} · {compact(a.referrals)} referidos · {MODEL_LABEL[a.terms.model]}
                           </span>
                         </span>
-                        <span className="shrink-0 text-sm font-semibold text-[#22c55e]">{money(a.total_earned)}</span>
+                        <span className="shrink-0 text-sm font-semibold text-[#2190ff]">{money(a.total_earned)}</span>
                       </button>
                     </li>
                   ))}
@@ -372,11 +372,11 @@ export function AdminAffiliates() {
                       <td className="px-3 py-3">
                         <p className="text-white">{a.name}</p>
                         <p className="text-[11px] text-white/40">
-                          {a.email} · <span className="text-[#10b981]">{a.code}</span>
+                          {a.email} · <span className="text-[#2190ff]">{a.code}</span>
                         </p>
                       </td>
                       <td className="px-3 py-3">
-                        <span className="rounded-md bg-[#10b981]/15 px-2 py-0.5 text-[11px] font-medium text-[#10b981]">
+                        <span className="rounded-md bg-[#2190ff]/15 px-2 py-0.5 text-[11px] font-medium text-[#2190ff]">
                           {MODEL_LABEL[a.terms.model]}
                         </span>
                       </td>
@@ -389,7 +389,7 @@ export function AdminAffiliates() {
                       <td className="px-3 py-3 text-white/70">{money(a.deposit_total)}</td>
                       <td className="px-3 py-3 text-white/70">{pct(a.conversion_rate)}</td>
                       <td className="px-3 py-3">
-                        <p className="text-[#22c55e]">{money(a.total_earned)}</p>
+                        <p className="text-[#2190ff]">{money(a.total_earned)}</p>
                         <p className="text-[11px] text-white/30">
                           Rev {money(a.revshare_earned)} · CPA {money(a.cpa_earned)}
                         </p>
@@ -399,7 +399,7 @@ export function AdminAffiliates() {
                         <span
                           className={`rounded-md px-2 py-0.5 text-[11px] font-medium ${
                             a.status === "active"
-                              ? "bg-[#22c55e]/15 text-[#22c55e]"
+                              ? "bg-[#2190ff]/15 text-[#2190ff]"
                               : a.status === "blocked"
                                 ? "bg-red-500/15 text-red-400"
                                 : "bg-yellow-500/15 text-yellow-400"
@@ -441,7 +441,7 @@ export function AdminAffiliates() {
                       <p className="truncate text-[11px] text-white/40">
                         {w.profile?.affiliate_code || "—"} · {w.pix_key_type}: {w.pix_key}
                       </p>
-                      <p className="mt-1 text-base font-semibold text-[#22c55e]">
+                      <p className="mt-1 text-base font-semibold text-[#2190ff]">
                         {money(w.net_amount)} <span className="text-[11px] font-normal text-white/40">a pagar</span>
                       </p>
                       <p className="text-[11px] text-white/30">
@@ -456,7 +456,7 @@ export function AdminAffiliates() {
                           <button
                             type="button"
                             onClick={() => processWithdrawal(w.id, "completed")}
-                            className="flex h-10 items-center gap-2 rounded-lg bg-[#22c55e] px-4 text-sm font-medium text-white"
+                            className="flex h-10 items-center gap-2 rounded-lg bg-[#2190ff] px-4 text-sm font-medium text-white"
                           >
                             <Check className="h-4 w-4" /> Aprovar
                           </button>
@@ -556,7 +556,7 @@ export function AdminAffiliates() {
                     <td className="px-3 py-3 text-white/50">{dateTime(c.created_at)}</td>
                     <td className="px-3 py-3">
                       <p className="text-white">{c.affiliate_name}</p>
-                      <p className="text-[11px] text-[#10b981]">{c.affiliate_code}</p>
+                      <p className="text-[11px] text-[#2190ff]">{c.affiliate_code}</p>
                     </td>
                     <td className="px-3 py-3 text-white/70">{c.referred_name}</td>
                     <td className="px-3 py-3 text-white/70">
@@ -568,7 +568,7 @@ export function AdminAffiliates() {
                     <td className="px-3 py-3 text-[11px] text-white/50">
                       {c.cpa_amount > 0 ? `CPA ${money(c.cpa_amount)}` : `RevShare ${c.commission_percent}%`}
                     </td>
-                    <td className="px-3 py-3 font-medium text-[#22c55e]">{money(c.commission_amount)}</td>
+                    <td className="px-3 py-3 font-medium text-[#2190ff]">{money(c.commission_amount)}</td>
                   </tr>
                 ))
               )}
@@ -604,8 +604,8 @@ function StatCard({
   return (
     <div className={`${cardClass} p-4`}>
       <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#10b981]/20">
-          <Icon className="h-5 w-5 text-[#10b981]" />
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#2190ff]/20">
+          <Icon className="h-5 w-5 text-[#2190ff]" />
         </span>
         <div className="min-w-0">
           <p className="text-[11px] text-white/40">{label}</p>
@@ -663,7 +663,7 @@ function SettingsPanel({ settings, onSaved }: { settings: AdminSettings; onSaved
           role="status"
           aria-live="polite"
           className={`rounded-lg px-3 py-2.5 text-sm ${
-            message.type === "ok" ? "bg-[#22c55e]/10 text-[#22c55e]" : "bg-red-500/10 text-red-400"
+            message.type === "ok" ? "bg-[#2190ff]/10 text-[#2190ff]" : "bg-red-500/10 text-red-400"
           }`}
         >
           {message.text}
@@ -672,7 +672,7 @@ function SettingsPanel({ settings, onSaved }: { settings: AdminSettings; onSaved
 
       <section className={`${cardClass} p-5`}>
         <div className="mb-4 flex items-center gap-2">
-          <Target className="h-4 w-4 text-[#10b981]" />
+          <Target className="h-4 w-4 text-[#2190ff]" />
           <p className="text-sm font-semibold text-white">Valores padrão de comissão</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -685,7 +685,7 @@ function SettingsPanel({ settings, onSaved }: { settings: AdminSettings; onSaved
 
       <section className={`${cardClass} p-5`}>
         <div className="mb-4 flex items-center gap-2">
-          <Wallet className="h-4 w-4 text-[#10b981]" />
+          <Wallet className="h-4 w-4 text-[#2190ff]" />
           <p className="text-sm font-semibold text-white">Regras de saque</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -696,7 +696,7 @@ function SettingsPanel({ settings, onSaved }: { settings: AdminSettings; onSaved
 
       <section className={`${cardClass} p-5`}>
         <div className="mb-4 flex items-center gap-2">
-          <Wallet className="h-4 w-4 text-[#10b981]" />
+          <Wallet className="h-4 w-4 text-[#2190ff]" />
           <p className="text-sm font-semibold text-white">Exibição no painel do afiliado</p>
         </div>
         <div className="flex flex-col gap-4">
@@ -755,7 +755,7 @@ function SettingsPanel({ settings, onSaved }: { settings: AdminSettings; onSaved
             <button
               type="button"
               onClick={() => set("next_payment_date", null)}
-              className="self-start text-[11px] text-[#10b981] hover:underline"
+              className="self-start text-[11px] text-[#2190ff] hover:underline"
             >
               Limpar data e voltar ao cálculo automático
             </button>
@@ -765,7 +765,7 @@ function SettingsPanel({ settings, onSaved }: { settings: AdminSettings; onSaved
 
       <section className={`${cardClass} p-5`}>
         <div className="mb-4 flex items-center gap-2">
-          <Settings2 className="h-4 w-4 text-[#10b981]" />
+          <Settings2 className="h-4 w-4 text-[#2190ff]" />
           <p className="text-sm font-semibold text-white">Programa</p>
         </div>
         <div className="flex flex-col gap-3">
@@ -789,7 +789,7 @@ function SettingsPanel({ settings, onSaved }: { settings: AdminSettings; onSaved
           type="button"
           onClick={save}
           disabled={saving}
-          className="flex h-11 items-center gap-2 rounded-lg bg-[#10b981] px-6 text-sm font-medium text-white disabled:opacity-40"
+          className="flex h-11 items-center gap-2 rounded-lg bg-[#2190ff] px-6 text-sm font-medium text-white disabled:opacity-40"
         >
           {saving && <Loader2 className="h-4 w-4 animate-spin" />}
           Salvar configurações
@@ -860,7 +860,7 @@ function Toggle({
         aria-checked={checked}
         aria-label={label}
         onClick={() => onChange(!checked)}
-        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${checked ? "bg-[#22c55e]" : "bg-[#1F2933]"}`}
+        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${checked ? "bg-[#2190ff]" : "bg-[#1F2933]"}`}
       >
         <span
           className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${checked ? "left-[22px]" : "left-0.5"}`}

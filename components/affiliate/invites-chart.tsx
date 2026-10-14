@@ -39,8 +39,8 @@ export function InvitesChart({ referrals, rangeDays = 7 }: InvitesChartProps) {
     <div className="p-4 rounded-xl bg-[#121826] border border-[#1F2933]">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-[#10b981]/15 flex items-center justify-center">
-            <TrendingUp className="w-4 h-4 text-[#10b981]" />
+          <div className="w-8 h-8 rounded-lg bg-[#2190ff]/15 flex items-center justify-center">
+            <TrendingUp className="w-4 h-4 text-[#2190ff]" />
           </div>
           <div>
             <h3 className="text-white font-semibold text-sm leading-tight">Convites por dia</h3>
@@ -58,8 +58,8 @@ export function InvitesChart({ referrals, rangeDays = 7 }: InvitesChartProps) {
           <AreaChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="invitesFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#10b981" stopOpacity={0.45} />
-                <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+                <stop offset="0%" stopColor="#2190ff" stopOpacity={0.45} />
+                <stop offset="100%" stopColor="#2190ff" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#1F2933" vertical={false} />
@@ -79,7 +79,7 @@ export function InvitesChart({ referrals, rangeDays = 7 }: InvitesChartProps) {
               domain={[0, (max: number) => Math.max(4, max + 1)]}
             />
             <Tooltip
-              cursor={{ stroke: "#10b981", strokeWidth: 1, strokeDasharray: "4 4" }}
+              cursor={{ stroke: "#2190ff", strokeWidth: 1, strokeDasharray: "4 4" }}
               contentStyle={{
                 background: "#0a0e17",
                 border: "1px solid #1F2933",
@@ -93,11 +93,11 @@ export function InvitesChart({ referrals, rangeDays = 7 }: InvitesChartProps) {
             <Area
               type="monotone"
               dataKey="convites"
-              stroke="#10b981"
+              stroke="#2190ff"
               strokeWidth={2.5}
               fill="url(#invitesFill)"
-              dot={{ r: 3, fill: "#10b981", strokeWidth: 0 }}
-              activeDot={{ r: 5, fill: "#34d399", stroke: "#0a0e17", strokeWidth: 2 }}
+              dot={{ r: 3, fill: "#2190ff", strokeWidth: 0 }}
+              activeDot={{ r: 5, fill: "#4da6ff", stroke: "#0a0e17", strokeWidth: 2 }}
             />
           </AreaChart>
         </ResponsiveContainer>
@@ -105,12 +105,12 @@ export function InvitesChart({ referrals, rangeDays = 7 }: InvitesChartProps) {
 
       <div className="mt-3 flex items-center gap-4 border-t border-[#1F2933] pt-3">
         <div className="flex items-center gap-1.5">
-          <Users className="w-3.5 h-3.5 text-[#10b981]" />
+          <Users className="w-3.5 h-3.5 text-[#2190ff]" />
           <span className="text-white/50 text-[11px]">Total de convites:</span>
           <span className="text-white text-[11px] font-semibold">{total}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <TrendingUp className="w-3.5 h-3.5 text-[#26a69a]" />
+          <TrendingUp className="w-3.5 h-3.5 text-[#2190ff]" />
           <span className="text-white/50 text-[11px]">Melhor dia:</span>
           <span className="text-white text-[11px] font-semibold">{peak}</span>
         </div>

@@ -253,7 +253,7 @@ export function AdminPromotions() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
       </div>
     )
   }
@@ -263,7 +263,7 @@ export function AdminPromotions() {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <Gift className="w-6 h-6 text-emerald-500" />
+            <Gift className="w-6 h-6 text-blue-500" />
             Promoções e Bônus
           </h1>
           <p className="text-gray-400 text-sm mt-1">Códigos promocionais e controle de rollover</p>
@@ -281,7 +281,7 @@ export function AdminPromotions() {
               setForm(emptyForm)
               setShowForm(true)
             }}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 font-medium"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium"
           >
             <Plus className="w-4 h-4" />
             Nova campanha
@@ -293,7 +293,7 @@ export function AdminPromotions() {
         <div className="mb-4 p-4 bg-red-500/10 border border-red-500/40 rounded-lg text-red-400 text-sm">{error}</div>
       )}
       {message && (
-        <div className="mb-4 p-4 bg-green-500/10 border border-green-500/40 rounded-lg text-green-400 text-sm">
+        <div className="mb-4 p-4 bg-blue-500/10 border border-blue-500/40 rounded-lg text-blue-400 text-sm">
           {message}
         </div>
       )}
@@ -319,7 +319,7 @@ export function AdminPromotions() {
             <Lock className="w-4 h-4" />
             Travado em rollover
           </div>
-          <p className="text-2xl font-bold text-emerald-500 mt-2">{brl(totals.locked)}</p>
+          <p className="text-2xl font-bold text-blue-500 mt-2">{brl(totals.locked)}</p>
         </div>
       </div>
 
@@ -334,7 +334,7 @@ export function AdminPromotions() {
             onClick={() => setView(tab.id)}
             className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${
               view === tab.id
-                ? "border-emerald-500 text-emerald-500"
+                ? "border-blue-500 text-blue-500"
                 : "border-transparent text-gray-400 hover:text-gray-200"
             }`}
           >
@@ -387,7 +387,7 @@ export function AdminPromotions() {
                           onClick={() => toggleActive(c)}
                           disabled={processing === c.id}
                           className={`px-2 py-1 rounded text-xs font-medium ${
-                            c.is_active ? "bg-green-500/20 text-green-400" : "bg-gray-500/20 text-gray-400"
+                            c.is_active ? "bg-blue-500/20 text-blue-400" : "bg-gray-500/20 text-gray-400"
                           }`}
                         >
                           {c.is_active ? "Ativo" : "Inativo"}
@@ -429,7 +429,7 @@ export function AdminPromotions() {
                 key={s}
                 onClick={() => setStatusFilter(s)}
                 className={`px-3 py-1.5 rounded-lg text-sm ${
-                  statusFilter === s ? "bg-emerald-500 text-white" : "bg-[#1A1F2E] text-gray-400 hover:bg-[#232A3A]"
+                  statusFilter === s ? "bg-blue-500 text-white" : "bg-[#1A1F2E] text-gray-400 hover:bg-[#232A3A]"
                 }`}
               >
                 {s === "active" ? "Ativos" : s === "completed" ? "Concluídos" : s === "cancelled" ? "Cancelados" : "Todos"}
@@ -449,7 +449,7 @@ export function AdminPromotions() {
                         <p className="text-white font-medium truncate">{b.user_name}</p>
                         <p className="text-gray-500 text-xs truncate">{b.user_email}</p>
                         <p className="text-gray-400 text-xs mt-1">
-                          <span className="font-mono text-emerald-500">{b.code}</span> · bônus {brl(b.bonus_amount)} ·
+                          <span className="font-mono text-blue-500">{b.code}</span> · bônus {brl(b.bonus_amount)} ·
                           depósito {brl(b.deposit_amount)}
                         </p>
                       </div>
@@ -458,9 +458,9 @@ export function AdminPromotions() {
                         <span
                           className={`px-2 py-1 rounded text-xs font-medium ${
                             b.status === "active"
-                              ? "bg-emerald-500/20 text-emerald-400"
+                              ? "bg-blue-500/20 text-blue-400"
                               : b.status === "completed"
-                                ? "bg-green-500/20 text-green-400"
+                                ? "bg-blue-500/20 text-blue-400"
                                 : "bg-gray-500/20 text-gray-400"
                           }`}
                         >
@@ -480,7 +480,7 @@ export function AdminPromotions() {
                             <button
                               onClick={() => handleBonusAction(b.id, "complete")}
                               disabled={processing === b.id}
-                              className="p-2 bg-green-500/10 text-green-400 rounded-lg hover:bg-green-500/20 disabled:opacity-50"
+                              className="p-2 bg-blue-500/10 text-blue-400 rounded-lg hover:bg-blue-500/20 disabled:opacity-50"
                               aria-label="Liberar bônus"
                             >
                               <Check className="w-4 h-4" />
@@ -507,7 +507,7 @@ export function AdminPromotions() {
                       </div>
                       <div className="h-2 bg-[#0F151E] rounded-full overflow-hidden">
                         <div
-                          className={`h-full rounded-full ${b.status === "active" ? "bg-emerald-500" : "bg-green-500"}`}
+                          className={`h-full rounded-full ${b.status === "active" ? "bg-blue-500" : "bg-blue-500"}`}
                           style={{ width: `${b.progress_percent}%` }}
                         />
                       </div>
@@ -543,7 +543,7 @@ export function AdminPromotions() {
                   value={form.code}
                   onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
                   placeholder="BEMVINDO100"
-                  className="w-full px-3 py-2 bg-[#0F151E] border border-[#1E2633] rounded-lg text-white font-mono focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 bg-[#0F151E] border border-[#1E2633] rounded-lg text-white font-mono focus:outline-none focus:border-blue-500"
                 />
               </div>
 
@@ -553,7 +553,7 @@ export function AdminPromotions() {
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                   placeholder="100% de bônus no primeiro depósito"
-                  className="w-full px-3 py-2 bg-[#0F151E] border border-[#1E2633] rounded-lg text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 bg-[#0F151E] border border-[#1E2633] rounded-lg text-white focus:outline-none focus:border-blue-500"
                 />
               </div>
 
@@ -562,7 +562,7 @@ export function AdminPromotions() {
                 <select
                   value={form.bonus_type}
                   onChange={(e) => setForm({ ...form, bonus_type: e.target.value as "percent" | "fixed" })}
-                  className="w-full px-3 py-2 bg-[#0F151E] border border-[#1E2633] rounded-lg text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 bg-[#0F151E] border border-[#1E2633] rounded-lg text-white focus:outline-none focus:border-blue-500"
                 >
                   <option value="percent">Porcentagem do depósito</option>
                   <option value="fixed">Valor fixo</option>
@@ -579,7 +579,7 @@ export function AdminPromotions() {
                   step="0.01"
                   value={form.bonus_value}
                   onChange={(e) => setForm({ ...form, bonus_value: e.target.value })}
-                  className="w-full px-3 py-2 bg-[#0F151E] border border-[#1E2633] rounded-lg text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 bg-[#0F151E] border border-[#1E2633] rounded-lg text-white focus:outline-none focus:border-blue-500"
                 />
               </div>
 
@@ -592,7 +592,7 @@ export function AdminPromotions() {
                   value={form.max_bonus}
                   onChange={(e) => setForm({ ...form, max_bonus: e.target.value })}
                   placeholder="sem limite"
-                  className="w-full px-3 py-2 bg-[#0F151E] border border-[#1E2633] rounded-lg text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 bg-[#0F151E] border border-[#1E2633] rounded-lg text-white focus:outline-none focus:border-blue-500"
                 />
               </div>
 
@@ -604,7 +604,7 @@ export function AdminPromotions() {
                   step="0.01"
                   value={form.min_deposit}
                   onChange={(e) => setForm({ ...form, min_deposit: e.target.value })}
-                  className="w-full px-3 py-2 bg-[#0F151E] border border-[#1E2633] rounded-lg text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 bg-[#0F151E] border border-[#1E2633] rounded-lg text-white focus:outline-none focus:border-blue-500"
                 />
               </div>
 
@@ -616,7 +616,7 @@ export function AdminPromotions() {
                   step="0.1"
                   value={form.rollover_multiplier}
                   onChange={(e) => setForm({ ...form, rollover_multiplier: e.target.value })}
-                  className="w-full px-3 py-2 bg-[#0F151E] border border-[#1E2633] rounded-lg text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 bg-[#0F151E] border border-[#1E2633] rounded-lg text-white focus:outline-none focus:border-blue-500"
                 />
                 <p className="text-gray-500 text-xs mt-1">Volume exigido = bônus x multiplicador. 0 libera na hora.</p>
               </div>
@@ -629,7 +629,7 @@ export function AdminPromotions() {
                   value={form.max_uses}
                   onChange={(e) => setForm({ ...form, max_uses: e.target.value })}
                   placeholder="ilimitado"
-                  className="w-full px-3 py-2 bg-[#0F151E] border border-[#1E2633] rounded-lg text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 bg-[#0F151E] border border-[#1E2633] rounded-lg text-white focus:outline-none focus:border-blue-500"
                 />
               </div>
 
@@ -640,7 +640,7 @@ export function AdminPromotions() {
                   min="1"
                   value={form.max_uses_per_user}
                   onChange={(e) => setForm({ ...form, max_uses_per_user: e.target.value })}
-                  className="w-full px-3 py-2 bg-[#0F151E] border border-[#1E2633] rounded-lg text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 bg-[#0F151E] border border-[#1E2633] rounded-lg text-white focus:outline-none focus:border-blue-500"
                 />
               </div>
 
@@ -650,7 +650,7 @@ export function AdminPromotions() {
                   type="datetime-local"
                   value={form.expires_at}
                   onChange={(e) => setForm({ ...form, expires_at: e.target.value })}
-                  className="w-full px-3 py-2 bg-[#0F151E] border border-[#1E2633] rounded-lg text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 bg-[#0F151E] border border-[#1E2633] rounded-lg text-white focus:outline-none focus:border-blue-500"
                 />
               </div>
 
@@ -660,7 +660,7 @@ export function AdminPromotions() {
                   type="checkbox"
                   checked={form.is_active}
                   onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
-                  className="w-4 h-4 accent-emerald-500"
+                  className="w-4 h-4 accent-blue-500"
                 />
                 <label htmlFor="promo-active" className="text-gray-300 text-sm">
                   Campanha ativa
@@ -678,7 +678,7 @@ export function AdminPromotions() {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 font-medium disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium disabled:opacity-50"
               >
                 {saving && <Loader2 className="w-4 h-4 animate-spin" />}
                 Salvar

@@ -22,8 +22,8 @@ export function WorldMapBg() {
       >
         <defs>
           <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#00E676" stopOpacity="0.08" />
-            <stop offset="50%" stopColor="#00E676" stopOpacity="0.02" />
+            <stop offset="0%" stopColor="#2190ff" stopOpacity="0.08" />
+            <stop offset="50%" stopColor="#2190ff" stopOpacity="0.02" />
             <stop offset="100%" stopColor="#000000" stopOpacity="0" />
           </radialGradient>
         </defs>

@@ -69,7 +69,7 @@ export default function ForgotPasswordPage() {
           />
         </Link>
         <Link href="/auth/sign-up">
-          <Button className="h-10 rounded-md bg-emerald-500 px-6 font-medium text-white hover:bg-emerald-600">
+          <Button className="h-10 rounded-md bg-blue-500 px-6 font-medium text-white hover:bg-blue-600">
             Registrar-se
           </Button>
         </Link>
@@ -83,8 +83,8 @@ export default function ForgotPasswordPage() {
               <h1 className="text-2xl font-bold text-balance text-gray-800 sm:text-3xl">Verifique seu e-mail</h1>
 
               <div className="my-7 flex justify-center">
-                <span className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50">
-                  <CheckCircle2 className="h-9 w-9 text-emerald-600" strokeWidth={1.75} />
+                <span className="flex h-20 w-20 items-center justify-center rounded-full bg-blue-50">
+                  <CheckCircle2 className="h-9 w-9 text-blue-600" strokeWidth={1.75} />
                 </span>
               </div>
 
@@ -103,14 +103,14 @@ export default function ForgotPasswordPage() {
                   setSent(false)
                   setError(null)
                 }}
-                className="mt-7 h-12 w-full rounded-md bg-emerald-500 text-base font-medium text-white hover:bg-emerald-600"
+                className="mt-7 h-12 w-full rounded-md bg-blue-500 text-base font-medium text-white hover:bg-blue-600"
               >
                 Enviar para outro e-mail
               </Button>
 
               <Link
                 href="/auth/login"
-                className="mt-4 block text-sm text-emerald-600 transition-colors hover:text-emerald-700"
+                className="mt-4 block text-sm text-blue-600 transition-colors hover:text-blue-700"
               >
                 Voltar ao login
               </Link>
@@ -120,8 +120,8 @@ export default function ForgotPasswordPage() {
               <h1 className="text-2xl font-bold text-balance text-gray-800 sm:text-3xl">Recuperação de senha</h1>
 
               <div className="my-7 flex justify-center">
-                <span className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50">
-                  <LockKeyhole className="h-9 w-9 text-emerald-500" strokeWidth={1.75} />
+                <span className="flex h-20 w-20 items-center justify-center rounded-full bg-blue-50">
+                  <LockKeyhole className="h-9 w-9 text-blue-500" strokeWidth={1.75} />
                 </span>
               </div>
 
@@ -142,7 +142,7 @@ export default function ForgotPasswordPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   autoComplete="email"
                   disabled={isLoading}
-                  className="h-12 rounded-md border border-gray-300 bg-white text-gray-800 placeholder:text-gray-400 focus-visible:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500/25 disabled:opacity-50"
+                  className="h-12 rounded-md border border-gray-300 bg-white text-gray-800 placeholder:text-gray-400 focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/25 disabled:opacity-50"
                 />
 
                 {error && (
@@ -153,7 +153,7 @@ export default function ForgotPasswordPage() {
 
                 <Button
                   type="submit"
-                  className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-md bg-emerald-500 text-base font-medium text-white transition-colors hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-70"
+                  className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-md bg-blue-500 text-base font-medium text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-70"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -169,14 +169,14 @@ export default function ForgotPasswordPage() {
 
               <Link
                 href="/auth/login"
-                className="mt-5 block text-sm text-emerald-600 transition-colors hover:text-emerald-700"
+                className="mt-5 block text-sm text-blue-600 transition-colors hover:text-blue-700"
               >
                 Voltar ao login
               </Link>
 
               <p className="mt-3 text-sm text-gray-600">
                 {"Ainda não possui uma conta? "}
-                <Link href="/auth/sign-up" className="text-emerald-600 transition-colors hover:text-emerald-700">
+                <Link href="/auth/sign-up" className="text-blue-600 transition-colors hover:text-blue-700">
                   Inscrever-se
                 </Link>
               </p>
