@@ -15,7 +15,7 @@ export function TradingHeader({ balance, isDemo, payout, onToggleDemo }: Trading
     <header className="bg-[#064e3b] border-b border-[#10b981]/30 px-4 py-3">
       <div className="flex items-center justify-between">
         {/* Logo */}
-        <Link href="/trade" className="flex items-center gap-2">
+        <Link href="/futures" className="flex items-center gap-2">
           <div className="flex items-end gap-0.5">
             <div className="w-1 h-3 bg-[#34d399] rounded-sm" />
             <div className="w-1 h-5 bg-[#10b981] rounded-sm" />

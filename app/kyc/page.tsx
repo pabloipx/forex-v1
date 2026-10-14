@@ -283,7 +283,7 @@ export default function KYCPage() {
                   <Button onClick={() => router.push("/withdraw")} className="w-full bg-emerald-600 hover:bg-emerald-700">
                     Fazer Saque
                   </Button>
-                  <Button onClick={() => router.push("/trade")} variant="outline" className="w-full">
+                  <Button onClick={() => router.push("/futures")} variant="outline" className="w-full">
                     Voltar ao Trading
                   </Button>
                 </div>

@@ -602,7 +602,7 @@ export default function SupportPage() {
 
   const handleOptionClick = (option: { label: string; value: string }) => {
     if (option.value === "GO_TRADE") {
-      router.push("/trade")
+      router.push("/futures")
       return
     }
 

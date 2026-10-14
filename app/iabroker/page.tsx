@@ -315,7 +315,7 @@ export default function IaBrokerPage() {
   return (
     <div className="min-h-screen w-full bg-background text-foreground flex flex-col">
       <header className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-border">
-        <Link href="/trade" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+        <Link href="/futures" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="w-4 h-4" />
           <span className="text-sm font-medium">Voltar</span>
         </Link>

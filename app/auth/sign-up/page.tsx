@@ -102,7 +102,7 @@ function SignUpForm() {
       await recordDeviceSession()
 
       setSuccess(true)
-      setTimeout(() => router.push("/trade"), 2000)
+      setTimeout(() => router.push("/futures"), 2000)
     } catch (error: unknown) {
       const errMsg = error instanceof Error ? error.message : "Erro ao criar conta"
       if (errMsg.includes("already registered")) {

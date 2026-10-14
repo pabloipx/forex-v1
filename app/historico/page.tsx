@@ -131,7 +131,7 @@ export default function HistoricoPage() {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-[#1a1a1f] border-b border-white/10 px-4 py-3">
         <div className="flex items-center gap-4">
-          <Link href="/trade" className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+          <Link href="/futures" className="p-2 hover:bg-white/10 rounded-lg transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <h1 className="text-lg font-semibold">Histórico de Operações</h1>
@@ -186,7 +186,7 @@ export default function HistoricoPage() {
           <div className="text-center py-12">
             <Clock className="w-12 h-12 mx-auto text-white/20 mb-4" />
             <p className="text-white/60">Nenhuma operação encontrada</p>
-            <Link href="/trade" className="mt-4 inline-block text-emerald-500 hover:underline">
+            <Link href="/futures" className="mt-4 inline-block text-emerald-500 hover:underline">
               Fazer primeira operação
             </Link>
           </div>

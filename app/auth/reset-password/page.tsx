@@ -78,7 +78,7 @@ export default function ResetPasswordPage() {
       }
 
       setSuccess(true)
-      setTimeout(() => router.replace("/trade"), 2000)
+      setTimeout(() => router.replace("/futures"), 2000)
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Erro ao redefinir a senha"
       setError(message)

@@ -14,6 +14,12 @@ export async function updateSession(request: NextRequest) {
 
   let supabaseResponse = NextResponse.next({ request })
 
+  if (request.nextUrl.pathname === "/trade" || request.nextUrl.pathname.startsWith("/trade/")) {
+    const url = request.nextUrl.clone()
+    url.pathname = "/futures"
+    return NextResponse.redirect(url, 308)
+  }
+
   try {
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
@@ -40,7 +46,7 @@ export async function updateSession(request: NextRequest) {
 
     if (user && request.nextUrl.pathname.startsWith("/auth/")) {
       const url = request.nextUrl.clone()
-      url.pathname = "/trade"
+      url.pathname = "/futures"
       return NextResponse.redirect(url)
     }
   } catch {

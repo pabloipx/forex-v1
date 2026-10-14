@@ -57,7 +57,7 @@ export default function WithdrawPage() {
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => {
-        router.push("/trade")
+        router.push("/futures")
       }, 4000)
       return () => clearTimeout(timer)
     }

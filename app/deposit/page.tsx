@@ -144,7 +144,7 @@ export default function DepositPage() {
 
         if (data.status === "approved" || data.status === "completed") {
           alert("Pagamento confirmado! Seu saldo foi atualizado.")
-          router.push("/trade")
+          router.push("/futures")
         }
       } catch (err) {
         console.error("Erro ao verificar status:", err)
@@ -221,7 +221,7 @@ export default function DepositPage() {
       const data = await response.json()
       if (data.status === "approved" || data.status === "completed") {
         alert("Pagamento confirmado! Seu saldo foi atualizado.")
-        router.push("/trade")
+        router.push("/futures")
       } else {
         alert("Pagamento ainda nao confirmado. Aguarde alguns instantes.")
       }
@@ -577,7 +577,7 @@ export default function DepositPage() {
               Tentar novamente
             </button>
             <button
-              onClick={() => router.push("/trade")}
+              onClick={() => router.push("/futures")}
               className="w-full py-4 rounded-xl font-semibold text-white bg-[#1A2332] border border-[#1F2933] hover:border-[#10b981] transition-colors"
             >
               Voltar para o Trade

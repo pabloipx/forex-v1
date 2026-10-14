@@ -36,7 +36,7 @@ export default function LoginPage() {
         const supabase = createClient()
         const { data } = await supabase.auth.getSession()
         if (data.session) {
-          router.replace("/trade")
+          router.replace("/futures")
         } else {
           setIsCheckingSession(false)
         }
@@ -86,7 +86,7 @@ export default function LoginPage() {
       // Registra este dispositivo/navegador para a tela "Dispositivos conectados".
       await recordDeviceSession()
 
-      router.push("/trade")
+      router.push("/futures")
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Erro ao fazer login"
       setError(message)
