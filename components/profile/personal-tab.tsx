@@ -3,6 +3,9 @@
 import { useState, type FormEvent } from "react"
 import { toast } from "sonner"
 import type { ProfileData } from "./use-profile"
+import { REQUIRED_FIELDS, profileCompletion } from "@/lib/profile-completeness"
+
+const REQUIRED = new Set<string>(REQUIRED_FIELDS.map((f) => f.key))
 
 type FieldKey =
   | "full_name"
@@ -59,6 +62,8 @@ export function PersonalTab({ profile, onSave }: { profile: ProfileData; onSave:
   const [form, setForm] = useState(initial)
   const [saving, setSaving] = useState(false)
   const dirty = JSON.stringify(form) !== JSON.stringify(initial())
+  const completion = profileCompletion(form)
+  const issueKeys = new Set<string>(completion.issues.map((i) => i.key))
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
@@ -80,6 +85,29 @@ export function PersonalTab({ profile, onSave }: { profile: ProfileData; onSave:
         <p className="text-sm text-term-muted">Usados para verificação de identidade e saques.</p>
       </div>
 
+      <div
+        className={`flex flex-col gap-3 rounded border p-3 ${completion.complete ? "border-long/40 bg-long/5" : "border-term-line bg-term-bg"}`}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm font-medium">
+            {completion.complete ? "Cadastro completo — saques liberados" : "Complete o cadastro para liberar saques"}
+          </p>
+          <span className={`font-mono text-xs ${completion.complete ? "text-long" : "text-term-muted"}`}>{completion.percent}%</span>
+        </div>
+        <div className="h-1.5 overflow-hidden rounded-full bg-term-line">
+          <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${completion.percent}%` }} />
+        </div>
+        {!completion.complete && (
+          <ul className="flex flex-wrap gap-1.5">
+            {completion.issues.map((i) => (
+              <li key={i.key} className="rounded bg-term-panel px-2 py-0.5 text-xs text-term-muted">
+                {`${i.label}: ${i.problem}`}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="flex flex-col gap-1.5 sm:col-span-2">
           <span className="text-xs text-term-muted">E-mail</span>
@@ -87,9 +115,14 @@ export function PersonalTab({ profile, onSave }: { profile: ProfileData; onSave:
         </label>
         {FIELDS.map((f) => (
           <label key={f.key} className={`flex flex-col gap-1.5 ${f.span ? "sm:col-span-2" : ""}`}>
-            <span className="text-xs text-term-muted">{f.label}</span>
+            <span className="text-xs text-term-muted">
+              {f.label}
+              {REQUIRED.has(f.key) && <span className="text-short">{" *"}</span>}
+            </span>
             <input
               type={f.type ?? "text"}
+              required={REQUIRED.has(f.key)}
+              aria-invalid={issueKeys.has(f.key) || undefined}
               value={form[f.key]}
               maxLength={f.max}
               autoComplete={f.auto}

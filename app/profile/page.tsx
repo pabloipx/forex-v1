@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
 import { ProfileView } from "@/components/profile/profile-view"
 
 export const metadata: Metadata = {
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 }
 
 export default function ProfilePage() {
-  return <ProfileView />
+  return (
+    <Suspense>
+      <ProfileView />
+    </Suspense>
+  )
 }

@@ -1,745 +1,555 @@
 "use client"
 
 import type React from "react"
-
-import { useEffect, useState, useMemo, useCallback } from "react"
-import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
-import { ChevronLeft, AlertCircle, Check, Wallet, Clock, Shield, AlertTriangle, CheckCircle, Bitcoin } from "lucide-react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import Link from "next/link"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
+import { AlertCircle, ArrowLeft, Check, CheckCircle2, Clock, Lock, ShieldCheck, UserRound } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
+import { PROFILE_COLUMNS, profileCompletion, type ProfileFields } from "@/lib/profile-completeness"
+import { cn } from "@/lib/utils"
 
 const QUICK_AMOUNTS = [100, 200, 500, 1000, 2000, 5000]
+const MIN_WITHDRAWAL = 100
 const USD_TO_BRL = 6.0
 
-type WithdrawMethod = "pix" | "crypto"
-type CryptoType = "usdt" | "btc"
+type Method = "pix" | "crypto"
+type Crypto = "usdt" | "btc"
+type PixKeyType = "cpf" | "email" | "phone" | "random"
+
+const PIX_TYPES: { value: PixKeyType; label: string; placeholder: string }[] = [
+  { value: "cpf", label: "CPF", placeholder: "000.000.000-00" },
+  { value: "email", label: "E-mail", placeholder: "seu@email.com" },
+  { value: "phone", label: "Celular", placeholder: "(00) 00000-0000" },
+  { value: "random", label: "Aleatória", placeholder: "Chave aleatória" },
+]
+
+const brl = (v: number) => v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+const panel = "rounded-md border border-term-line bg-term-panel"
+const inputCls =
+  "h-11 w-full rounded border border-term-line bg-term-bg px-3 text-sm text-term-text outline-none transition-colors placeholder:text-term-muted/60 focus:border-primary disabled:opacity-50"
+const segBtn = (active: boolean) =>
+  cn(
+    "flex h-9 items-center justify-center rounded text-xs font-medium transition-colors disabled:opacity-40",
+    active ? "bg-primary text-primary-foreground" : "bg-term-bg text-term-muted hover:text-term-text",
+  )
+
+type DepositRollover = {
+  lockedAmount: number
+  rolloverRequired: number
+  rolloverProgress: number
+  remaining: number
+  progressPercent: number
+  depositsCount: number
+}
+
+type BonusRollover = { required: number; progress: number; remaining: number; cancelOnWithdrawal: boolean }
 
 export default function WithdrawPage() {
   const router = useRouter()
-  const [withdrawMethod, setWithdrawMethod] = useState<WithdrawMethod>("pix")
+  const supabase = useMemo(() => createClient(), [])
+
+  const [method, setMethod] = useState<Method>("pix")
   const [amount, setAmount] = useState("")
   const [pixKey, setPixKey] = useState("")
-  const [pixKeyType, setPixKeyType] = useState("cpf")
-  const [cryptoType, setCryptoType] = useState<CryptoType>("usdt")
-  const [cryptoWallet, setCryptoWallet] = useState("")
+  const [pixKeyType, setPixKeyType] = useState<PixKeyType>("cpf")
+  const [crypto, setCrypto] = useState<Crypto>("usdt")
+  const [wallet, setWallet] = useState("")
+
   const [balance, setBalance] = useState(0)
-  // Parte do saldo que ainda esta travada por um bonus com rollover em andamento.
-  const [lockedBalance, setLockedBalance] = useState(0)
-  const [rolloverInfo, setRolloverInfo] = useState<{
-    required: number
-    progress: number
-    remaining: number
-    cancelOnWithdrawal: boolean
-  } | null>(null)
-  // Trava do valor depositado: dinheiro do proprio usuario, preso ate cumprir o volume exigido.
-  const [depositRollover, setDepositRollover] = useState<{
-    lockedAmount: number
-    rolloverRequired: number
-    rolloverProgress: number
-    remaining: number
-    progressPercent: number
-    depositsCount: number
-  } | null>(null)
+  const [bonusLocked, setBonusLocked] = useState(0)
+  const [bonusRollover, setBonusRollover] = useState<BonusRollover | null>(null)
+  const [depositRollover, setDepositRollover] = useState<DepositRollover | null>(null)
   const [withdrawalHours, setWithdrawalHours] = useState(72)
-  const [loading, setLoading] = useState(false)
+  const [profile, setProfile] = useState<ProfileFields | null>(null)
+  const [kycStatus, setKycStatus] = useState("unverified")
+  const [isVerified, setIsVerified] = useState(false)
+
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState("")
 
-  const [kycStatus, setKycStatus] = useState<string | null>(null)
-  const [isVerified, setIsVerified] = useState(false)
-  const [checkingKyc, setCheckingKyc] = useState(true)
-
-  const supabase = useMemo(
-    () => createClient(),
-    [],
-  )
-
   useEffect(() => {
-    if (success) {
-      const timer = setTimeout(() => {
-        router.push("/futures")
-      }, 4000)
-      return () => clearTimeout(timer)
-    }
+    if (!success) return
+    const timer = setTimeout(() => router.push("/futures"), 4000)
+    return () => clearTimeout(timer)
   }, [success, router])
 
   useEffect(() => {
-    async function loadData() {
+    let cancelled = false
+    async function load() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-
       if (!user) {
-        router.push("/auth/login")
+        router.push("/auth/login?next=/withdraw")
         return
       }
 
-      const { data: balanceData } = await supabase
-        .from("user_balances")
-        .select("balance_real")
-        .eq("user_id", user.id)
-        .single()
+      const [{ data: bal }, { data: prof }] = await Promise.all([
+        supabase.from("user_balances").select("balance_real").eq("user_id", user.id).maybeSingle(),
+        supabase.from("profiles").select(`${PROFILE_COLUMNS}, kyc_status, is_verified`).eq("id", user.id).maybeSingle(),
+      ])
+      if (cancelled) return
+      setBalance(Number(bal?.balance_real ?? 0))
+      const p = prof as (ProfileFields & { kyc_status?: string; is_verified?: boolean }) | null
+      setProfile(p)
+      setKycStatus(p?.kyc_status?.toLowerCase().trim() || "unverified")
+      setIsVerified(p?.is_verified === true)
 
-      if (balanceData) {
-        setBalance(balanceData.balance_real)
-      }
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("kyc_status, is_verified")
-        .eq("id", user.id)
-        .single()
-
-      if (profile) {
-        const status = profile.kyc_status?.toLowerCase().trim() || "unverified"
-        setKycStatus(status)
-        setIsVerified(profile.is_verified === true)
-      } else {
-        setKycStatus("unverified")
-        setIsVerified(false)
-      }
-
-      // Situacao do rollover: define quanto do saldo esta realmente disponivel para saque.
+      // O servidor reaplica todas as travas no envio; aqui é só informativo.
       try {
-        const promoResponse = await fetch("/api/promo/status")
-        if (promoResponse.ok) {
-          const promo = await promoResponse.json()
+        const res = await fetch("/api/promo/status")
+        if (res.ok) {
+          const promo = await res.json()
           if (promo.hasActiveBonus) {
-            setLockedBalance(promo.lockedAmount)
-            setRolloverInfo({
+            setBonusLocked(promo.lockedAmount)
+            setBonusRollover({
               required: promo.rolloverRequired,
               progress: promo.rolloverProgress,
               remaining: promo.remaining,
               cancelOnWithdrawal: promo.cancelsOnWithdrawal,
             })
           }
-          if (promo.depositRollover) {
-            setDepositRollover(promo.depositRollover)
-          }
-          if (promo.withdrawalHours) {
-            setWithdrawalHours(promo.withdrawalHours)
-          }
+          if (promo.depositRollover) setDepositRollover(promo.depositRollover)
+          if (promo.withdrawalHours) setWithdrawalHours(promo.withdrawalHours)
         }
-      } catch {
-        // Sem bloquear a tela: na falha, o servidor ainda aplica a trava no envio do saque.
-      }
-
-      setCheckingKyc(false)
+      } catch {}
+      if (!cancelled) setLoading(false)
     }
-
-    loadData()
+    load()
+    return () => {
+      cancelled = true
+    }
   }, [router, supabase])
 
-  // Saldo realmente sacavel: o total menos o bonus em rollover e menos os depositos travados.
-  const depositLocked = depositRollover?.lockedAmount || 0
-  const availableBalance = Math.max(0, balance - lockedBalance - depositLocked)
+  const completion = profileCompletion(profile)
+  const kycOk = kycStatus === "approved" || isVerified
+  const depositLocked = depositRollover?.lockedAmount ?? 0
+  const available = Math.max(0, balance - bonusLocked - depositLocked)
+  const blocked = !completion.complete || !kycOk
 
-  const isKycApproved = kycStatus === "approved" || isVerified === true
-  const needsKyc = !isKycApproved
+  const parsed = useMemo(() => (amount ? Number.parseFloat(amount.replace(/\./g, "").replace(",", ".")) : 0), [amount])
 
-  const formatCurrency = useCallback((value: string) => {
-    const numbers = value.replace(/\D/g, "")
-    if (!numbers) return ""
-    const numberValue = Number.parseInt(numbers) / 100
-    return numberValue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const onAmount = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const n = e.target.value.replace(/\D/g, "")
+    setAmount(n ? brl(Number.parseInt(n, 10) / 100) : "")
   }, [])
 
-  const handleAmountChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const formatted = formatCurrency(e.target.value)
-      setAmount(formatted)
-    },
-    [formatCurrency],
-  )
+  const validationError = (() => {
+    if (!parsed) return null
+    if (parsed < MIN_WITHDRAWAL) return `Valor mínimo para saque é R$ ${brl(MIN_WITHDRAWAL)}`
+    if (parsed > available) return `Saldo disponível para saque: R$ ${brl(available)}`
+    return null
+  })()
 
-  const handleQuickAmount = useCallback((value: number) => {
-    setAmount(value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }))
-  }, [])
+  const destinationOk = method === "pix" ? pixKey.trim().length > 0 : /^0x[a-fA-F0-9]{40}$/.test(wallet.trim())
+  const canSubmit = !blocked && !submitting && parsed >= MIN_WITHDRAWAL && parsed <= available && destinationOk
 
-  const parseAmount = useCallback(() => {
-    if (!amount) return 0
-    return Number.parseFloat(amount.replace(/\./g, "").replace(",", "."))
-  }, [amount])
-
-  const handleWithdraw = async () => {
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!canSubmit) return
     setError("")
-
-    if (needsKyc) {
-      setError("Você precisa verificar sua conta antes de sacar")
-      return
-    }
-
-    const withdrawAmount = parseAmount()
-
-    if (!withdrawAmount || withdrawAmount < 100) {
-      setError("Valor mínimo para saque é R$ 100,00")
-      return
-    }
-
-    if (withdrawMethod === "pix" && !pixKey.trim()) {
-      setError("Informe sua chave PIX")
-      return
-    }
-
-    if (withdrawMethod === "crypto" && !cryptoWallet.trim()) {
-      setError("Informe o endereço da sua carteira")
-      return
-    }
-
-    if (withdrawMethod === "crypto" && !cryptoWallet.startsWith("0x")) {
-      setError("Endereço de carteira inválido. Deve começar com 0x")
-      return
-    }
-
-    // Aviso antecipado: a trava de verdade e aplicada no servidor, isso so evita a ida perdida.
-    if (withdrawAmount > availableBalance) {
-      if (depositRollover && depositRollover.remaining > 0) {
-        setError(
-          `Você ainda tem R$ ${depositLocked.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} em depósitos travados pelo rollover. ` +
-            `Faltam R$ ${depositRollover.remaining.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} de volume em entradas para liberar esse valor. ` +
-            `Saldo disponível para saque agora: R$ ${availableBalance.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}.`,
-        )
-      } else if (lockedBalance > 0) {
-        setError(
-          `Saldo disponível para saque: R$ ${availableBalance.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}. ` +
-            `Você tem R$ ${lockedBalance.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} em bônus travados pelo rollover. ` +
-            `Faltam R$ ${(rolloverInfo?.remaining ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} de volume em entradas para liberar.`,
-        )
-      } else {
-        setError("Saldo insuficiente para realizar este saque")
-      }
-      return
-    }
-
-    setLoading(true)
-
-    // O saque e criado pelo servidor (/api/withdraw), nao mais direto pelo navegador. Assim o saldo
-    // e debitado UMA unica vez e a trava de rollover nao pode ser contornada pelo cliente.
+    setSubmitting(true)
     try {
-      const response = await fetch("/api/withdraw", {
+      const res = await fetch("/api/withdraw", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: withdrawAmount,
-          method: withdrawMethod,
+          amount: parsed,
+          method,
           pixKey: pixKey.trim(),
           pixKeyType,
-          cryptoType: cryptoType.toUpperCase(),
-          cryptoWallet: cryptoWallet.trim(),
+          cryptoType: crypto.toUpperCase(),
+          cryptoWallet: wallet.trim(),
+          holderName: profile?.full_name ?? "",
+          document: profile?.document_number ?? "",
         }),
       })
-
-      const result = await response.json()
-
-      if (!response.ok) {
+      const result = await res.json()
+      if (!res.ok) {
         setError(result.error || "Erro ao solicitar saque. Tente novamente.")
-        setLoading(false)
         return
       }
-
       setBalance(result.newBalance)
-      setLockedBalance(0)
+      setBonusLocked(0)
       setSuccess(true)
-    } catch (err) {
-      console.error("[v0] Erro ao solicitar saque:", err)
-      setError("Erro de conexao ao solicitar saque. Tente novamente.")
+    } catch {
+      setError("Erro de conexão ao solicitar saque. Tente novamente.")
+    } finally {
+      setSubmitting(false)
     }
-
-    setLoading(false)
   }
 
   if (success) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-[#0B0F14]">
-        <div className="animate-in fade-in zoom-in duration-300 flex flex-col items-center">
-          <div className="w-16 h-16 rounded-full bg-[#10b981] flex items-center justify-center mb-4 shadow-lg shadow-[#10b981]/30">
-            <Check className="w-8 h-8 text-white" strokeWidth={3} />
-          </div>
-          <p className="text-xl font-semibold text-[#34d399] text-center">Saque solicitado com sucesso!</p>
-          <p className="text-sm text-[#9CA3AF] mt-3 text-center max-w-xs text-pretty">
-            {`O valor cairá na sua conta em até ${withdrawalHours} horas.`}
-          </p>
-          <p className="text-sm text-[#6B7280] mt-2">Redirecionando...</p>
+      <main className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-term-bg px-4 text-term-text">
+        <div className="flex size-14 items-center justify-center rounded-full bg-long/15 text-long">
+          <Check className="size-7" strokeWidth={3} aria-hidden="true" />
         </div>
-      </div>
-    )
-  }
-
-  if (checkingKyc) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0B0F14]">
-        <div className="w-8 h-8 border-2 border-[#10b981]/30 border-t-[#10b981] rounded-full animate-spin" />
-      </div>
+        <h1 className="text-lg font-semibold">Saque solicitado</h1>
+        <p className="max-w-xs text-center text-sm leading-relaxed text-term-muted text-pretty">
+          {`O valor cairá na sua conta em até ${withdrawalHours} horas. Redirecionando para o terminal...`}
+        </p>
+      </main>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#0B0F14]">
-      <div className="sticky top-0 z-10 px-4 py-4 flex items-center gap-3 border-b border-[#1F2933] bg-[#0B0F14]">
-        <button onClick={() => router.back()} className="p-2 -ml-2">
-          <ChevronLeft className="w-6 h-6 text-white" />
-        </button>
-        <h1 className="text-xl font-bold text-white">Saque</h1>
-      </div>
+    <div className="min-h-dvh bg-term-bg text-term-text">
+      <header className="sticky top-0 z-10 flex h-12 items-center gap-3 border-b border-term-line bg-term-panel px-3 md:px-6">
+        <Link
+          href="/futures"
+          aria-label="Voltar ao terminal"
+          className="flex size-8 items-center justify-center rounded text-term-muted hover:bg-term-bg hover:text-term-text"
+        >
+          <ArrowLeft className="size-4" aria-hidden="true" />
+        </Link>
+        <h1 className="text-sm font-semibold">Sacar</h1>
+        <span className="ml-auto flex items-center gap-1.5 text-xs text-term-muted">
+          <ShieldCheck className="size-3.5 text-long" aria-hidden="true" />
+          Transferência protegida
+        </span>
+      </header>
 
-      <div className="px-4 py-6 space-y-6 max-w-xl mx-auto">
-        {isKycApproved ? (
-          <div className="p-4 rounded-xl bg-[#10b981]/10 border border-[#10b981]/30">
-            <div className="flex items-start gap-3">
-              <CheckCircle className="w-5 h-5 text-[#10b981] flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-[#10b981]">Conta Verificada</p>
-                <p className="text-xs text-[#9CA3AF] mt-1">
-                  Sua conta está verificada. Você pode realizar saques normalmente.
-                </p>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="p-4 rounded-xl bg-[#F59E0B]/10 border border-[#F59E0B]/30">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-[#F59E0B] flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-[#F59E0B]">Verificação Necessária</p>
-                <p className="text-xs text-[#9CA3AF] mt-1">
-                  {kycStatus === "pending"
-                    ? "Seus documentos estão em análise. Você pode enviar novos documentos enquanto aguarda."
-                    : kycStatus === "rejected"
-                      ? "Sua verificação foi rejeitada. Envie novos documentos para continuar."
-                      : "Para realizar saques, você precisa verificar sua conta."}
-                </p>
-                <button
-                  onClick={() => router.push("/kyc")}
-                  className="mt-3 px-4 py-2 rounded-lg text-sm font-medium text-white bg-[#F59E0B] hover:bg-[#D97706] transition-colors"
-                >
-                  {kycStatus === "pending"
-                    ? "Enviar Documentos"
-                    : kycStatus === "rejected"
-                      ? "Reenviar Documentos"
-                      : "Verificar Conta"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Method Selector */}
-        <div className="space-y-2">
-          <label className="text-white text-sm font-medium">Método de saque</label>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              onClick={() => setWithdrawMethod("pix")}
-              className={`p-4 rounded-xl border-2 transition-all ${
-                withdrawMethod === "pix"
-                  ? "border-[#10b981] bg-[#10b981]/10"
-                  : "border-[#1F2933] bg-[#121826] hover:border-[#10b981]/50"
-              }`}
-            >
-              <div className="flex flex-col items-center gap-2">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
-                  withdrawMethod === "pix" ? "bg-white shadow-lg shadow-[#32BCAD]/20" : "bg-white/95"
-                }`}>
-                  <Image src="/pix-logo.png" alt="PIX" width={32} height={32} className="w-7 h-7 object-contain" />
-                </div>
-                <div className="text-center">
-                  <p className={`font-semibold ${withdrawMethod === "pix" ? "text-[#10b981]" : "text-white"}`}>PIX</p>
-                  <p className="text-[#9CA3AF] text-xs">Instantâneo</p>
-                </div>
-              </div>
-            </button>
-            <button
-              onClick={() => setWithdrawMethod("crypto")}
-              className={`p-4 rounded-xl border-2 transition-all ${
-                withdrawMethod === "crypto"
-                  ? "border-[#F7931A] bg-[#F7931A]/10"
-                  : "border-[#1F2933] bg-[#121826] hover:border-[#F7931A]/50"
-              }`}
-            >
-              <div className="flex flex-col items-center gap-2">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  withdrawMethod === "crypto" ? "bg-[#F7931A]" : "bg-[#F7931A]/20"
-                }`}>
-                  <Bitcoin className="w-5 h-5 text-white" />
-                </div>
-                <div className="text-center">
-                  <p className={`font-semibold ${withdrawMethod === "crypto" ? "text-[#F7931A]" : "text-white"}`}>Cripto</p>
-                  <p className="text-[#9CA3AF] text-xs">USDT / BTC</p>
-                </div>
-              </div>
-            </button>
-          </div>
+      {loading ? (
+        <div className="flex h-[60vh] items-center justify-center" role="status" aria-label="Carregando">
+          <div className="size-6 animate-spin rounded-full border-2 border-term-line border-t-primary" />
         </div>
+      ) : (
+        <main className="mx-auto grid max-w-5xl gap-4 p-3 md:grid-cols-[1fr_320px] md:p-6">
+          <form onSubmit={submit} className={cn(panel, "flex flex-col gap-5 p-4 md:p-6")}>
+            {blocked && <Requirements completion={completion} kycOk={kycOk} kycStatus={kycStatus} />}
 
-        {/* Method Header */}
-        <div className="flex items-center gap-3">
-          {withdrawMethod === "pix" ? (
-            <>
-              <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-lg shadow-[#32BCAD]/20">
-                <Image src="/pix-logo.png" alt="PIX" width={32} height={32} className="w-7 h-7 object-contain" />
-              </div>
-              <div>
-                <h2 className="text-white font-semibold">PIX</h2>
-                <p className="text-sm text-[#9CA3AF]">Receba instantaneamente via PIX.</p>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                cryptoType === "usdt" ? "bg-[#26A17B]" : "bg-[#F7931A]"
-              }`}>
-                <span className="text-white font-bold text-xl">{cryptoType === "usdt" ? "₮" : "₿"}</span>
-              </div>
-              <div>
-                <h2 className="text-white font-semibold">{cryptoType === "usdt" ? "USDT (Tether)" : "Bitcoin (BTC)"}</h2>
-                <p className="text-sm text-[#9CA3AF]">Receba em cripto na rede Ethereum (ERC-20)</p>
-              </div>
-            </>
-          )}
-        </div>
-
-        <div className="p-5 rounded-2xl bg-gradient-to-br from-[#1A2332] to-[#121826] border border-[#1F2933]">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-[#10b981]/20 flex items-center justify-center">
-              <Wallet className="w-5 h-5 text-[#10b981]" />
-            </div>
-  <p className="text-sm text-[#9CA3AF]">Saldo disponível para saque</p>
-  </div>
-  <p className="text-3xl font-bold text-white">
-  R$ {availableBalance.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-  </p>
-  {/* Com rollover ativo, o saldo total nao e todo sacavel: mostramos cada parte travada. */}
-  {(lockedBalance > 0 || depositLocked > 0) && (
-  <div className="mt-3 pt-3 border-t border-[#1F2933] flex flex-col gap-1">
-  <div className="flex items-center justify-between text-xs">
-  <span className="text-[#9CA3AF]">Saldo total</span>
-  <span className="text-[#9CA3AF]">
-  R$ {balance.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-  </span>
-  </div>
-  {lockedBalance > 0 && (
-  <div className="flex items-center justify-between text-xs">
-  <span className="text-[#34d399]">Bônus travado (rollover)</span>
-  <span className="text-[#34d399] font-medium">
-  R$ {lockedBalance.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-  </span>
-  </div>
-  )}
-  {depositLocked > 0 && (
-  <div className="flex items-center justify-between text-xs">
-  <span className="text-[#34d399]">Depósito travado (rollover)</span>
-  <span className="text-[#34d399] font-medium">
-  R$ {depositLocked.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-  </span>
-  </div>
-  )}
-  </div>
-  )}
-  </div>
-
-  {/* Progresso do rollover, para o usuario saber exatamente quanto falta liberar o bonus */}
-  {rolloverInfo && (
-  <div className="p-4 rounded-2xl bg-[#10b981]/5 border border-[#10b981]/30 flex flex-col gap-3">
-  <div className="flex items-start gap-3">
-  <AlertTriangle className="w-5 h-5 text-[#34d399] shrink-0 mt-0.5" />
-  <div className="flex flex-col gap-1">
-  <p className="text-sm font-medium text-[#34d399]">Rollover em andamento</p>
-  <p className="text-xs text-[#9CA3AF] leading-relaxed">
-  {rolloverInfo.cancelOnWithdrawal
-  ? `Faltam R$ ${rolloverInfo.remaining.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} de volume negociado. Sacar agora acima do saldo disponível cancela o bônus e remove o valor travado.`
-  : `Faltam R$ ${rolloverInfo.remaining.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} de volume negociado para liberar o bônus para saque.`}
-  </p>
-  </div>
-  </div>
-  <div className="flex flex-col gap-1.5">
-  <div className="h-2 rounded-full bg-[#1F2933] overflow-hidden">
-  <div
-  className="h-full rounded-full bg-[#10b981] transition-all"
-  style={{
-  width: `${rolloverInfo.required > 0 ? Math.min(100, (rolloverInfo.progress / rolloverInfo.required) * 100) : 100}%`,
-  }}
-  />
-  </div>
-  <p className="text-xs text-[#6B7280]">
-  R$ {rolloverInfo.progress.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} de R${" "}
-  {rolloverInfo.required.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} negociados
-  </p>
-  </div>
-  </div>
-  )}
-
-          {/* Progresso do rollover do valor depositado. Diferente do bonus, este valor nunca e
-              perdido: fica apenas indisponivel para saque ate o volume ser cumprido. */}
-          {depositRollover && (
-            <div className="p-4 rounded-2xl bg-[#10b981]/5 border border-[#10b981]/30 flex flex-col gap-3">
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-[#34d399] shrink-0 mt-0.5" />
-                <div className="flex flex-col gap-1">
-                  <p className="text-sm font-medium text-[#34d399]">
-                    {depositRollover.depositsCount > 1
-                      ? "Depósitos com rollover pendente"
-                      : "Depósito com rollover pendente"}
-                  </p>
-                  <p className="text-xs text-[#9CA3AF] leading-relaxed">
-                    {`Faltam R$ ${depositRollover.remaining.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} de volume negociado para liberar R$ ${depositRollover.lockedAmount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} para saque. O valor continua disponível para operar.`}
-                  </p>
+            <fieldset disabled={blocked} className="flex flex-col gap-5 disabled:opacity-50">
+              <div className="flex flex-col gap-2">
+                <legend className="text-xs text-term-muted">Método</legend>
+                <div role="radiogroup" className="grid grid-cols-2 gap-2">
+                  <MethodCard active={method === "pix"} onClick={() => setMethod("pix")} title="PIX" subtitle="Até 1 hora útil">
+                    <Image src="/pix-logo.png" alt="" width={20} height={20} className="size-5 object-contain" />
+                  </MethodCard>
+                  <MethodCard active={method === "crypto"} onClick={() => setMethod("crypto")} title="Cripto" subtitle="USDT ou BTC · ERC-20">
+                    <span className="font-mono text-sm font-bold text-term-text">{"₮"}</span>
+                  </MethodCard>
                 </div>
               </div>
-              <div className="flex flex-col gap-1.5">
-                <div className="h-2 rounded-full bg-[#1F2933] overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-[#10b981] transition-all"
-                    style={{ width: `${depositRollover.progressPercent}%` }}
+
+              <div className="flex flex-col gap-2">
+                <label htmlFor="amount" className="flex items-center justify-between text-xs text-term-muted">
+                  <span>Valor</span>
+                  <button
+                    type="button"
+                    onClick={() => setAmount(brl(Math.floor(available * 100) / 100))}
+                    className="font-medium text-primary hover:underline"
+                  >
+                    {`Máx. R$ ${brl(available)}`}
+                  </button>
+                </label>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-term-muted">R$</span>
+                  <input
+                    id="amount"
+                    inputMode="numeric"
+                    value={amount}
+                    onChange={onAmount}
+                    placeholder="0,00"
+                    className={cn(inputCls, "h-12 pl-10 font-mono text-lg font-semibold")}
+                    aria-invalid={!!validationError}
+                    aria-describedby="amount-hint"
                   />
                 </div>
-                <p className="text-xs text-[#6B7280]">
-                  R$ {depositRollover.rolloverProgress.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} de R${" "}
-                  {depositRollover.rolloverRequired.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} negociados
+                <p id="amount-hint" className={cn("text-xs", validationError ? "text-short" : "text-term-muted")}>
+                  {validationError ?? `Mínimo R$ ${brl(MIN_WITHDRAWAL)}`}
                 </p>
+                <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">
+                  {QUICK_AMOUNTS.map((v) => (
+                    <button
+                      key={v}
+                      type="button"
+                      disabled={v > available}
+                      onClick={() => setAmount(brl(v))}
+                      className="h-8 rounded border border-term-line bg-term-bg font-mono text-xs text-term-muted transition-colors hover:border-primary hover:text-term-text disabled:opacity-30"
+                    >
+                      {v.toLocaleString("pt-BR")}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
 
-        <div>
-          <label className="block text-sm text-white mb-2 font-medium">Valor do saque</label>
-          <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#6B7280] text-lg">R$</span>
-            <input
-              type="text"
-              value={amount}
-              onChange={handleAmountChange}
-              placeholder="0,00"
-              disabled={needsKyc}
-              className="w-full py-4 pl-12 pr-4 rounded-xl text-white text-lg font-semibold bg-[#121826] border border-[#1F2933] focus:border-[#10b981] outline-none transition-colors disabled:opacity-50"
-            />
-          </div>
-          <div className="flex items-center gap-2 mt-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />
-            <p className="text-xs text-[#9CA3AF]">Valor mínimo: R$ 100,00</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-3 gap-2">
-          {QUICK_AMOUNTS.map((value) => (
-            <button
-              key={value}
-              onClick={() => handleQuickAmount(value)}
-              disabled={value > balance || needsKyc}
-              className="py-3 px-2 rounded-xl text-sm font-medium text-white bg-[#121826] border border-[#1F2933] hover:border-[#10b981] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-            >
-              R$ {value.toLocaleString("pt-BR")}
-            </button>
-          ))}
-        </div>
-
-        {withdrawMethod === "pix" ? (
-          <>
-            <div>
-              <label className="block text-sm text-white mb-2 font-medium">Tipo de chave PIX</label>
-              <div className="grid grid-cols-4 gap-2">
-                {[
-                  { value: "cpf", label: "CPF" },
-                  { value: "email", label: "E-mail" },
-                  { value: "phone", label: "Celular" },
-                  { value: "random", label: "Aleatória" },
-                ].map((type) => (
-                  <button
-                    key={type.value}
-                    onClick={() => setPixKeyType(type.value)}
-                    disabled={needsKyc}
-                    className={`py-2.5 px-2 rounded-xl text-xs font-medium transition-colors disabled:opacity-50 ${
-                      pixKeyType === type.value
-                        ? "bg-[#10b981] text-white"
-                        : "bg-[#121826] text-[#9CA3AF] border border-[#1F2933] hover:border-[#10b981]"
-                    }`}
-                  >
-                    {type.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm text-white mb-2 font-medium">Chave PIX</label>
-              <input
-                type="text"
-                value={pixKey}
-                onChange={(e) => setPixKey(e.target.value)}
-                disabled={needsKyc}
-                placeholder={
-                  pixKeyType === "cpf"
-                    ? "000.000.000-00"
-                    : pixKeyType === "email"
-                      ? "seu@email.com"
-                      : pixKeyType === "phone"
-                        ? "(00) 00000-0000"
-                        : "Chave aleatória"
-                }
-                className="w-full py-4 px-4 rounded-xl text-white bg-[#121826] border border-[#1F2933] focus:border-[#10b981] outline-none transition-colors disabled:opacity-50"
-              />
-            </div>
-          </>
-        ) : (
-          <>
-            {/* Crypto Type Selector */}
-            <div className="space-y-2">
-              <label className="text-white text-sm font-medium">Escolha a criptomoeda</label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => setCryptoType("usdt")}
-                  disabled={needsKyc}
-                  className={`p-4 rounded-xl border-2 transition-all disabled:opacity-50 ${
-                    cryptoType === "usdt"
-                      ? "border-[#26A17B] bg-[#26A17B]/10"
-                      : "border-[#1F2933] bg-[#121826] hover:border-[#26A17B]/50"
-                  }`}
-                >
-                  <div className="flex flex-col items-center gap-2">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      cryptoType === "usdt" ? "bg-[#26A17B]" : "bg-[#26A17B]/20"
-                    }`}>
-                      <span className="text-white font-bold text-lg">₮</span>
-                    </div>
-                    <div className="text-center">
-                      <p className={`font-semibold ${cryptoType === "usdt" ? "text-[#26A17B]" : "text-white"}`}>USDT</p>
-                      <p className="text-[#9CA3AF] text-xs">Tether</p>
-                    </div>
+              {method === "pix" ? (
+                <div className="flex flex-col gap-2">
+                  <span className="text-xs text-term-muted">Tipo de chave</span>
+                  <div role="radiogroup" className="grid grid-cols-4 gap-1 rounded bg-term-bg p-1">
+                    {PIX_TYPES.map((t) => (
+                      <button
+                        key={t.value}
+                        type="button"
+                        role="radio"
+                        aria-checked={pixKeyType === t.value}
+                        onClick={() => {
+                          setPixKeyType(t.value)
+                          if (t.value === "cpf" && profile?.document_number) setPixKey(profile.document_number)
+                        }}
+                        className={segBtn(pixKeyType === t.value)}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
                   </div>
-                </button>
-                <button
-                  onClick={() => setCryptoType("btc")}
-                  disabled={needsKyc}
-                  className={`p-4 rounded-xl border-2 transition-all disabled:opacity-50 ${
-                    cryptoType === "btc"
-                      ? "border-[#F7931A] bg-[#F7931A]/10"
-                      : "border-[#1F2933] bg-[#121826] hover:border-[#F7931A]/50"
-                  }`}
-                >
-                  <div className="flex flex-col items-center gap-2">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      cryptoType === "btc" ? "bg-[#F7931A]" : "bg-[#F7931A]/20"
-                    }`}>
-                      <span className="text-white font-bold text-lg">₿</span>
-                    </div>
-                    <div className="text-center">
-                      <p className={`font-semibold ${cryptoType === "btc" ? "text-[#F7931A]" : "text-white"}`}>BTC</p>
-                      <p className="text-[#9CA3AF] text-xs">Bitcoin</p>
-                    </div>
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            {/* Crypto Wallet Address */}
-            <div>
-              <label className="block text-sm text-white mb-2 font-medium">Endereço da carteira (ERC-20)</label>
-              <input
-                type="text"
-                value={cryptoWallet}
-                onChange={(e) => setCryptoWallet(e.target.value)}
-                disabled={needsKyc}
-                placeholder="0x..."
-                className="w-full py-4 px-4 rounded-xl text-white font-mono bg-[#121826] border border-[#1F2933] focus:border-[#10b981] outline-none transition-colors disabled:opacity-50"
-              />
-              <p className="text-xs text-[#9CA3AF] mt-2">
-                Informe seu endereço de carteira Ethereum para receber {cryptoType === "usdt" ? "USDT" : "BTC"}.
-              </p>
-            </div>
-
-            {/* USD Conversion */}
-            <div className={`bg-[#121826] border rounded-xl p-4 ${cryptoType === "usdt" ? "border-[#26A17B]/30" : "border-[#F7931A]/30"}`}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[#9CA3AF] text-xs">Valor aproximado em USD (1 USD = R$ {USD_TO_BRL.toFixed(2)})</p>
-                  <p className="text-white text-xl font-bold">
-                    ${(parseAmount() / USD_TO_BRL).toFixed(2)} {cryptoType.toUpperCase()}
+                  <label htmlFor="pix" className="sr-only">
+                    Chave PIX
+                  </label>
+                  <input
+                    id="pix"
+                    value={pixKey}
+                    onChange={(e) => setPixKey(e.target.value)}
+                    placeholder={PIX_TYPES.find((t) => t.value === pixKeyType)?.placeholder}
+                    className={inputCls}
+                    autoComplete="off"
+                  />
+                  <p className="text-xs leading-relaxed text-term-muted">
+                    {`A chave deve estar no nome de ${profile?.full_name || "titular da conta"}. Saques para terceiros são recusados.`}
                   </p>
                 </div>
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${cryptoType === "usdt" ? "bg-[#26A17B]/20" : "bg-[#F7931A]/20"}`}>
-                  <span className={`text-xl font-bold ${cryptoType === "usdt" ? "text-[#26A17B]" : "text-[#F7931A]"}`}>
-                    {cryptoType === "usdt" ? "₮" : "₿"}
-                  </span>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <span className="text-xs text-term-muted">Moeda</span>
+                  <div role="radiogroup" className="grid grid-cols-2 gap-1 rounded bg-term-bg p-1">
+                    {(["usdt", "btc"] as const).map((c) => (
+                      <button key={c} type="button" role="radio" aria-checked={crypto === c} onClick={() => setCrypto(c)} className={segBtn(crypto === c)}>
+                        {c === "usdt" ? "USDT · Tether" : "BTC · Bitcoin"}
+                      </button>
+                    ))}
+                  </div>
+                  <label htmlFor="wallet" className="text-xs text-term-muted">
+                    Endereço da carteira (ERC-20)
+                  </label>
+                  <input
+                    id="wallet"
+                    value={wallet}
+                    onChange={(e) => setWallet(e.target.value)}
+                    placeholder="0x..."
+                    className={cn(inputCls, "font-mono")}
+                    autoComplete="off"
+                    spellCheck={false}
+                    aria-invalid={wallet.length > 0 && !destinationOk}
+                  />
+                  <p className={cn("text-xs leading-relaxed", wallet && !destinationOk ? "text-short" : "text-term-muted")}>
+                    {wallet && !destinationOk
+                      ? "Endereço inválido: deve começar com 0x e ter 42 caracteres."
+                      : "Somente rede Ethereum (ERC-20). Envios para outra rede não podem ser recuperados."}
+                  </p>
+                  <div className="flex items-center justify-between rounded border border-term-line bg-term-bg px-3 py-2">
+                    <span className="text-xs text-term-muted">{`Aproximado (1 USD = R$ ${USD_TO_BRL.toFixed(2)})`}</span>
+                    <span className="font-mono text-sm font-semibold">{`${(parsed / USD_TO_BRL).toFixed(2)} ${crypto.toUpperCase()}`}</span>
+                  </div>
                 </div>
-              </div>
-            </div>
+              )}
 
-            {/* Warning */}
-            <div className="bg-[#121826] border border-[#1F2933] rounded-xl p-4 space-y-2">
-              <div className="flex items-start gap-2">
-                <div className="w-5 h-5 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-yellow-500 text-xs">!</span>
+              {error && (
+                <div role="alert" className="flex items-start gap-2 rounded border border-short/30 bg-short/10 p-3 text-sm text-short">
+                  <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                  <p className="leading-relaxed">{error}</p>
                 </div>
-                <p className="text-[#9CA3AF] text-xs">
-                  Certifique-se de que o endereço está correto. Envios para endereços incorretos não podem ser recuperados.
-                </p>
-              </div>
-              <div className="flex items-start gap-2">
-                <div className="w-5 h-5 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-yellow-500 text-xs">!</span>
-                </div>
-                <p className="text-[#9CA3AF] text-xs">
-                  Apenas endereços na rede Ethereum (ERC-20). Não use outras redes.
-                </p>
-              </div>
-            </div>
-          </>
-        )}
+              )}
 
-        {error && (
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-[#EF4444]/10 border border-[#EF4444]/20">
-            <AlertCircle className="w-5 h-5 text-[#EF4444] flex-shrink-0" />
-            <p className="text-sm text-[#EF4444]">{error}</p>
-          </div>
-        )}
+              <button
+                type="submit"
+                disabled={!canSubmit}
+                className="flex h-11 items-center justify-center gap-2 rounded bg-primary text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
+              >
+                {submitting ? (
+                  <>
+                    <span className="size-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
+                    Processando...
+                  </>
+                ) : method === "crypto" ? (
+                  `Sacar ${(parsed / USD_TO_BRL).toFixed(2)} ${crypto.toUpperCase()}`
+                ) : (
+                  `Sacar R$ ${amount || "0,00"}`
+                )}
+              </button>
+            </fieldset>
+          </form>
 
-        <button
-          onClick={handleWithdraw}
-          disabled={
-            loading || 
-            parseAmount() < 100 || 
-            parseAmount() > balance || 
-            (withdrawMethod === "pix" && !pixKey.trim()) || 
-            (withdrawMethod === "crypto" && !cryptoWallet.trim()) ||
-            needsKyc
-          }
-          className={`w-full py-4 rounded-xl font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
-            withdrawMethod === "crypto" 
-              ? cryptoType === "usdt" 
-                ? "bg-[#26A17B] hover:bg-[#1f8a68]" 
-                : "bg-[#F7931A] hover:bg-[#d97f15]"
-              : "bg-[#10b981] hover:bg-[#34d399]"
-          }`}
-        >
-          {loading ? (
-            <span className="flex items-center justify-center gap-2">
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              Processando...
-            </span>
-          ) : needsKyc ? (
-            "Verifique sua conta primeiro"
-          ) : withdrawMethod === "crypto" ? (
-            `Sacar $${(parseAmount() / USD_TO_BRL).toFixed(2)} ${cryptoType.toUpperCase()}`
-          ) : (
-            `Sacar R$ ${amount || "0,00"}`
-          )}
-        </button>
+          <aside className="flex flex-col gap-4">
+            <section className={cn(panel, "flex flex-col gap-3 p-4")} aria-label="Saldo">
+              <p className="text-xs text-term-muted">Disponível para saque</p>
+              <p className="font-mono text-2xl font-semibold">{`R$ ${brl(available)}`}</p>
+              <dl className="flex flex-col gap-1.5 border-t border-term-line pt-3 text-xs">
+                <Row label="Saldo total" value={`R$ ${brl(balance)}`} />
+                {bonusLocked > 0 && <Row label="Bônus travado" value={`R$ ${brl(bonusLocked)}`} locked />}
+                {depositLocked > 0 && <Row label="Depósito travado" value={`R$ ${brl(depositLocked)}`} locked />}
+              </dl>
+            </section>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div className="p-4 rounded-xl bg-[#121826] border border-[#1F2933]">
-            <div className="flex items-center gap-2 mb-2">
-              <Clock className="w-4 h-4 text-[#10b981]" />
-              <p className="text-xs font-medium text-white">Prazo</p>
-            </div>
-            <p className="text-xs text-[#9CA3AF]">{`Até ${withdrawalHours} horas úteis`}</p>
-          </div>
-          <div className="p-4 rounded-xl bg-[#121826] border border-[#1F2933]">
-            <div className="flex items-center gap-2 mb-2">
-              <Shield className="w-4 h-4 text-[#10b981]" />
-              <p className="text-xs font-medium text-white">Seguro</p>
-            </div>
-            <p className="text-xs text-[#9CA3AF]">Transferência protegida</p>
-          </div>
-        </div>
-      </div>
+            {bonusRollover && (
+              <RolloverCard
+                title="Rollover do bônus"
+                progress={bonusRollover.progress}
+                required={bonusRollover.required}
+                note={
+                  bonusRollover.cancelOnWithdrawal
+                    ? "Sacar acima do disponível cancela o bônus."
+                    : `Faltam R$ ${brl(bonusRollover.remaining)} em volume negociado.`
+                }
+              />
+            )}
+            {depositRollover && (
+              <RolloverCard
+                title={depositRollover.depositsCount > 1 ? "Rollover dos depósitos" : "Rollover do depósito"}
+                progress={depositRollover.rolloverProgress}
+                required={depositRollover.rolloverRequired}
+                note={`Faltam R$ ${brl(depositRollover.remaining)} em volume para liberar R$ ${brl(depositRollover.lockedAmount)}. O valor segue disponível para operar.`}
+              />
+            )}
+
+            <section className={cn(panel, "flex items-start gap-3 p-4")}>
+              <Clock className="mt-0.5 size-4 shrink-0 text-term-muted" aria-hidden="true" />
+              <p className="text-xs leading-relaxed text-term-muted">
+                {`Prazo de até ${withdrawalHours} horas úteis. Enquanto pendente, o valor fica reservado e é devolvido se o saque for recusado.`}
+              </p>
+            </section>
+          </aside>
+        </main>
+      )}
     </div>
+  )
+}
+
+function Requirements({
+  completion,
+  kycOk,
+  kycStatus,
+}: {
+  completion: ReturnType<typeof profileCompletion>
+  kycOk: boolean
+  kycStatus: string
+}) {
+  return (
+    <section aria-label="Requisitos para sacar" className="flex flex-col gap-3 rounded border border-term-line bg-term-bg p-4">
+      <div className="flex items-center gap-2">
+        <Lock className="size-4 text-primary" aria-hidden="true" />
+        <h2 className="text-sm font-semibold">Saque bloqueado</h2>
+      </div>
+      <ol className="flex flex-col gap-2">
+        <Step
+          done={completion.complete}
+          title={completion.complete ? "Cadastro completo" : `Complete o cadastro (${completion.percent}%)`}
+          detail={completion.complete ? undefined : `Pendente: ${completion.issues.map((i) => i.label).join(", ")}`}
+          href="/profile?tab=personal"
+          cta="Completar cadastro"
+          icon={UserRound}
+        />
+        <Step
+          done={kycOk}
+          title={kycOk ? "Identidade verificada" : kycStatus === "pending" ? "Documentos em análise" : "Verifique sua identidade"}
+          detail={kycOk ? undefined : kycStatus === "rejected" ? "Verificação recusada. Envie novos documentos." : undefined}
+          href="/kyc"
+          cta={kycStatus === "pending" ? "Ver status" : "Enviar documentos"}
+          icon={ShieldCheck}
+        />
+      </ol>
+    </section>
+  )
+}
+
+function Step({
+  done,
+  title,
+  detail,
+  href,
+  cta,
+  icon: Icon,
+}: {
+  done: boolean
+  title: string
+  detail?: string
+  href: string
+  cta: string
+  icon: typeof UserRound
+}) {
+  return (
+    <li className="flex items-start gap-3">
+      {done ? (
+        <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-long" aria-hidden="true" />
+      ) : (
+        <Icon className="mt-0.5 size-4 shrink-0 text-term-muted" aria-hidden="true" />
+      )}
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <p className={cn("text-sm", done ? "text-term-muted" : "font-medium")}>{title}</p>
+        {detail && <p className="text-xs leading-relaxed text-term-muted">{detail}</p>}
+      </div>
+      {!done && (
+        <Link href={href} className="shrink-0 rounded bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90">
+          {cta}
+        </Link>
+      )}
+    </li>
+  )
+}
+
+function MethodCard({
+  active,
+  onClick,
+  title,
+  subtitle,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  title: string
+  subtitle: string
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={active}
+      onClick={onClick}
+      className={cn(
+        "flex items-center gap-3 rounded border p-3 text-left transition-colors",
+        active ? "border-primary bg-primary/10" : "border-term-line bg-term-bg hover:border-term-muted",
+      )}
+    >
+      <span className="flex size-9 shrink-0 items-center justify-center rounded bg-term-panel">{children}</span>
+      <span className="flex flex-col">
+        <span className="text-sm font-semibold">{title}</span>
+        <span className="text-xs text-term-muted">{subtitle}</span>
+      </span>
+    </button>
+  )
+}
+
+function Row({ label, value, locked }: { label: string; value: string; locked?: boolean }) {
+  return (
+    <div className="flex items-center justify-between">
+      <dt className="flex items-center gap-1 text-term-muted">
+        {locked && <Lock className="size-3" aria-hidden="true" />}
+        {label}
+      </dt>
+      <dd className="font-mono">{value}</dd>
+    </div>
+  )
+}
+
+function RolloverCard({ title, progress, required, note }: { title: string; progress: number; required: number; note: string }) {
+  const pct = required > 0 ? Math.min(100, (progress / required) * 100) : 100
+  return (
+    <section className={cn(panel, "flex flex-col gap-2 p-4")} aria-label={title}>
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-medium">{title}</p>
+        <span className="font-mono text-xs text-term-muted">{`${pct.toFixed(0)}%`}</span>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-term-line">
+        <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+      </div>
+      <p className="font-mono text-xs text-term-muted">{`R$ ${brl(progress)} / R$ ${brl(required)}`}</p>
+      <p className="text-xs leading-relaxed text-term-muted">{note}</p>
+    </section>
   )
 }
