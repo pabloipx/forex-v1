@@ -104,15 +104,15 @@
   --color-atlas-success: #2190ff;
 
   /* Terminal de derivativos (futuros/forex) */
-  --color-term-bg: #0b0e11;
-  --color-term-panel: #15181d;
-  --color-term-line: #23272e;
-  --color-term-text: #eaecef;
-  --color-term-muted: #848e9c;
-  --color-term-up: #20b26c;
-  --color-term-down: #ef454a;
-  --color-long: #20b26c;
-  --color-short: #ef454a;
+  --color-term-bg: #0a0d14;
+  --color-term-panel: #131722;
+  --color-term-line: #232836;
+  --color-term-text: #e6e9f0;
+  --color-term-muted: #7d8496;
+  --color-term-up: #089981;
+  --color-term-down: #f23645;
+  --color-long: #089981;
+  --color-short: #f23645;
 }
 
 /* Adicionando animações suaves para melhor UX */

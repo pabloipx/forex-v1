@@ -10,6 +10,7 @@ import {
   LineSeries,
   LineStyle,
   createChart,
+  createTextWatermark,
   type IChartApi,
   type IPriceLine,
   type ISeriesApi,
@@ -25,12 +26,17 @@ import { ScriptEditor } from "./script-editor"
 import { useScriptOverlay } from "./use-script-overlay"
 
 const COLORS = {
-  bg: "#15181d",
-  grid: "rgba(43, 49, 57, 0.5)",
-  text: "#848e9c",
-  up: "#20b26c",
-  down: "#ef454a",
-  accent: "#f7a600",
+  bg: "#131722",
+  grid: "rgba(42, 46, 57, 0.6)",
+  border: "#2a2e39",
+  text: "#b2b5be",
+  crosshair: "#758696",
+  crosshairLabel: "#2a2e39",
+  watermark: "rgba(178, 181, 190, 0.06)",
+  up: "#089981",
+  down: "#f23645",
+  accent: "#2190ff",
+  liq: "#ff9800",
 }
 
 const INTERVAL_LABEL: Record<ChartInterval, string> = { "1m": "1m", "5m": "5m", "15m": "15m", "1h": "1h", "4h": "4h", "1d": "1D" }
@@ -73,6 +79,7 @@ function PriceChartImpl({ market, last, positions, openOrders }: PriceChartProps
   const lastCandleRef = useRef<Candle | null>(null)
   const hoverRef = useRef(false)
   const priceLinesRef = useRef<IPriceLine[]>([])
+  const watermarkRef = useRef<ReturnType<typeof createTextWatermark<Time>> | null>(null)
   const pendingPriceRef = useRef<number | null>(null)
   const rafRef = useRef<number | null>(null)
   const decimalsRef = useRef(market.priceDecimals)
@@ -125,8 +132,28 @@ function PriceChartImpl({ market, last, positions, openOrders }: PriceChartProps
     const d = decimalsRef.current
     const color = c.close >= c.open ? COLORS.up : COLORS.down
     const change = c.open ? ((c.close - c.open) / c.open) * 100 : 0
-    el.style.color = color
-    el.textContent = `A ${formatPrice(c.open, d)}  M ${formatPrice(c.high, d)}  m ${formatPrice(c.low, d)}  F ${formatPrice(c.close, d)}  ${change >= 0 ? "+" : ""}${change.toFixed(2)}%`
+    const delta = c.close - c.open
+    const parts: [string, string][] = [
+      ["A", formatPrice(c.open, d)],
+      ["M", formatPrice(c.high, d)],
+      ["m", formatPrice(c.low, d)],
+      ["F", formatPrice(c.close, d)],
+    ]
+    el.replaceChildren(
+      ...parts.flatMap(([label, value]) => {
+        const l = document.createElement("span")
+        l.style.color = COLORS.text
+        l.textContent = `${label} `
+        const v = document.createElement("span")
+        v.style.color = color
+        v.textContent = `${value}  `
+        return [l, v]
+      }),
+      Object.assign(document.createElement("span"), {
+        textContent: `${delta >= 0 ? "+" : ""}${formatPrice(delta, d)} (${change >= 0 ? "+" : ""}${change.toFixed(2)}%)`,
+        style: `color:${color}`,
+      }),
+    )
   }
 
   // Cria o grafico uma unica vez; trocar de mercado/intervalo so troca os dados.
@@ -139,12 +166,17 @@ function PriceChartImpl({ market, last, positions, openOrders }: PriceChartProps
         background: { type: ColorType.Solid, color: COLORS.bg },
         textColor: COLORS.text,
         fontSize: 11,
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Trebuchet MS', Roboto, Ubuntu, sans-serif",
         attributionLogo: false,
       },
       grid: { vertLines: { color: COLORS.grid }, horzLines: { color: COLORS.grid } },
-      crosshair: { mode: CrosshairMode.Normal },
-      rightPriceScale: { borderColor: COLORS.grid, scaleMargins: { top: 0.1, bottom: 0.2 } },
-      timeScale: { borderColor: COLORS.grid, timeVisible: true, secondsVisible: false, rightOffset: 6, barSpacing: 8 },
+      crosshair: {
+        mode: CrosshairMode.Normal,
+        vertLine: { color: COLORS.crosshair, width: 1, style: LineStyle.LargeDashed, labelBackgroundColor: COLORS.crosshairLabel },
+        horzLine: { color: COLORS.crosshair, width: 1, style: LineStyle.LargeDashed, labelBackgroundColor: COLORS.crosshairLabel },
+      },
+      rightPriceScale: { borderColor: COLORS.border, scaleMargins: { top: 0.1, bottom: 0.2 } },
+      timeScale: { borderColor: COLORS.border, timeVisible: true, secondsVisible: false, rightOffset: 8, barSpacing: 7, minBarSpacing: 2 },
       kineticScroll: { touch: true, mouse: false },
       handleScroll: { vertTouchDrag: false },
       localization: { locale: "pt-BR" },
@@ -156,6 +188,12 @@ function PriceChartImpl({ market, last, positions, openOrders }: PriceChartProps
       borderDownColor: COLORS.down,
       wickUpColor: COLORS.up,
       wickDownColor: COLORS.down,
+      priceLineStyle: LineStyle.Dotted,
+    })
+    watermarkRef.current = createTextWatermark(chart.panes()[0], {
+      horzAlign: "center",
+      vertAlign: "center",
+      lines: [{ text: market.symbol, color: COLORS.watermark, fontSize: 64, fontStyle: "bold" }],
     })
     lineRef.current = chart.addSeries(LineSeries, { color: COLORS.accent, lineWidth: 2, visible: false })
     volumeRef.current = chart.addSeries(HistogramSeries, {
@@ -187,6 +225,12 @@ function PriceChartImpl({ market, last, positions, openOrders }: PriceChartProps
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    watermarkRef.current?.applyOptions({
+      lines: [{ text: market.symbol, color: COLORS.watermark, fontSize: 64, fontStyle: "bold" }],
+    })
+  }, [market.symbol])
 
   useEffect(() => {
     const fmt = { type: "price" as const, precision: market.priceDecimals, minMove: 10 ** -market.priceDecimals }
@@ -272,7 +316,7 @@ function PriceChartImpl({ market, last, positions, openOrders }: PriceChartProps
     for (const p of positions) {
       if (p.symbol !== market.symbol) continue
       add(p.entry_price, p.side === "long" ? COLORS.up : COLORS.down, `${p.side === "long" ? "Long" : "Short"} ${p.qty}`, false)
-      add(p.liquidation_price, COLORS.accent, "Liq.")
+      add(p.liquidation_price, COLORS.liq, "Liq.")
       add(p.take_profit, COLORS.up, "TP")
       add(p.stop_loss, COLORS.down, "SL")
     }
@@ -307,8 +351,8 @@ function PriceChartImpl({ market, last, positions, openOrders }: PriceChartProps
 
   const toolBtn = (active: boolean) =>
     cn(
-      "shrink-0 rounded px-1.5 py-0.5 text-xs font-medium transition-colors",
-      active ? "text-primary" : "text-term-muted hover:text-term-text",
+      "shrink-0 rounded px-1.5 py-1 text-xs font-medium transition-colors",
+      active ? "bg-primary/15 text-primary" : "text-term-muted hover:bg-term-line hover:text-term-text",
     )
 
   return (

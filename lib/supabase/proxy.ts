@@ -34,7 +34,9 @@ export async function updateSession(request: NextRequest) {
       },
     })
 
-    const { data: { user } } = await supabase.auth.getUser()
+    // getClaims valida o JWT localmente (JWKS em cache) e so vai a rede quando precisa renovar a sessao.
+    const { data } = await supabase.auth.getClaims()
+    const user = data?.claims?.sub ? data.claims : null
 
     const isProtectedRoute = PROTECTED_ROUTES.some((route) => request.nextUrl.pathname.startsWith(route))
 
