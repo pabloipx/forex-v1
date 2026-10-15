@@ -53,14 +53,13 @@ const fetcher = async (url: string): Promise<ActivityPage> => {
   return body.data
 }
 
-export function UserLogsDialog({ user, onClose }: { user: { id: string; email: string } | null; onClose: () => void }) {
+export function UserActivityFeed({ userId, className }: { userId: string; className?: string }) {
   const [kinds, setKinds] = useState<Kind[]>([])
   const [text, setText] = useState("")
 
   const getKey = (index: number, prev: ActivityPage | null) => {
-    if (!user) return null
     if (prev && !prev.nextCursor) return null
-    const sp = new URLSearchParams({ userId: user.id, limit: String(PAGE) })
+    const sp = new URLSearchParams({ userId, limit: String(PAGE) })
     if (kinds.length) sp.set("kinds", kinds.join(","))
     if (index > 0 && prev?.nextCursor) sp.set("before", prev.nextCursor)
     return `/api/admin/user-activity?${sp}`
@@ -84,13 +83,7 @@ export function UserLogsDialog({ user, onClose }: { user: { id: string; email: s
   const toggle = (k: Kind) => setKinds((cur) => (cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k]))
 
   return (
-    <Dialog open={!!user} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="flex max-h-[85vh] flex-col gap-4 border-term-line bg-term-panel text-term-text sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>Logs do usuário</DialogTitle>
-          <DialogDescription className="text-term-muted">{user?.email}</DialogDescription>
-        </DialogHeader>
-
+    <div className={cn("flex min-h-0 flex-1 flex-col gap-4", className)}>
         <div className="flex flex-col gap-3">
           <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar por tipo">
             <button
@@ -168,6 +161,19 @@ export function UserLogsDialog({ user, onClose }: { user: { id: string; email: s
             {loadingMore ? "Carregando..." : "Carregar mais"}
           </SmallButton>
         )}
+    </div>
+  )
+}
+
+export function UserLogsDialog({ user, onClose }: { user: { id: string; email: string } | null; onClose: () => void }) {
+  return (
+    <Dialog open={!!user} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="flex max-h-[85vh] flex-col gap-4 border-term-line bg-term-panel text-term-text sm:max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Logs do usuário</DialogTitle>
+          <DialogDescription className="text-term-muted">{user?.email}</DialogDescription>
+        </DialogHeader>
+        {user && <UserActivityFeed key={user.id} userId={user.id} />}
       </DialogContent>
     </Dialog>
   )

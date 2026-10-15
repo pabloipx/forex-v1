@@ -1,5 +1,3 @@
-import { createClient } from "@/lib/supabase/client"
-
 const DEVICE_KEY = "kdx_device_id"
 
 /** Gera (ou recupera) um identificador estável para este navegador/dispositivo. */
@@ -16,13 +14,14 @@ export function getDeviceId(): string {
   return id
 }
 
-/** Extrai navegador e sistema operacional a partir do user agent. */
-export function parseUserAgent(ua: string): { browser: string; os: string; deviceName: string } {
+/** Extrai navegador, sistema, tipo e modelo do aparelho a partir do user agent. */
+export function parseUserAgent(ua: string): { browser: string; os: string; deviceName: string; model: string | null } {
   let browser = "Navegador"
   if (/Edg\//i.test(ua)) browser = "Microsoft Edge"
   else if (/OPR\/|Opera/i.test(ua)) browser = "Opera"
-  else if (/Chrome\//i.test(ua) && !/Chromium/i.test(ua)) browser = "Google Chrome"
-  else if (/Firefox\//i.test(ua)) browser = "Firefox"
+  else if (/SamsungBrowser/i.test(ua)) browser = "Samsung Internet"
+  else if (/CriOS|Chrome\//i.test(ua) && !/Chromium/i.test(ua)) browser = "Google Chrome"
+  else if (/FxiOS|Firefox\//i.test(ua)) browser = "Firefox"
   else if (/Safari\//i.test(ua) && !/Chrome/i.test(ua)) browser = "Safari"
 
   let os = "Desconhecido"
@@ -32,40 +31,49 @@ export function parseUserAgent(ua: string): { browser: string; os: string; devic
   else if (/Android/i.test(ua)) os = "Android"
   else if (/Linux/i.test(ua)) os = "Linux"
 
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(ua)
-  const deviceName = `${isMobile ? "Celular" : "Computador"} · ${os}`
-  return { browser, os, deviceName }
+  const version =
+    ua.match(/Android ([\d.]+)/i)?.[1] ?? ua.match(/OS (\d+[_\d]*) like Mac/i)?.[1]?.replace(/_/g, ".") ?? null
+  if (version) os = `${os} ${version}`
+
+  let model: string | null = null
+  if (/iPhone/i.test(ua)) model = "iPhone"
+  else if (/iPad/i.test(ua)) model = "iPad"
+  else {
+    const m = ua.match(/Android [\d.]+; (?:[a-z]{2}[-_][a-z]{2}; )?([^;)]+?)(?: Build|\))/i)?.[1]?.trim()
+    if (m && m !== "K") model = m
+  }
+
+  const isTablet = /iPad|Tablet/i.test(ua)
+  const isMobile = !isTablet && /iPhone|iPod|Android.*Mobile|Mobile/i.test(ua)
+  const deviceName = `${isTablet ? "Tablet" : isMobile ? "Celular" : "Computador"} · ${os.split(" ")[0]}`
+  return { browser, os, deviceName, model }
+}
+
+async function detectModel(): Promise<string | null> {
+  const uaData = (navigator as Navigator & {
+    userAgentData?: { getHighEntropyValues?: (hints: string[]) => Promise<{ model?: string }> }
+  }).userAgentData
+  try {
+    const v = await uaData?.getHighEntropyValues?.(["model"])
+    return v?.model || null
+  } catch {
+    return null
+  }
 }
 
 /**
- * Registra (ou atualiza) o dispositivo atual na tabela login_sessions.
- * Deve ser chamado após um login bem-sucedido e ao carregar o app autenticado.
+ * Registra o dispositivo atual (com IP e cidade detectados no servidor).
+ * Use event "login" após login/cadastro e "seen" ao abrir o app autenticado.
  */
-export async function recordDeviceSession(): Promise<void> {
+export async function recordDeviceSession(event: "login" | "seen" = "login"): Promise<void> {
   try {
     if (typeof window === "undefined") return
-    const supabase = createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) return
-
-    const ua = navigator.userAgent
-    const { browser, os, deviceName } = parseUserAgent(ua)
-    const deviceId = getDeviceId()
-
-    await supabase.from("login_sessions").upsert(
-      {
-        user_id: user.id,
-        device_id: deviceId,
-        device_name: deviceName,
-        browser,
-        os,
-        user_agent: ua,
-        last_seen: new Date().toISOString(),
-      },
-      { onConflict: "user_id,device_id" },
-    )
+    await fetch("/api/session/record", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ deviceId: getDeviceId(), event, model: await detectModel() }),
+      keepalive: true,
+    })
   } catch {
     // Registro de dispositivo é best-effort; nunca deve bloquear o fluxo de login.
   }

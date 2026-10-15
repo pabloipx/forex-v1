@@ -41,7 +41,7 @@ export function ConnectedDevices({ onBack }: Props) {
   const load = async () => {
     setLoading(true)
     // Garante que o dispositivo atual esteja registrado antes de listar.
-    await recordDeviceSession()
+    await recordDeviceSession("seen")
     const { data, error } = await supabase
       .from("login_sessions")
       .select("id, device_id, device_name, browser, os, last_seen, created_at")

@@ -2,6 +2,7 @@
 
 import { useDeferredValue, useMemo, useState, type FormEvent } from "react"
 import { UserLogsDialog } from "./user-logs-dialog"
+import { UserDetailSheet } from "./user-detail-sheet"
 import { toast } from "sonner"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge, DataTable, ErrorNote, Panel, SmallButton, inputCls, td } from "./ui"
@@ -120,6 +121,7 @@ export function UsersSection() {
   const deferredQuery = useDeferredValue(query)
   const [adjusting, setAdjusting] = useState<UserRow | null>(null)
   const [viewingLogs, setViewingLogs] = useState<UserRow | null>(null)
+  const [viewingDetail, setViewingDetail] = useState<UserRow | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
 
   const toggleBlock = async (u: UserRow) => {
@@ -162,10 +164,15 @@ export function UsersSection() {
           {rows.map((u) => (
             <tr key={u.id} className="border-b border-term-line/60 last:border-0">
               <td className={cn(td, "font-sans")}>
-                <div className="flex flex-col">
-                  <span className="font-medium">{u.full_name || "—"}</span>
+                <button
+                  type="button"
+                  onClick={() => setViewingDetail(u)}
+                  className="group flex flex-col rounded text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-term-accent"
+                  aria-label={`Abrir detalhes de ${u.full_name || u.email}`}
+                >
+                  <span className="font-medium group-hover:text-term-accent group-hover:underline">{u.full_name || "—"}</span>
                   <span className="text-term-muted">{u.email}</span>
-                </div>
+                </button>
               </td>
               <td className={td}>{u.phone ?? "—"}</td>
               <td className={cn(td, "font-sans")}>{u.country ?? "—"}</td>
@@ -215,6 +222,7 @@ export function UsersSection() {
 
       <AdjustDialog user={adjusting} onClose={() => setAdjusting(null)} />
       <UserLogsDialog user={viewingLogs} onClose={() => setViewingLogs(null)} />
+      <UserDetailSheet user={viewingDetail} onClose={() => setViewingDetail(null)} />
     </div>
   )
 }
