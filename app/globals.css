@@ -50,6 +50,15 @@
 }
 
 @theme inline {
+  --color-lp-bg: #ffffff;
+  --color-lp-ink: #0b1530;
+  --color-lp-muted: #5b6577;
+  --color-lp-line: #e6ebf3;
+  --color-lp-soft: #eaf2ff;
+  --color-lp-primary: #1a6dff;
+  --color-lp-navy: #0f2a8f;
+  --color-lp-up: #16a36a;
+  --color-lp-down: #e5484d;
   --font-sans: "Inter", "Inter Fallback", sans-serif;
   --font-mono: "JetBrains Mono", "Geist Mono", monospace;
   --color-background: #0b0f14;
