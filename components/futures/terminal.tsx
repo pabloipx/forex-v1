@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useLayoutEffect, useRef, useState } from "react"
 import { flushSync } from "react-dom"
 import { TERM_THEME_COOKIE, type TermTheme } from "@/lib/futures/term-theme"
 import { useRouter } from "next/navigation"
@@ -75,6 +75,13 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
     }
     const transition = document.startViewTransition(apply)
     transition.finished.finally(done)
+  }, [theme])
+
+  // Popovers/menus are portaled to <body>, outside the themed root, so mirror the class there.
+  useLayoutEffect(() => {
+    const cls = theme === "light" ? "term-light" : "term-dark"
+    document.body.classList.add(cls)
+    return () => document.body.classList.remove(cls)
   }, [theme])
   const [account, setAccount] = useState<AccountMode>("demo")
   const [limitPrice, setLimitPrice] = useState("")

@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ChevronDown, Moon, Sun, Wallet, UserRound } from "lucide-react"
+import { ChevronDown, Moon, Sun, Wallet } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { AccountMode } from "@/lib/futures/types"
 import { formatUsd } from "@/lib/futures/markets"
@@ -24,25 +24,35 @@ const links = [
 ]
 
 export function TopNav({ theme, onToggleTheme, account, onAccountChange, authenticated, email, balances }: TopNavProps) {
+  const isLight = theme === "light"
+  const initial = (email?.[0] ?? "U").toUpperCase()
+
   return (
-    <header className="flex h-12 shrink-0 items-center justify-between gap-4 border-b border-term-line bg-term-bg px-3 lg:px-4">
-      <div className="flex min-w-0 items-center gap-6">
-        <Link href="/futures" className="flex items-center gap-1 text-lg font-extrabold tracking-tight text-term-text">
-          Krypto<span className="text-[#2190FF]">bit</span>
+    <header className="flex h-14 shrink-0 items-center justify-between gap-4 border-b border-term-line bg-term-bg px-3 lg:px-5">
+      <div className="flex min-w-0 items-center gap-8">
+        <Link href="/futures" className="flex items-center gap-2" aria-label="Kryptobit, início">
+          <span
+            aria-hidden="true"
+            className="flex size-7 items-center justify-center rounded-lg bg-primary text-sm font-black text-primary-foreground"
+          >
+            K
+          </span>
+          <span className="text-lg font-extrabold tracking-tight text-term-text">
+            Krypto<span className="text-primary">bit</span>
+          </span>
         </Link>
-        <nav aria-label="Principal" className="hidden items-center gap-5 md:flex">
+        <nav aria-label="Principal" className="hidden items-center gap-1 md:flex">
           {links.map((l) => (
             <Link
               key={l.href}
               href={l.href}
               aria-current={l.active ? "page" : undefined}
               className={cn(
-                "relative flex h-12 items-center text-sm font-medium transition-colors",
-                l.active ? "text-primary" : "text-term-text hover:text-primary",
+                "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                l.active ? "bg-primary/10 text-primary" : "text-term-muted hover:bg-term-panel hover:text-term-text",
               )}
             >
               {l.label}
-              {l.active && <span className="absolute inset-x-0 bottom-0 h-0.5 bg-primary" />}
             </Link>
           ))}
         </nav>
@@ -52,51 +62,79 @@ export function TopNav({ theme, onToggleTheme, account, onAccountChange, authent
         <button
           type="button"
           onClick={onToggleTheme}
-          aria-label={theme === "light" ? "Ativar tema escuro" : "Ativar tema claro"}
-          title={theme === "light" ? "Tema escuro" : "Tema claro"}
-          className="flex size-8 items-center justify-center rounded-md text-term-muted hover:bg-term-panel hover:text-term-text"
+          aria-label={isLight ? "Ativar tema escuro" : "Ativar tema claro"}
+          title={isLight ? "Tema escuro" : "Tema claro"}
+          className="flex size-9 items-center justify-center rounded-full border border-term-line text-term-muted transition-colors hover:bg-term-panel hover:text-term-text"
         >
-          {theme === "light" ? <Moon className="size-4" aria-hidden="true" /> : <Sun className="size-4" aria-hidden="true" />}
+          {isLight ? <Moon className="size-4" aria-hidden="true" /> : <Sun className="size-4" aria-hidden="true" />}
         </button>
-        <div role="radiogroup" aria-label="Tipo de conta" className="flex rounded-md bg-term-panel p-0.5 text-xs">
-          {(["real", "demo"] as const).map((a) => (
-            <button
-              key={a}
-              role="radio"
-              aria-checked={account === a}
-              onClick={() => onAccountChange(a)}
-              className={cn(
-                "rounded px-2.5 py-1 font-semibold transition-colors",
-                account === a ? "bg-term-line text-term-text" : "text-term-muted hover:text-term-text",
-              )}
-            >
-              {a === "real" ? "Real" : "Demo"}
-            </button>
-          ))}
+
+        <div role="radiogroup" aria-label="Tipo de conta" className="flex rounded-full border border-term-line p-0.5 text-xs">
+          {(["real", "demo"] as const).map((a) => {
+            const active = account === a
+            return (
+              <button
+                key={a}
+                role="radio"
+                aria-checked={active}
+                onClick={() => onAccountChange(a)}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-full px-3 py-1 font-semibold transition-colors",
+                  active ? "bg-term-panel text-term-text shadow-sm" : "text-term-muted hover:text-term-text",
+                )}
+              >
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "size-1.5 rounded-full",
+                    active ? (a === "real" ? "bg-long" : "bg-primary") : "bg-term-muted/50",
+                  )}
+                />
+                {a === "real" ? "Real" : "Demo"}
+              </button>
+            )
+          })}
         </div>
 
         {authenticated ? (
           <>
-            <div className="hidden flex-col items-end leading-tight sm:flex">
-              <span className="text-[11px] text-term-muted">{account === "real" ? "Saldo real" : "Saldo demo"}</span>
-              <span className="font-mono text-sm font-semibold text-term-text">
-                {formatUsd(account === "real" ? balances.real : balances.demo)} USD
-              </span>
+            <div className="hidden h-9 items-center gap-3 rounded-full border border-term-line pl-4 pr-1 sm:flex">
+              <div className="flex flex-col items-end leading-none">
+                <span className="text-[10px] font-medium uppercase tracking-wide text-term-muted">
+                  {account === "real" ? "Saldo real" : "Saldo demo"}
+                </span>
+                <span className="mt-0.5 font-mono text-sm font-semibold tabular-nums text-term-text">
+                  {formatUsd(account === "real" ? balances.real : balances.demo)}
+                  <span className="ml-1 text-[10px] font-medium text-term-muted">USD</span>
+                </span>
+              </div>
+              <Link
+                href="/deposit"
+                className="flex h-7 items-center gap-1.5 rounded-full bg-primary px-3 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+              >
+                <Wallet className="size-3.5" aria-hidden="true" />
+                Depositar
+              </Link>
             </div>
             <Link
               href="/deposit"
-              className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90"
+              aria-label="Depositar"
+              className="flex size-9 items-center justify-center rounded-full bg-primary text-primary-foreground sm:hidden"
             >
               <Wallet className="size-4" aria-hidden="true" />
-              <span className="hidden sm:inline">Depositar</span>
             </Link>
             <Link
               href="/profile"
-              className="flex items-center gap-1 rounded-md p-1.5 text-term-muted hover:text-term-text"
               title={email}
+              className="flex items-center gap-1 rounded-full p-0.5 pr-1.5 text-term-muted transition-colors hover:bg-term-panel hover:text-term-text"
             >
-              <UserRound className="size-5" aria-hidden="true" />
-              <ChevronDown className="hidden size-3 sm:block" aria-hidden="true" />
+              <span
+                aria-hidden="true"
+                className="flex size-8 items-center justify-center rounded-full bg-primary/15 text-sm font-bold text-primary"
+              >
+                {initial}
+              </span>
+              <ChevronDown className="hidden size-3.5 sm:block" aria-hidden="true" />
               <span className="sr-only">Perfil</span>
             </Link>
           </>
@@ -107,7 +145,7 @@ export function TopNav({ theme, onToggleTheme, account, onAccountChange, authent
             </Link>
             <Link
               href="/auth/sign-up"
-              className="rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground hover:opacity-90"
+              className="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:opacity-90"
             >
               Cadastrar
             </Link>

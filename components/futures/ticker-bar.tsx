@@ -13,6 +13,7 @@ import {
   type MarketCategory,
 } from "@/lib/futures/markets"
 import type { DerivativesInfo, Ticker } from "@/hooks/use-futures"
+import { AssetIcon } from "./asset-icon"
 
 interface TickerBarProps {
   market: FuturesMarket
@@ -64,17 +65,24 @@ function MarketSelector({ market, tickers, onSelect }: Pick<TickerBarProps, "mar
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button className="flex items-center gap-2 rounded-md py-1 pr-2 text-left hover:bg-term-line/60">
-          <span className="flex size-7 items-center justify-center rounded-full bg-primary/15 text-[10px] font-bold text-primary">
-            {market.base.slice(0, 3)}
-          </span>
-          <span className="flex flex-col leading-tight">
-            <span className="flex items-center gap-1 text-base font-bold text-term-text">
+        <button
+          aria-label={`Selecionar mercado, atual ${market.symbol}`}
+          className="group flex items-center gap-2.5 rounded-lg py-1 pl-1 pr-2 text-left transition-colors hover:bg-term-line/60"
+        >
+          <AssetIcon market={market} size={32} />
+          <span className="flex flex-col gap-0.5 leading-tight">
+            <span className="flex items-center gap-1 text-base font-bold tracking-tight text-term-text">
               {market.symbol}
-              <ChevronDown className="size-4 text-term-muted" aria-hidden="true" />
+              <ChevronDown
+                className={cn("size-4 text-term-muted transition-transform duration-200", open && "rotate-180")}
+                aria-hidden="true"
+              />
             </span>
-            <span className="text-[11px] text-term-muted">
-              {market.category === "crypto" ? "Perpétuo" : market.name}
+            <span className="flex items-center gap-1.5 text-[11px] text-term-muted">
+              <span className="rounded bg-primary/10 px-1.5 py-px font-semibold text-primary">
+                {market.category === "crypto" ? "Perpétuo" : market.category === "metals" ? "Metal" : "Forex"}
+              </span>
+              <span className="truncate">{market.name}</span>
             </span>
           </span>
         </button>
@@ -159,9 +167,12 @@ function MarketSelector({ market, tickers, onSelect }: Pick<TickerBarProps, "mar
                     m.symbol === market.symbol && "bg-term-line/40",
                   )}
                 >
-                  <span className="flex flex-col leading-tight">
-                    <span className="font-semibold">{m.symbol}</span>
-                    <span className="text-[11px] text-term-muted">{m.maxLeverage}x</span>
+                  <span className="flex min-w-0 items-center gap-2.5">
+                    <AssetIcon market={m} size={24} />
+                    <span className="flex flex-col leading-tight">
+                      <span className="font-semibold">{m.symbol}</span>
+                      <span className="text-[11px] text-term-muted">{m.maxLeverage}x</span>
+                    </span>
                   </span>
                   <span className="font-mono text-right">{formatPrice(t?.price, m.priceDecimals)}</span>
                   <span className={cn("w-16 text-right font-mono", up ? "text-long" : "text-short")}>
