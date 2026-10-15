@@ -14,12 +14,43 @@ interface OrderBookProps {
 
 type View = "both" | "bids" | "asks"
 
-function withTotals(levels: BookLevel[], count: number) {
+interface GroupedLevel {
+  price: number
+  qty: number
+  total: number
+}
+
+// Binance envia preços com mais casas que o tick exibido; sem agrupar, vários níveis
+// aparecem com o mesmo preço. Vendas arredondam para cima e compras para baixo, para
+// nunca exibir uma oferta melhor do que a real.
+function groupLevels(levels: BookLevel[], step: number, side: "bid" | "ask", count: number): GroupedLevel[] {
+  const decimals = Math.max(0, -Math.floor(Math.log10(step)))
+  const buckets = new Map<string, { price: number; qty: number }>()
+  for (const [price, qty] of levels) {
+    if (!Number.isFinite(price) || price <= 0) continue
+    const units = side === "ask" ? Math.ceil(price / step - 1e-9) : Math.floor(price / step + 1e-9)
+    const bucketPrice = Number((units * step).toFixed(decimals))
+    const key = bucketPrice.toFixed(decimals)
+    const existing = buckets.get(key)
+    if (existing) existing.qty += qty
+    else buckets.set(key, { price: bucketPrice, qty })
+  }
+  const sorted = [...buckets.values()].sort((a, b) => (side === "ask" ? a.price - b.price : b.price - a.price))
   let total = 0
-  return levels.slice(0, count).map(([price, qty]) => {
-    total += qty
-    return { price, qty, total }
+  return sorted.slice(0, count).map((l) => {
+    total += l.qty
+    return { price: l.price, qty: l.qty, total }
   })
+}
+
+function rawDecimals(levels: BookLevel[], fallback: number) {
+  let max = fallback
+  for (const [price] of levels.slice(0, 5)) {
+    const s = String(price)
+    const i = s.indexOf(".")
+    if (i >= 0) max = Math.max(max, s.length - i - 1)
+  }
+  return Math.min(max, 8)
 }
 
 function fmtQty(q: number) {
@@ -29,10 +60,22 @@ function fmtQty(q: number) {
 
 function Book({ market, feed, onPriceClick }: OrderBookProps) {
   const [view, setView] = useState<View>("both")
+  const tick = 10 ** -market.priceDecimals
+  const groupOptions = [1, 10, 100].map((m) => Number((tick * m).toFixed(market.priceDecimals)))
+  const [groupIndex, setGroupIndex] = useState(0)
+  const step = groupOptions[groupIndex] ?? tick
+  const groupDecimals = Math.max(0, -Math.floor(Math.log10(step)))
   const rows = view === "both" ? 10 : 20
-  const asks = useMemo(() => withTotals(feed.asks, rows), [feed.asks, rows])
-  const bids = useMemo(() => withTotals(feed.bids, rows), [feed.bids, rows])
-  const max = Math.max(asks.at(-1)?.total ?? 0, bids.at(-1)?.total ?? 0, 1)
+  const asks = useMemo(() => groupLevels(feed.asks, step, "ask", rows), [feed.asks, step, rows])
+  const bids = useMemo(() => groupLevels(feed.bids, step, "bid", rows), [feed.bids, step, rows])
+  const max = Math.max(asks.at(-1)?.total ?? 0, bids.at(-1)?.total ?? 0)
+
+  const bestAsk = feed.asks[0]?.[0]
+  const bestBid = feed.bids[0]?.[0]
+  const spread = bestAsk != null && bestBid != null && bestAsk >= bestBid ? bestAsk - bestBid : null
+  const mid = spread != null ? (bestAsk! + bestBid!) / 2 : null
+  const spreadDecimals = rawDecimals([...feed.asks, ...feed.bids], market.priceDecimals)
+  const spreadPct = spread != null && mid ? (spread / mid) * 100 : null
 
   const bidVol = bids.reduce((s, l) => s + l.qty, 0)
   const askVol = asks.reduce((s, l) => s + l.qty, 0)
@@ -46,13 +89,28 @@ function Book({ market, feed, onPriceClick }: OrderBookProps) {
       onClick={() => onPriceClick(price)}
       className="relative grid w-full grid-cols-3 px-3 py-[3px] text-right font-mono text-xs hover:bg-term-line/50"
     >
-      <span
-        aria-hidden="true"
-        className={cn("absolute inset-y-0 right-0", side === "bid" ? "bg-long/15" : "bg-short/15")}
-        style={{ width: `${(total / max) * 100}%` }}
-      />
+      {max > 0 && (
+        <>
+          <span
+            aria-hidden="true"
+            className={cn(
+              "absolute inset-y-0 right-0 transition-[width] duration-200",
+              side === "bid" ? "bg-long/10" : "bg-short/10",
+            )}
+            style={{ width: `${Math.min(100, (total / max) * 100)}%` }}
+          />
+          <span
+            aria-hidden="true"
+            className={cn(
+              "absolute inset-y-0 right-0 transition-[width] duration-200",
+              side === "bid" ? "bg-long/20" : "bg-short/20",
+            )}
+            style={{ width: `${Math.min(100, (qty / max) * 100)}%` }}
+          />
+        </>
+      )}
       <span className={cn("relative text-left", side === "bid" ? "text-long" : "text-short")}>
-        {formatPrice(price, market.priceDecimals)}
+        {formatPrice(price, groupDecimals)}
       </span>
       <span className="relative text-term-text">{fmtQty(qty)}</span>
       <span className="relative text-term-text">{fmtQty(total)}</span>
@@ -81,6 +139,20 @@ function Book({ market, feed, onPriceClick }: OrderBookProps) {
             {v === "asks" && <span className="h-1 w-full rounded-sm bg-short" />}
           </button>
         ))}
+        <label className="ml-auto flex items-center gap-1.5 text-[11px] text-term-muted">
+          <span className="sr-only">Agrupar preços</span>
+          <select
+            value={groupIndex}
+            onChange={(e) => setGroupIndex(Number(e.target.value))}
+            className="rounded bg-term-bg px-1.5 py-0.5 font-mono text-term-text outline-none hover:bg-term-line"
+          >
+            {groupOptions.map((g, i) => (
+              <option key={g} value={i}>
+                {g.toFixed(Math.max(0, -Math.floor(Math.log10(g))))}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
       <div className="grid grid-cols-3 px-3 pb-1 text-right text-[11px] text-term-muted">
         <span className="text-left">Preço ({market.quote})</span>
@@ -101,10 +173,22 @@ function Book({ market, feed, onPriceClick }: OrderBookProps) {
           {up ? <ArrowUp className="size-4" aria-hidden="true" /> : <ArrowDown className="size-4" aria-hidden="true" />}
           {formatPrice(feed.last, market.priceDecimals)}
         </span>
+        {spread != null && (
+          <span
+            className="whitespace-nowrap font-mono text-[11px] text-term-muted"
+            title={
+              spreadPct != null
+                ? `Spread: diferença entre melhor venda e melhor compra (${spreadPct.toFixed(4)}%)`
+                : "Spread: diferença entre melhor venda e melhor compra"
+            }
+          >
+            Spread {formatPrice(spread, spreadDecimals)}
+          </span>
+        )}
         <span
           role="status"
           className={cn(
-            "ml-auto flex items-center gap-1.5 text-[11px]",
+            "ml-auto flex items-center gap-1.5 whitespace-nowrap text-[11px]",
             feed.status === "connected" ? "text-long" : feed.status === "disconnected" ? "text-short" : "text-term-muted",
           )}
         >
@@ -146,7 +230,7 @@ function Book({ market, feed, onPriceClick }: OrderBookProps) {
       </div>
       ) : (
         <p className="mt-auto px-3 py-2 text-[11px] leading-relaxed text-term-muted">
-          Spread {formatPrice((asks[0]?.price ?? 0) - (bids[0]?.price ?? 0), market.priceDecimals)} · cotação do motor
+          Spread {spread != null ? formatPrice(spread, spreadDecimals) : "--"} · cotação do motor (sem profundidade)
         </p>
       )}
     </div>

@@ -236,8 +236,20 @@ export function OrderPanel({
     }
   }
 
-  const liqLong = execPrice > 0 ? liquidationPrice("long", execPrice, leverage) : null
-  const liqShort = execPrice > 0 ? liquidationPrice("short", execPrice, leverage) : null
+  const hasQty = qtyNum > 0
+  const liqLong = hasQty && execPrice > 0 ? liquidationPrice("long", execPrice, leverage) : null
+  const liqShort = hasQty && execPrice > 0 ? liquidationPrice("short", execPrice, leverage) : null
+
+  const noBalance = authenticated && balance <= 0
+  const insufficient = authenticated && !noBalance && !reduceOnly && hasQty && cost > balance
+  const blocked = submitting !== null || noBalance || insufficient
+  const blockedReason = noBalance
+    ? account === "real"
+      ? "Saldo zerado. Deposite para abrir posições."
+      : "Saldo demo zerado."
+    : insufficient
+      ? `Saldo insuficiente: custo ${formatUsd(cost)} USD, disponível ${formatUsd(balance)} USD.`
+      : null
 
   return (
     <section aria-label="Enviar ordem" className="flex h-full flex-col gap-3 overflow-y-auto bg-term-panel p-3">
@@ -418,21 +430,38 @@ export function OrderPanel({
           Banco de dados não configurado. Configure o Supabase nas variáveis do projeto para operar.
         </p>
       ) : authenticated ? (
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={() => submit("buy")}
-            disabled={submitting !== null}
-            className="rounded-md bg-long py-2.5 text-sm font-semibold text-term-text hover:opacity-90 disabled:opacity-60"
-          >
-            {submitting === "buy" ? "Enviando..." : "Abrir Long"}
-          </button>
-          <button
-            onClick={() => submit("sell")}
-            disabled={submitting !== null}
-            className="rounded-md bg-short py-2.5 text-sm font-semibold text-term-text hover:opacity-90 disabled:opacity-60"
-          >
-            {submitting === "sell" ? "Enviando..." : "Abrir Short"}
-          </button>
+        <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => submit("buy")}
+              disabled={blocked}
+              aria-describedby={blockedReason ? "order-blocked-reason" : undefined}
+              className="rounded-md bg-long py-2.5 text-sm font-semibold text-term-text hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:opacity-40"
+            >
+              {submitting === "buy" ? "Enviando..." : "Abrir Long"}
+            </button>
+            <button
+              onClick={() => submit("sell")}
+              disabled={blocked}
+              aria-describedby={blockedReason ? "order-blocked-reason" : undefined}
+              className="rounded-md bg-short py-2.5 text-sm font-semibold text-term-text hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:opacity-40"
+            >
+              {submitting === "sell" ? "Enviando..." : "Abrir Short"}
+            </button>
+          </div>
+          {blockedReason && (
+            <p id="order-blocked-reason" role="status" className="text-[11px] leading-relaxed text-term-muted">
+              {blockedReason}
+            </p>
+          )}
+          {noBalance && account === "real" && (
+            <Link
+              href="/deposit"
+              className="rounded-md bg-primary py-2.5 text-center text-sm font-semibold text-primary-foreground hover:opacity-90"
+            >
+              Depositar
+            </Link>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-2">

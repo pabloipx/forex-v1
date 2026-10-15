@@ -137,7 +137,12 @@ export function TickerBar({ market, ticker, last, tickers, onSelect }: TickerBar
   const price = last ?? ticker?.price ?? null
   const change = ticker?.changePercent ?? 0
   const up = change >= 0
-  const spread = ticker ? ticker.ask - ticker.bid : null
+  const spread = ticker && ticker.ask > 0 && ticker.bid > 0 ? Math.max(0, ticker.ask - ticker.bid) : null
+  // Em cripto o spread costuma ser menor que o tick exibido (ex.: 0.01 em BTC), então ganha casas extras.
+  const spreadDecimals =
+    spread != null && spread > 0 && spread < 10 ** -market.priceDecimals
+      ? Math.min(8, Math.ceil(-Math.log10(spread)) + 1)
+      : market.priceDecimals
 
   return (
     <div className="flex h-14 shrink-0 items-center gap-6 overflow-x-auto border-b border-term-line bg-term-panel px-3 lg:px-4">
@@ -160,11 +165,11 @@ export function TickerBar({ market, ticker, last, tickers, onSelect }: TickerBar
       {market.category === "crypto" ? (
         <>
           <Stat label="Volume 24h (USDT)" value={formatCompact(ticker?.volume)} />
-          <Stat label="Spread" value={formatPrice(spread, market.priceDecimals)} />
+          <Stat label="Spread" value={formatPrice(spread, spreadDecimals)} />
         </>
       ) : (
         <>
-          <Stat label="Spread" value={formatPrice(spread, market.priceDecimals)} />
+          <Stat label="Spread" value={formatPrice(spread, spreadDecimals)} />
           <Stat label="Tamanho do contrato" value={`${market.contractSize.toLocaleString("pt-BR")} ${market.base}`} />
         </>
       )}
