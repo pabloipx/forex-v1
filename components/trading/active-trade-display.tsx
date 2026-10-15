@@ -52,8 +52,8 @@ export function ActiveTradeDisplay({
   const isWinning = (direction === "CALL" && priceDiff > 0) || (direction === "PUT" && priceDiff < 0)
   const potentialProfit = (amount * payout) / 100
 
-  const directionColor = direction === "CALL" ? "bg-[#26a69a]" : "bg-[#ef5350]"
-  const statusColor = isWinning ? "text-[#26a69a]" : "text-[#ef5350]"
+  const directionColor = direction === "CALL" ? "bg-[#2190ff]" : "bg-[#ef5350]"
+  const statusColor = isWinning ? "text-[#2190ff]" : "text-[#ef5350]"
 
   return (
     <div className="rounded-xl p-3 space-y-2" style={{ backgroundColor: "#131318" }}>
@@ -80,13 +80,13 @@ export function ActiveTradeDisplay({
 
       <div className="flex justify-between items-center">
         <span className={`text-sm font-medium ${statusColor}`}>{isWinning ? "GANHANDO" : "PERDENDO"}</span>
-        <span className="text-[#26a69a] font-medium">+${potentialProfit.toFixed(2)}</span>
+        <span className="text-[#2190ff] font-medium">+${potentialProfit.toFixed(2)}</span>
       </div>
 
       {/* Barra de progresso */}
       <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
         <div
-          className={`h-full transition-all duration-100 ${isWinning ? "bg-[#26a69a]" : "bg-[#ef5350]"}`}
+          className={`h-full transition-all duration-100 ${isWinning ? "bg-[#2190ff]" : "bg-[#ef5350]"}`}
           style={{
             width: `${Math.max(0, Math.min(100, (remainingTime / 60) * 100))}%`,
           }}

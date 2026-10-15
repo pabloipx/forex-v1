@@ -95,7 +95,7 @@ export function ConnectedDevices({ onBack }: Props) {
 
         {loading ? (
           <div className="flex justify-center py-10">
-            <Loader2 className="w-6 h-6 text-[#10b981] animate-spin" />
+            <Loader2 className="w-6 h-6 text-[#2190ff] animate-spin" />
           </div>
         ) : sessions.length === 0 ? (
           <p className="text-center text-[#6B7280] py-10">Nenhum dispositivo registrado ainda.</p>
@@ -118,7 +118,7 @@ export function ConnectedDevices({ onBack }: Props) {
                       <div className="flex items-center gap-2">
                         <span className="text-white font-medium truncate">{s.browser || "Navegador"}</span>
                         {isCurrent && (
-                          <span className="flex items-center gap-1 text-[10px] font-semibold text-[#00E676] bg-[#00E676]/10 px-1.5 py-0.5 rounded-full shrink-0">
+                          <span className="flex items-center gap-1 text-[10px] font-semibold text-[#2190ff] bg-[#2190ff]/10 px-1.5 py-0.5 rounded-full shrink-0">
                             <ShieldCheck className="w-3 h-3" />
                             Este dispositivo
                           </span>

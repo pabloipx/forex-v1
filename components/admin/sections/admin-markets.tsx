@@ -160,7 +160,7 @@ export function AdminMarkets() {
                           className="w-20 h-8 bg-[#1E2430] border-[#2A3142] text-white"
                         />
                       ) : (
-                        <span className="text-green-500 font-medium">{symbol.payout_percentage}%</span>
+                        <span className="text-blue-500 font-medium">{symbol.payout_percentage}%</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
@@ -185,7 +185,7 @@ export function AdminMarkets() {
                     <td className="px-4 py-3 text-right">
                       {editingId === symbol.id ? (
                         <div className="flex justify-end gap-2">
-                          <Button onClick={saveEdit} size="sm" className="bg-green-600 hover:bg-green-700">
+                          <Button onClick={saveEdit} size="sm" className="bg-blue-600 hover:bg-blue-700">
                             <Save className="w-4 h-4" />
                           </Button>
                           <Button

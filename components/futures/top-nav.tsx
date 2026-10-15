@@ -25,7 +25,7 @@ export function TopNav({ account, onAccountChange, authenticated, email, balance
     <header className="flex h-12 shrink-0 items-center justify-between gap-4 border-b border-term-line bg-term-bg px-3 lg:px-4">
       <div className="flex min-w-0 items-center gap-6">
         <Link href="/futures" className="flex items-center gap-1 text-lg font-extrabold tracking-tight text-term-text">
-          Profit Trading Global<span className="text-primary">.</span>
+          Krypto<span className="text-[#2190FF]">bit</span>
         </Link>
         <nav aria-label="Principal" className="hidden items-center gap-5 md:flex">
           {links.map((l) => (

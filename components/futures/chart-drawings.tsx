@@ -42,7 +42,7 @@ interface Drawing {
 
 const SINGLE_CLICK: ShapeType[] = ["hline", "vline", "text"]
 const FIB_LEVELS = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1]
-const SWATCHES = ["#f7a600", "#20b26c", "#ef454a", "#eaecef"]
+const SWATCHES = ["#2190ff", "#089981", "#f23645", "#e6e9f0"]
 const STORAGE_PREFIX = "fx-drawings:"
 
 export const TOOLS: { id: DrawTool; label: string; icon: LucideIcon }[] = [
@@ -154,6 +154,12 @@ function SideButton({
 
 export function DrawingToolbar({ state }: { state: DrawingState }) {
   const { tool, setTool, magnet, setMagnet, locked, setLocked, hidden, setHidden, drawings, setDrawings, setSelected } = state
+  const [confirmClear, setConfirmClear] = useState(false)
+  useEffect(() => {
+    if (!confirmClear) return
+    const t = setTimeout(() => setConfirmClear(false), 3000)
+    return () => clearTimeout(t)
+  }, [confirmClear])
   return (
     <div
       role="toolbar"
@@ -169,14 +175,19 @@ export function DrawingToolbar({ state }: { state: DrawingState }) {
       <SideButton label={locked ? "Destravar desenhos" : "Travar desenhos"} icon={locked ? Lock : LockOpen} active={locked} onClick={() => setLocked(!locked)} />
       <SideButton label={hidden ? "Mostrar desenhos" : "Ocultar desenhos"} icon={hidden ? EyeOff : Eye} active={hidden} onClick={() => setHidden(!hidden)} />
       <SideButton
-        label="Remover todos os desenhos"
+        label={confirmClear ? `Clique de novo para remover ${drawings.length} desenho(s)` : "Remover todos os desenhos"}
         icon={Trash2}
         danger
+        active={confirmClear}
         onClick={() => {
-          if (drawings.length && window.confirm(`Remover ${drawings.length} desenho(s) deste mercado?`)) {
-            setDrawings(() => [])
-            setSelected(null)
+          if (!drawings.length) return
+          if (!confirmClear) {
+            setConfirmClear(true)
+            return
           }
+          setDrawings(() => [])
+          setSelected(null)
+          setConfirmClear(false)
         }}
       />
     </div>
@@ -200,6 +211,21 @@ export function DrawingLayer({ state, chart, getSeries, barsRef, step, decimals 
   const [, setVersion] = useState(0)
   const [draft, setDraft] = useState<Drawing | null>(null)
   const [drag, setDrag] = useState<Drag | null>(null)
+  const [textEdit, setTextEdit] = useState<{ id?: string; pt: Pt; value: string } | null>(null)
+
+  const commitText = () => {
+    if (!textEdit) return
+    const text = textEdit.value.trim()
+    if (textEdit.id) {
+      const id = textEdit.id
+      setDrawings((all) => (text ? all.map((x) => (x.id === id ? { ...x, text } : x)) : all.filter((x) => x.id !== id)))
+    } else if (text) {
+      const d: Drawing = { id: crypto.randomUUID(), type: "text", pts: [textEdit.pt], color: SWATCHES[0], text }
+      setDrawings((all) => [...all, d])
+      setSelected(d.id)
+    }
+    setTextEdit(null)
+  }
 
   const timeToLogical = (t: number): number | null => {
     const bars = barsRef.current
@@ -314,12 +340,13 @@ export function DrawingLayer({ state, chart, getSeries, barsRef, step, decimals 
     if (!pt) return
     const type = tool as ShapeType
     if (SINGLE_CLICK.includes(type)) {
-      let text: string | undefined
       if (type === "text") {
-        text = window.prompt("Texto da anotação:")?.trim()
-        if (!text) return
+        e.preventDefault()
+        setTextEdit({ pt, value: "" })
+        setTool("cursor")
+        return
       }
-      const d: Drawing = { id: crypto.randomUUID(), type, pts: [pt], color, text }
+      const d: Drawing = { id: crypto.randomUUID(), type, pts: [pt], color }
       setDrawings((all) => [...all, d])
       setSelected(d.id)
       setTool("cursor")
@@ -433,7 +460,7 @@ export function DrawingLayer({ state, chart, getSeries, barsRef, step, decimals 
       const w = Math.abs(x2 - x1)
       const h = Math.abs(y2 - y1)
       const measureUp = d.pts[1].p >= d.pts[0].p
-      const fill = d.type === "measure" ? (measureUp ? "#20b26c" : "#ef454a") : stroke
+      const fill = d.type === "measure" ? (measureUp ? "#089981" : "#f23645") : stroke
       els.push(
         <rect
           key="r"
@@ -505,10 +532,7 @@ export function DrawingLayer({ state, chart, getSeries, barsRef, step, decimals 
           className="select-none font-sans font-medium"
           style={hit}
           onPointerDown={bodyDown}
-          onDoubleClick={() => {
-            const text = window.prompt("Editar texto:", d.text)?.trim()
-            if (text) setDrawings((all) => all.map((x) => (x.id === d.id ? { ...x, text } : x)))
-          }}
+          onDoubleClick={() => setTextEdit({ id: d.id, pt: d.pts[0], value: d.text ?? "" })}
         >
           {d.text}
         </text>,
@@ -564,6 +588,36 @@ export function DrawingLayer({ state, chart, getSeries, barsRef, step, decimals 
           {draft && renderShape(draft, true)}
         </g>
       </svg>
+
+      {textEdit &&
+        (() => {
+          const x = toX(textEdit.pt.t)
+          const y = toY(textEdit.pt.p)
+          if (x == null || y == null) return null
+          return (
+            <input
+              autoFocus
+              aria-label="Texto da anotação"
+              placeholder="Digite e pressione Enter"
+              value={textEdit.value}
+              maxLength={120}
+              onChange={(e) => setTextEdit((s) => (s ? { ...s, value: e.target.value } : s))}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  if (e.nativeEvent.isComposing || e.keyCode === 229) return
+                  e.preventDefault()
+                  commitText()
+                } else if (e.key === "Escape") {
+                  e.stopPropagation()
+                  setTextEdit(null)
+                }
+              }}
+              onBlur={commitText}
+              className="absolute z-20 h-7 w-48 -translate-y-full rounded border border-primary bg-term-panel px-2 text-xs text-term-text outline-none"
+              style={{ left: x, top: y }}
+            />
+          )
+        })()}
 
       {tool !== "cursor" && !locked && (
         <p className="pointer-events-none absolute bottom-8 left-1/2 z-10 -translate-x-1/2 rounded bg-term-bg/90 px-2 py-1 text-[11px] text-term-muted">

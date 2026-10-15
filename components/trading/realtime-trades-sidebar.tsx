@@ -135,7 +135,7 @@ export function RealtimeTradesSidebar({ userId }: RealtimeTradesSidebarProps) {
       <div className="px-4 pb-4">
         <div className="text-white/70 text-sm font-semibold mb-3">Operações Recentes</div>
         <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#10b981] border-t-transparent" />
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#2190ff] border-t-transparent" />
         </div>
       </div>
     )
@@ -157,7 +157,7 @@ export function RealtimeTradesSidebar({ userId }: RealtimeTradesSidebarProps) {
     <div className="px-4 pb-4">
       <div className="flex items-center justify-between mb-3">
         <div className="text-white/70 text-sm font-semibold">Operações Recentes</div>
-        <a href="/transactions" className="text-[#10b981] text-xs hover:underline">
+        <a href="/transactions" className="text-[#2190ff] text-xs hover:underline">
           Ver tudo
         </a>
       </div>
@@ -178,7 +178,7 @@ export function RealtimeTradesSidebar({ userId }: RealtimeTradesSidebarProps) {
                 isPending
                   ? "bg-yellow-500/5 border-yellow-500/30 shadow-lg shadow-yellow-500/10"
                   : isWin
-                    ? "bg-[#1F2933] border-[#10b981]/20"
+                    ? "bg-[#1F2933] border-[#2190ff]/20"
                     : "bg-[#1F2933] border-white/5"
               }`}
             >
@@ -186,11 +186,11 @@ export function RealtimeTradesSidebar({ userId }: RealtimeTradesSidebarProps) {
                 <div className="flex items-center gap-2">
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      isPending ? "bg-yellow-500/20" : isCall ? "bg-[#10b981]/20" : "bg-[#EF4444]/20"
+                      isPending ? "bg-yellow-500/20" : isCall ? "bg-[#2190ff]/20" : "bg-[#EF4444]/20"
                     }`}
                   >
                     {isCall ? (
-                      <TrendingUp className={`w-4 h-4 ${isPending ? "text-yellow-500" : "text-[#10b981]"}`} />
+                      <TrendingUp className={`w-4 h-4 ${isPending ? "text-yellow-500" : "text-[#2190ff]"}`} />
                     ) : (
                       <TrendingDown className={`w-4 h-4 ${isPending ? "text-yellow-500" : "text-[#EF4444]"}`} />
                     )}
@@ -213,7 +213,7 @@ export function RealtimeTradesSidebar({ userId }: RealtimeTradesSidebarProps) {
                       {formatTime(remaining)}
                     </div>
                   ) : (
-                    <div className={`text-xs font-bold ${isWin ? "text-[#10b981]" : "text-[#EF4444]"}`}>
+                    <div className={`text-xs font-bold ${isWin ? "text-[#2190ff]" : "text-[#EF4444]"}`}>
                       {isWin ? "+" : ""}
                       {formatBRL(trade.profit || 0)}
                     </div>
@@ -236,7 +236,7 @@ export function RealtimeTradesSidebar({ userId }: RealtimeTradesSidebarProps) {
                 <div className="mt-2 pt-2 border-t border-white/5">
                   <div className="flex items-center justify-between text-[10px]">
                     <span className="text-white/40">Resultado</span>
-                    <span className={`font-bold uppercase ${isWin ? "text-[#10b981]" : "text-[#EF4444]"}`}>
+                    <span className={`font-bold uppercase ${isWin ? "text-[#2190ff]" : "text-[#EF4444]"}`}>
                       {isWin ? "✓ GANHOU" : "✗ PERDEU"}
                     </span>
                   </div>

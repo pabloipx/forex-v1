@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/client"
 type Feedback = { type: "ok" | "error"; text: string } | null
 
 const inputClass =
-  "h-12 w-full rounded-lg border border-gray-300 bg-white px-4 pr-11 text-[15px] text-gray-900 outline-none placeholder:text-gray-400 focus:border-emerald-500"
+  "h-12 w-full rounded-lg border border-gray-300 bg-white px-4 pr-11 text-[15px] text-gray-900 outline-none placeholder:text-gray-400 focus:border-blue-500"
 
 function PasswordField({
   id,
@@ -90,7 +90,7 @@ export function SectionSecurity({ email }: { email: string }) {
       const supabase = createClient()
       const { data, error } = await supabase.auth.mfa.enroll({
         factorType: "totp",
-        friendlyName: `Profit Trading Global ${Date.now()}`,
+        friendlyName: `Kryptobit ${Date.now()}`,
       })
       if (error) throw error
       setFactorId(data.id)
@@ -203,7 +203,7 @@ export function SectionSecurity({ email }: { email: string }) {
 
   const feedbackClass = (feedback: NonNullable<Feedback>) =>
     feedback.type === "ok"
-      ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
+      ? "border border-blue-200 bg-blue-50 text-blue-700"
       : "border border-red-200 bg-red-50 text-red-600"
 
   return (
@@ -220,11 +220,11 @@ export function SectionSecurity({ email }: { email: string }) {
         <div className="mt-5 flex items-center gap-4">
           <span
             className={`flex h-11 w-11 items-center justify-center rounded-full ${
-              mfaEnabled ? "bg-emerald-50" : "bg-gray-100"
+              mfaEnabled ? "bg-blue-50" : "bg-gray-100"
             }`}
           >
             {mfaEnabled ? (
-              <ShieldCheck className="h-5 w-5 text-emerald-600" />
+              <ShieldCheck className="h-5 w-5 text-blue-600" />
             ) : (
               <Lock className="h-5 w-5 text-gray-500" />
             )}
@@ -265,13 +265,13 @@ export function SectionSecurity({ email }: { email: string }) {
               placeholder="000000"
               value={totpCode}
               onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ""))}
-              className="h-12 w-[180px] rounded-lg border border-gray-300 bg-white px-4 text-center text-[17px] tracking-[0.3em] text-gray-900 outline-none focus:border-emerald-500"
+              className="h-12 w-[180px] rounded-lg border border-gray-300 bg-white px-4 text-center text-[17px] tracking-[0.3em] text-gray-900 outline-none focus:border-blue-500"
             />
             <div className="flex items-center gap-3">
               <button
                 type="submit"
                 disabled={enrolling}
-                className="flex h-12 items-center gap-2 rounded-lg bg-emerald-400 px-6 text-[15px] font-medium text-gray-900 transition-colors hover:bg-emerald-500 disabled:opacity-60"
+                className="flex h-12 items-center gap-2 rounded-lg bg-blue-400 px-6 text-[15px] font-medium text-gray-900 transition-colors hover:bg-blue-500 disabled:opacity-60"
               >
                 {enrolling && <Loader2 className="h-4 w-4 animate-spin" />}
                 Confirmar código
@@ -297,7 +297,7 @@ export function SectionSecurity({ email }: { email: string }) {
             className={`mt-5 flex h-12 items-center gap-2 rounded-lg px-6 text-[15px] font-medium transition-colors disabled:opacity-60 ${
               mfaEnabled
                 ? "border border-gray-300 text-gray-700 hover:bg-gray-50"
-                : "bg-emerald-400 text-gray-900 hover:bg-emerald-500"
+                : "bg-blue-400 text-gray-900 hover:bg-blue-500"
             }`}
           >
             {enrolling && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -347,7 +347,7 @@ export function SectionSecurity({ email }: { email: string }) {
         <button
           type="submit"
           disabled={savingPassword}
-          className="mt-5 flex h-12 items-center gap-2 rounded-lg bg-emerald-400 px-6 text-[15px] font-medium text-gray-900 transition-colors hover:bg-emerald-500 disabled:opacity-60"
+          className="mt-5 flex h-12 items-center gap-2 rounded-lg bg-blue-400 px-6 text-[15px] font-medium text-gray-900 transition-colors hover:bg-blue-500 disabled:opacity-60"
         >
           {savingPassword && <Loader2 className="h-4 w-4 animate-spin" />}
           Atualizar senha

@@ -95,7 +95,7 @@ export function AdminDeposits({ onUpdate }: AdminDepositsProps) {
     switch (normalizeStatus(status)) {
       case "completed":
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400">
             <CheckCircle className="w-3 h-3" />
             Aprovado
           </span>
@@ -146,7 +146,7 @@ export function AdminDeposits({ onUpdate }: AdminDepositsProps) {
               size="sm"
               className={
                 filter === f
-                  ? "bg-[#10b981] hover:bg-[#047857]"
+                  ? "bg-[#2190ff] hover:bg-[#0b5ed7]"
                   : "border-[#2A3142] bg-transparent text-gray-300 hover:bg-[#1E2430]"
               }
             >
@@ -200,7 +200,7 @@ export function AdminDeposits({ onUpdate }: AdminDepositsProps) {
                       <span className="text-white">{deposit.user_email}</span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-green-500 font-medium">{formatCurrency(deposit.amount)}</span>
+                      <span className="text-blue-500 font-medium">{formatCurrency(deposit.amount)}</span>
                     </td>
                     <td className="px-4 py-3">
                       <span className="text-gray-400">{deposit.payment_method || "PIX"}</span>
@@ -217,7 +217,7 @@ export function AdminDeposits({ onUpdate }: AdminDepositsProps) {
                               updateDepositStatus(deposit.id, "completed", deposit.user_id, deposit.amount)
                             }
                             size="sm"
-                            className="bg-green-600 hover:bg-green-700 text-white"
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
                           >
                             Aprovar
                           </Button>

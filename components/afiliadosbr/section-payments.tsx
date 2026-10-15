@@ -119,13 +119,13 @@ export function SectionPayments({ affiliate, withdrawals, nextPayment, onRefresh
   }
 
   const statusClass = (status: string) => {
-    if (status === "approved" || status === "completed" || status === "paid") return "bg-emerald-50 text-emerald-700"
+    if (status === "approved" || status === "completed" || status === "paid") return "bg-blue-50 text-blue-700"
     if (status === "rejected" || status === "cancelled") return "bg-red-50 text-red-600"
     return "bg-amber-50 text-amber-700"
   }
 
   const inputClass =
-    "h-12 w-full rounded-lg border border-gray-300 bg-white px-4 text-[15px] text-gray-900 outline-none placeholder:text-gray-400 focus:border-emerald-500"
+    "h-12 w-full rounded-lg border border-gray-300 bg-white px-4 text-[15px] text-gray-900 outline-none placeholder:text-gray-400 focus:border-blue-500"
 
   return (
     <div className="flex flex-col gap-6">
@@ -165,7 +165,7 @@ export function SectionPayments({ affiliate, withdrawals, nextPayment, onRefresh
             onClick={() => setTab(item.key)}
             className={`-mb-px border-b-2 pb-3 text-[15px] transition-colors ${
               tab === item.key
-                ? "border-emerald-500 font-medium text-emerald-700"
+                ? "border-blue-500 font-medium text-blue-700"
                 : "border-transparent text-gray-600 hover:text-gray-900"
             }`}
           >
@@ -184,13 +184,13 @@ export function SectionPayments({ affiliate, withdrawals, nextPayment, onRefresh
 
             <div className="flex flex-col gap-3 px-6 py-6">
               <p className="flex items-center gap-2 text-[15px] text-gray-800">
-                <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                <CheckCircle2 className="h-5 w-5 text-blue-500" />
                 Conta de afiliado ativa
               </p>
               <div className="flex flex-col gap-1">
                 <p className="flex items-center gap-2 text-[15px] text-gray-800">
                   {canWithdraw ? (
-                    <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                    <CheckCircle2 className="h-5 w-5 text-blue-500" />
                   ) : (
                     <CircleDashed className="h-5 w-5 text-gray-400" />
                   )}
@@ -265,7 +265,7 @@ export function SectionPayments({ affiliate, withdrawals, nextPayment, onRefresh
               <p
                 className={`mt-4 rounded-lg px-3 py-2.5 text-sm ${
                   message.type === "ok"
-                    ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
+                    ? "border border-blue-200 bg-blue-50 text-blue-700"
                     : "border border-red-200 bg-red-50 text-red-600"
                 }`}
               >
@@ -276,7 +276,7 @@ export function SectionPayments({ affiliate, withdrawals, nextPayment, onRefresh
             <button
               type="submit"
               disabled={submitting || !canWithdraw}
-              className="mt-5 flex h-12 items-center justify-center gap-2 rounded-lg bg-emerald-400 px-6 text-[15px] font-medium text-gray-900 transition-colors hover:bg-emerald-500 disabled:opacity-50"
+              className="mt-5 flex h-12 items-center justify-center gap-2 rounded-lg bg-blue-400 px-6 text-[15px] font-medium text-gray-900 transition-colors hover:bg-blue-500 disabled:opacity-50"
             >
               {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
               Solicitar pagamento
@@ -338,7 +338,7 @@ export function SectionPayments({ affiliate, withdrawals, nextPayment, onRefresh
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}
-              className="mt-4 flex h-12 items-center gap-2 rounded-lg bg-emerald-400 px-6 text-[15px] font-medium text-gray-900 transition-colors hover:bg-emerald-500"
+              className="mt-4 flex h-12 items-center gap-2 rounded-lg bg-blue-400 px-6 text-[15px] font-medium text-gray-900 transition-colors hover:bg-blue-500"
             >
               Adicionar novo método
               <Plus className="h-4 w-4" />
@@ -361,7 +361,7 @@ export function SectionPayments({ affiliate, withdrawals, nextPayment, onRefresh
                         <p className="text-[15px] font-medium text-gray-900">
                           {PAYMENT_METHOD_INFO[item.method].label}
                           {item.is_default && (
-                            <span className="ml-2 rounded-md bg-emerald-50 px-2 py-0.5 text-sm font-medium text-emerald-700">
+                            <span className="ml-2 rounded-md bg-blue-50 px-2 py-0.5 text-sm font-medium text-blue-700">
                               Padrão
                             </span>
                           )}

@@ -78,7 +78,7 @@ export default function ResetPasswordPage() {
       }
 
       setSuccess(true)
-      setTimeout(() => router.replace("/trade"), 2000)
+      setTimeout(() => router.replace("/futures"), 2000)
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Erro ao redefinir a senha"
       setError(message)
@@ -93,8 +93,8 @@ export default function ResetPasswordPage() {
       <header className="flex items-center justify-between px-5 py-4">
         <Link href="/" className="flex items-center">
           <Image
-            src="/images/kodilex-logo.png"
-            alt="Profit Trading Global"
+            src="/images/kryptobit-logo.png"
+            alt="Kryptobit"
             width={160}
             height={40}
             className="h-10 w-auto"
@@ -108,9 +108,9 @@ export default function ResetPasswordPage() {
         <div className="px-5 pt-12 pb-8">
           <div
             className="w-16 h-16 rounded-full flex items-center justify-center mb-6"
-            style={{ backgroundColor: "rgba(0, 230, 118, 0.15)" }}
+            style={{ backgroundColor: "rgba(33, 144, 255, 0.15)" }}
           >
-            <CheckCircle2 className="w-9 h-9" style={{ color: "#00E676" }} />
+            <CheckCircle2 className="w-9 h-9" style={{ color: "#2190ff" }} />
           </div>
           <h1 className="text-2xl font-bold text-white mb-2 text-balance">Senha redefinida!</h1>
           <p className="text-gray-400 text-sm leading-relaxed">
@@ -125,7 +125,7 @@ export default function ResetPasswordPage() {
             Este link de recuperação não é mais válido. Solicite um novo para redefinir sua senha.
           </p>
           <Link href="/auth/forgot-password" className="block">
-            <Button className="w-full text-white h-12 rounded-xl" style={{ backgroundColor: "#10b981" }}>
+            <Button className="w-full text-white h-12 rounded-xl" style={{ backgroundColor: "#2190ff" }}>
               Solicitar novo link
             </Button>
           </Link>
@@ -143,7 +143,7 @@ export default function ResetPasswordPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-white text-sm font-medium flex items-center gap-2">
-                  <Lock className="w-4 h-4" style={{ color: "#10b981" }} />
+                  <Lock className="w-4 h-4" style={{ color: "#2190ff" }} />
                   Nova senha
                 </Label>
                 <Input
@@ -162,7 +162,7 @@ export default function ResetPasswordPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword" className="text-white text-sm font-medium flex items-center gap-2">
-                  <Lock className="w-4 h-4" style={{ color: "#10b981" }} />
+                  <Lock className="w-4 h-4" style={{ color: "#2190ff" }} />
                   Confirmar senha
                 </Label>
                 <Input
@@ -192,7 +192,7 @@ export default function ResetPasswordPage() {
               <Button
                 type="submit"
                 className="w-full text-white h-14 rounded-xl font-semibold text-base transition-all duration-200 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
-                style={{ backgroundColor: "#10b981", boxShadow: "0 4px 14px rgba(16,185,129, 0.4)" }}
+                style={{ backgroundColor: "#2190ff", boxShadow: "0 4px 14px rgba(33,144,255, 0.4)" }}
                 disabled={isLoading}
               >
                 {isLoading ? (

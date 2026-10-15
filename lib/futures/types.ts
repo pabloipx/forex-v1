@@ -18,6 +18,9 @@ export interface Position {
   liquidation_price: number | null
   take_profit: number | null
   stop_loss: number | null
+  trailing_distance?: number | null
+  trailing_peak?: number | null
+  funding_paid?: number
   realized_pnl: number
   fees_paid: number
   exit_price: number | null
@@ -69,6 +72,15 @@ export interface Fill {
   created_at: string
 }
 
+export interface FundingPayment {
+  id: string
+  symbol: string
+  rate: number
+  mark_price: number
+  amount: number
+  funding_time: string
+}
+
 export interface FuturesState {
   configured: boolean
   authenticated: boolean
@@ -76,6 +88,8 @@ export interface FuturesState {
   account: AccountMode
   balance: number
   balances: { real: number; demo: number }
+  spotBalance?: number
+  fundingHistory?: FundingPayment[]
   positions: Position[]
   openOrders: Order[]
   orderHistory: Order[]

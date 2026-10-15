@@ -18,7 +18,7 @@ export const RANKS: Rank[] = [
   { id: 1, name: "Prata", minDeposit: 100, minEntries: 20, color: "#9ca3af" },
   { id: 2, name: "Ouro", minDeposit: 500, minEntries: 100, color: "#eab308" },
   { id: 3, name: "Platina", minDeposit: 2000, minEntries: 500, color: "#22d3ee" },
-  { id: 4, name: "Diamante", minDeposit: 10000, minEntries: 2000, color: "#34d399" },
+  { id: 4, name: "Diamante", minDeposit: 10000, minEntries: 2000, color: "#4da6ff" },
 ]
 
 export interface RankProgress {

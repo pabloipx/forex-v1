@@ -127,7 +127,7 @@ export function CandlestickChart({
       const lowY = priceToY(candle.low)
 
       const isBullish = candle.close >= candle.open
-      const color = isBullish ? "#10b981" : "#ef4444"
+      const color = isBullish ? "#2190ff" : "#ef4444"
 
       // Draw wick
       ctx.strokeStyle = color
@@ -166,7 +166,7 @@ export function CandlestickChart({
     // Draw entry price marker if exists
     if (entryPrice) {
       const entryY = chartPadding.top + ((maxPrice - entryPrice) / priceRange) * chartHeight
-      const entryColor = direction === "CALL" ? "#10b981" : "#ef4444"
+      const entryColor = direction === "CALL" ? "#2190ff" : "#ef4444"
 
       ctx.strokeStyle = entryColor
       ctx.lineWidth = 2

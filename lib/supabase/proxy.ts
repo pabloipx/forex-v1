@@ -14,6 +14,12 @@ export async function updateSession(request: NextRequest) {
 
   let supabaseResponse = NextResponse.next({ request })
 
+  if (request.nextUrl.pathname === "/trade" || request.nextUrl.pathname.startsWith("/trade/")) {
+    const url = request.nextUrl.clone()
+    url.pathname = "/futures"
+    return NextResponse.redirect(url, 308)
+  }
+
   try {
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
@@ -28,7 +34,9 @@ export async function updateSession(request: NextRequest) {
       },
     })
 
-    const { data: { user } } = await supabase.auth.getUser()
+    // getClaims valida o JWT localmente (JWKS em cache) e so vai a rede quando precisa renovar a sessao.
+    const { data } = await supabase.auth.getClaims()
+    const user = data?.claims?.sub ? data.claims : null
 
     const isProtectedRoute = PROTECTED_ROUTES.some((route) => request.nextUrl.pathname.startsWith(route))
 
@@ -40,7 +48,7 @@ export async function updateSession(request: NextRequest) {
 
     if (user && request.nextUrl.pathname.startsWith("/auth/")) {
       const url = request.nextUrl.clone()
-      url.pathname = "/trade"
+      url.pathname = "/futures"
       return NextResponse.redirect(url)
     }
   } catch {

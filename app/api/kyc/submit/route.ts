@@ -1,50 +1,52 @@
-import { createClient } from "@supabase/supabase-js"
 import { type NextRequest, NextResponse } from "next/server"
+import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 
-// Função para obter admin client
-function getSupabaseAdmin() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
-  const key = process.env.SUPABASE_SECRET_KEY || ""
-  return createClient(url, key)
-}
+const PATH_RE = /^[0-9a-f-]{36}\/[\w.-]{1,120}$/i
 
 export async function POST(request: NextRequest) {
-  const supabaseAdmin = getSupabaseAdmin()
-  
-  try {
-    const { userId, documentFrontPath, documentBackPath, selfiePath } = await request.json()
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: "Não autenticado" }, { status: 401 })
 
-    if (!userId || !documentFrontPath || !documentBackPath || !selfiePath) {
-      return NextResponse.json({ error: "Dados incompletos" }, { status: 400 })
-    }
+  const body = await request.json().catch(() => null)
+  const front = String(body?.documentFrontPath ?? "")
+  const back = String(body?.documentBackPath ?? "")
+  const selfie = String(body?.selfiePath ?? "")
+  const docType = ["rg", "cnh", "passport"].includes(body?.documentType) ? body.documentType : "rg"
 
-    // Criar solicitação KYC
-    const { error: kycError } = await supabaseAdmin.from("kyc_requests").insert({
-      user_id: userId,
-      document_front_url: documentFrontPath,
-      document_back_url: documentBackPath,
-      selfie_with_document_url: selfiePath,
-      status: "pending",
-    })
-
-    if (kycError) {
-      console.error("KYC request error:", kycError)
-      return NextResponse.json({ error: kycError.message }, { status: 500 })
-    }
-
-    // Atualizar status do perfil
-    const { error: profileError } = await supabaseAdmin
-      .from("profiles")
-      .update({ kyc_status: "pending" })
-      .eq("id", userId)
-
-    if (profileError) {
-      console.error("Profile update error:", profileError)
-    }
-
-    return NextResponse.json({ success: true })
-  } catch (error: any) {
-    console.error("KYC submit error:", error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  const ownPath = (p: string) => PATH_RE.test(p) && p.startsWith(`${user.id}/`)
+  if (!ownPath(front) || !ownPath(back) || !ownPath(selfie)) {
+    return NextResponse.json({ error: "Envie frente, verso e selfie do documento" }, { status: 400 })
   }
+
+  const admin = createAdminClient()
+  const { data: pending } = await admin
+    .from("kyc_submissions")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("status", "pending")
+    .limit(1)
+  if (pending?.length) {
+    return NextResponse.json({ error: "Você já tem uma verificação em análise" }, { status: 409 })
+  }
+
+  const { error } = await admin.from("kyc_submissions").insert({
+    user_id: user.id,
+    status: "pending",
+    document_type: docType,
+    document_front_path: front,
+    document_back_path: back,
+    selfie_path: selfie,
+    provider: "manual",
+  })
+  if (error) {
+    console.error("[kyc] insert error:", error.message)
+    return NextResponse.json({ error: "Não foi possível enviar os documentos" }, { status: 500 })
+  }
+
+  await admin.from("profiles").update({ kyc_status: "pending" }).eq("id", user.id)
+  return NextResponse.json({ success: true })
 }

@@ -17,8 +17,8 @@ export function SectionCompetition({ affiliate }: { affiliate: AffiliateInfo }) 
 
       <section className="rounded-xl border border-gray-200 bg-white p-6">
         <div className="flex items-center gap-4">
-          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50">
-            <Trophy className="h-6 w-6 text-emerald-600" />
+          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50">
+            <Trophy className="h-6 w-6 text-blue-600" />
           </span>
           <div>
             <p className="text-[17px] font-medium text-gray-900">Temporada atual</p>
@@ -80,7 +80,7 @@ export function SectionSubAffiliate({ affiliate }: { affiliate: AffiliateInfo })
           <button
             type="button"
             onClick={copy}
-            className="flex h-11 items-center gap-2 rounded-lg bg-emerald-400 px-5 text-[15px] font-medium text-gray-900 transition-colors hover:bg-emerald-500"
+            className="flex h-11 items-center gap-2 rounded-lg bg-blue-400 px-5 text-[15px] font-medium text-gray-900 transition-colors hover:bg-blue-500"
           >
             {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
             {copied ? "Copiado" : "Copiar link"}
@@ -190,7 +190,7 @@ export function SectionTelegramBot({ affiliate }: { affiliate: AffiliateInfo }) 
           <button
             type="button"
             onClick={copy}
-            className="flex h-11 items-center gap-2 rounded-lg bg-emerald-400 px-5 text-[15px] font-medium text-gray-900 transition-colors hover:bg-emerald-500"
+            className="flex h-11 items-center gap-2 rounded-lg bg-blue-400 px-5 text-[15px] font-medium text-gray-900 transition-colors hover:bg-blue-500"
           >
             {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
             {copied ? "Copiado" : "Copiar comando"}

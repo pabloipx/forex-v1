@@ -65,7 +65,7 @@ export function SectionStatsClients({ referrals }: SectionStatsClientsProps) {
               placeholder="Buscar por nome ou e-mail"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="h-11 w-full rounded-lg border border-gray-300 bg-white pl-9 pr-4 text-[15px] text-gray-900 outline-none placeholder:text-gray-400 focus:border-emerald-500"
+              className="h-11 w-full rounded-lg border border-gray-300 bg-white pl-9 pr-4 text-[15px] text-gray-900 outline-none placeholder:text-gray-400 focus:border-blue-500"
             />
           </div>
         </div>
@@ -102,7 +102,7 @@ export function SectionStatsClients({ referrals }: SectionStatsClientsProps) {
                     <td className="px-6 py-4">{shortDate(referral.created_at)}</td>
                     <td className="px-6 py-4">
                       {referral.total_deposits > 0 ? (
-                        <span className="rounded-md bg-emerald-50 px-2.5 py-1 text-sm font-medium text-emerald-700">
+                        <span className="rounded-md bg-blue-50 px-2.5 py-1 text-sm font-medium text-blue-700">
                           Ativo
                         </span>
                       ) : (
@@ -112,7 +112,7 @@ export function SectionStatsClients({ referrals }: SectionStatsClientsProps) {
                       )}
                     </td>
                     <td className="px-6 py-4">{brl(referral.total_deposits)}</td>
-                    <td className="px-6 py-4 font-medium text-emerald-700">{brl(referral.total_commission)}</td>
+                    <td className="px-6 py-4 font-medium text-blue-700">{brl(referral.total_commission)}</td>
                   </tr>
                 ))}
               </tbody>

@@ -2,9 +2,10 @@
 
 import useSWR from "swr"
 import type { Ticker } from "@/lib/futures/prices"
+import type { DerivativesInfo } from "@/lib/futures/derivatives"
 import type { AccountMode, FuturesState, PlaceOrderInput } from "@/lib/futures/types"
 
-export type { Ticker }
+export type { Ticker, DerivativesInfo }
 
 const fetcher = async (url: string) => {
   const res = await fetch(url, { cache: "no-store" })
@@ -12,13 +13,26 @@ const fetcher = async (url: string) => {
   return res.json()
 }
 
-export function useTickers() {
-  const { data } = useSWR<{ tickers: Record<string, Ticker> }>("/api/futures/tickers", fetcher, {
+type TickersResponse = { tickers: Record<string, Ticker>; derivatives?: Record<string, DerivativesInfo> }
+
+function useTickersResponse() {
+  const { data } = useSWR<TickersResponse>("/api/futures/tickers", fetcher, {
     refreshInterval: 2000,
     keepPreviousData: true,
   })
-  return data?.tickers ?? {}
+  return data
 }
+
+export function useTickers() {
+  return useTickersResponse()?.tickers ?? EMPTY_TICKERS
+}
+
+export function useDerivatives() {
+  return useTickersResponse()?.derivatives ?? EMPTY_DERIVS
+}
+
+const EMPTY_TICKERS: Record<string, Ticker> = {}
+const EMPTY_DERIVS: Record<string, DerivativesInfo> = {}
 
 export function useFuturesState(account: AccountMode) {
   const { data, error, isLoading, mutate } = useSWR<FuturesState & { error?: string }>(
@@ -63,4 +77,11 @@ export const futuresApi = {
     send("/api/futures/positions/close", "POST", { positionId, qty: qty ?? null, price: price ?? null }),
   setTpSl: (positionId: string, takeProfit: number | null, stopLoss: number | null) =>
     send("/api/futures/positions/tpsl", "POST", { positionId, takeProfit, stopLoss }),
+  setLeverage: (positionId: string, leverage: number) =>
+    send("/api/futures/positions/leverage", "POST", { positionId, leverage }),
+  setTrailing: (positionId: string, distance: number | null) =>
+    send("/api/futures/positions/trailing", "POST", { positionId, distance }),
+  closeAll: (account: AccountMode) => send("/api/futures/positions/close-all", "POST", { account }),
+  transfer: (direction: "spot_to_futures" | "futures_to_spot", amount: number) =>
+    send("/api/futures/transfer", "POST", { direction, amount }),
 }

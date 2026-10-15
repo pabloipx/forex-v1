@@ -4,19 +4,23 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import useSWR from "swr"
 import { Toaster } from "sonner"
-import { BarChart3, CandlestickChart, LogOut, ShieldCheck, SlidersHorizontal, Users } from "lucide-react"
+import { ArrowDownToLine, ArrowUpFromLine, BarChart3, CandlestickChart, LogOut, ShieldCheck, SlidersHorizontal, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { OverviewSection } from "./overview-section"
 import { MarketsSection } from "./markets-section"
 import { PositionsSection } from "./positions-section"
 import { UsersSection } from "./users-section"
 import { KycSection } from "./kyc-section"
+import { WithdrawalsSection } from "./withdrawals-section"
+import { DepositsSection } from "./deposits-section"
 
 const SECTIONS = [
   { id: "overview", label: "Visão geral", icon: BarChart3, Component: OverviewSection },
   { id: "positions", label: "Posições e ordens", icon: CandlestickChart, Component: PositionsSection },
   { id: "markets", label: "Mercados", icon: SlidersHorizontal, Component: MarketsSection },
   { id: "users", label: "Usuários e saldos", icon: Users, Component: UsersSection },
+  { id: "withdrawals", label: "Saques", icon: ArrowUpFromLine, Component: WithdrawalsSection },
+  { id: "deposits", label: "Depósitos", icon: ArrowDownToLine, Component: DepositsSection },
   { id: "kyc", label: "KYC", icon: ShieldCheck, Component: KycSection },
 ] as const
 
@@ -58,7 +62,7 @@ export function ForexAdmin() {
     <div className="flex min-h-dvh bg-term-bg font-sans text-term-text">
       <aside className="sticky top-0 hidden h-dvh w-56 shrink-0 flex-col border-r border-term-line bg-term-panel md:flex">
         <div className="flex h-14 items-center gap-1 border-b border-term-line px-5 text-lg font-extrabold tracking-tight">
-          Profit Trading Global<span className="text-primary">.</span>
+          Krypto<span className="text-[#2190FF]">bit</span>
           <span className="ml-2 rounded bg-term-line px-1.5 py-0.5 text-[10px] font-medium text-term-muted">ADMIN</span>
         </div>
         <nav aria-label="Seções do painel" className="flex flex-1 flex-col gap-0.5 p-3">

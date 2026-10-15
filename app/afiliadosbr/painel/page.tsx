@@ -123,7 +123,7 @@ export default function AffiliatePanelPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#fafafa]">
-        <Loader2 className="h-7 w-7 animate-spin text-emerald-500" />
+        <Loader2 className="h-7 w-7 animate-spin text-blue-500" />
       </div>
     )
   }
@@ -144,7 +144,7 @@ export default function AffiliatePanelPage() {
             type="button"
             onClick={activate}
             disabled={activating}
-            className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-emerald-400 text-[15px] font-semibold text-gray-900 transition-colors hover:bg-emerald-500 disabled:opacity-60"
+            className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-blue-400 text-[15px] font-semibold text-gray-900 transition-colors hover:bg-blue-500 disabled:opacity-60"
           >
             {activating && <Loader2 className="h-4 w-4 animate-spin" />}
             Ativar programa de afiliados

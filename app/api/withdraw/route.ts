@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { createAdminClient, createClient as createServerClient } from "@/lib/supabase/server"
 import { cancelActiveBonus, getActiveBonus, shouldCancelBonusOnWithdrawal } from "@/lib/promo-codes"
 import { getDepositRolloverSummary } from "@/lib/deposit-rollover"
+import { PROFILE_COLUMNS, profileCompletion, type ProfileFields } from "@/lib/profile-completeness"
 
 // Mesmo minimo exibido na tela de saque.
 const MIN_WITHDRAWAL = 100
@@ -62,6 +63,29 @@ export async function POST(request: NextRequest) {
 
     // Chave de servico: o saldo e o saque sao gravados sem depender das policies do cliente.
     const supabase = createAdminClient()
+
+    const { data: profileRow } = await supabase
+      .from("profiles")
+      .select(`${PROFILE_COLUMNS}, kyc_status, is_verified`)
+      .eq("id", user.id)
+      .maybeSingle()
+
+    const { issues } = profileCompletion(profileRow as ProfileFields | null)
+    if (issues.length) {
+      return NextResponse.json(
+        {
+          error: `Complete seu cadastro antes de sacar: ${issues.map((i) => i.label).join(", ")}.`,
+          code: "PROFILE_INCOMPLETE",
+          missing: issues,
+        },
+        { status: 422 },
+      )
+    }
+
+    const kyc = String((profileRow as { kyc_status?: string } | null)?.kyc_status ?? "").toLowerCase()
+    if (kyc !== "approved" && !(profileRow as { is_verified?: boolean } | null)?.is_verified) {
+      return NextResponse.json({ error: "Verifique sua conta antes de sacar", code: "KYC_REQUIRED" }, { status: 403 })
+    }
 
     const { data: balanceRow, error: balanceError } = await supabase
       .from("user_balances")
@@ -169,12 +193,11 @@ export async function POST(request: NextRequest) {
         amount,
         status: "pending",
         method,
-        pix_key: method === "pix" ? pixKey : null,
-        pix_key_type: method === "pix" ? pixKeyType : null,
-        crypto_type: method === "crypto" ? cryptoType : null,
-        crypto_wallet: method === "crypto" ? cryptoWallet : null,
-        holder_name: holderName || null,
-        document: document || null,
+        currency: "BRL",
+        destination:
+          method === "pix"
+            ? { pix_key: pixKey, pix_key_type: pixKeyType, holder_name: holderName || null, document: document || null }
+            : { crypto_type: cryptoType, wallet: cryptoWallet, holder_name: holderName || null },
       })
       .select("id")
       .single()

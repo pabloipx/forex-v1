@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Toaster } from "sonner"
 import { BadgeCheck, ChevronLeft, LayoutGrid, SlidersHorizontal, UserRound, KeyRound } from "lucide-react"
@@ -22,7 +23,8 @@ type TabId = (typeof TABS)[number]["id"]
 
 export function ProfileView() {
   const { profile, unauthorized, error, isLoading, save } = useProfile()
-  const [tab, setTab] = useState<TabId>("overview")
+  const requestedTab = useSearchParams().get("tab")
+  const [tab, setTab] = useState<TabId>(TABS.some((t) => t.id === requestedTab) ? (requestedTab as TabId) : "overview")
 
   const name = profile?.nickname || profile?.full_name || profile?.email?.split("@")[0] || ""
   const initials = name.slice(0, 2).toUpperCase()
@@ -34,7 +36,7 @@ export function ProfileView() {
           <ChevronLeft className="size-4" aria-hidden /> Voltar ao terminal
         </Link>
         <span className="text-lg font-extrabold tracking-tight">
-          Profit Trading Global<span className="text-primary">.</span>
+          Krypto<span className="text-[#2190FF]">bit</span>
         </span>
       </header>
 

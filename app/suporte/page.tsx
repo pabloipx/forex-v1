@@ -10,7 +10,7 @@ const supportFlow: Record<
   { message: string; options?: { label: string; value: string }[]; input?: boolean; inputPlaceholder?: string }
 > = {
   START: {
-    message: `👋 Olá! Bem-vindo ao suporte da Profit Trading Global.
+    message: `👋 Olá! Bem-vindo ao suporte da Kryptobit.
 
 Antes de começarmos, como posso te chamar?`,
     input: true,
@@ -602,7 +602,7 @@ export default function SupportPage() {
 
   const handleOptionClick = (option: { label: string; value: string }) => {
     if (option.value === "GO_TRADE") {
-      router.push("/trade")
+      router.push("/futures")
       return
     }
 
@@ -668,12 +668,12 @@ export default function SupportPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#34d399] to-[#10b981] flex items-center justify-center">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#4da6ff] to-[#2190ff] flex items-center justify-center">
             <MessageCircle className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-white font-semibold">Suporte Profit Trading Global</h1>
-            <p className="text-xs text-[#34d399]">{isTyping ? "Digitando..." : "Online agora"}</p>
+            <h1 className="text-white font-semibold">Suporte Kryptobit</h1>
+            <p className="text-xs text-[#4da6ff]">{isTyping ? "Digitando..." : "Online agora"}</p>
           </div>
         </div>
       </header>
@@ -686,7 +686,7 @@ export default function SupportPage() {
             <div key={message.id}>
               {message.type === "bot" && (
                 <div className="flex gap-2 items-start">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#34d399] to-[#10b981] flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#4da6ff] to-[#2190ff] flex items-center justify-center flex-shrink-0">
                     <MessageCircle className="w-4 h-4 text-white" />
                   </div>
                   <div className="flex-1 max-w-[85%]">
@@ -694,7 +694,7 @@ export default function SupportPage() {
                       <p className="text-gray-200 text-sm whitespace-pre-line leading-relaxed">{message.content}</p>
 
                       {message.showTimer && (
-                        <div className="mt-3 flex items-center gap-2 text-[#34d399]">
+                        <div className="mt-3 flex items-center gap-2 text-[#4da6ff]">
                           <Clock className="w-4 h-4 animate-pulse" />
                           <span className="text-sm font-mono">{formatTime(analysisTimer)}</span>
                           <span className="text-xs text-gray-400">Analisando...</span>
@@ -708,7 +708,7 @@ export default function SupportPage() {
                           <button
                             key={option.value}
                             onClick={() => handleOptionClick(option)}
-                            className="w-full text-left px-4 py-3 rounded-xl text-sm text-gray-200 bg-[#0f1419] hover:bg-[#34d399]/20 border border-[#30363D] hover:border-[#34d399]/50 transition-all duration-200 active:scale-[0.98]"
+                            className="w-full text-left px-4 py-3 rounded-xl text-sm text-gray-200 bg-[#0f1419] hover:bg-[#4da6ff]/20 border border-[#30363D] hover:border-[#4da6ff]/50 transition-all duration-200 active:scale-[0.98]"
                           >
                             {option.label}
                           </button>
@@ -721,7 +721,7 @@ export default function SupportPage() {
 
               {message.type === "user" && (
                 <div className="flex justify-end">
-                  <div className="max-w-[80%] rounded-2xl rounded-tr-sm px-4 py-3 bg-gradient-to-r from-[#34d399] to-[#10b981]">
+                  <div className="max-w-[80%] rounded-2xl rounded-tr-sm px-4 py-3 bg-gradient-to-r from-[#4da6ff] to-[#2190ff]">
                     <p className="text-white text-sm">{message.content}</p>
                   </div>
                 </div>
@@ -732,7 +732,7 @@ export default function SupportPage() {
 
         {isTyping && (
           <div className="flex gap-2 items-start">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#34d399] to-[#10b981] flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#4da6ff] to-[#2190ff] flex items-center justify-center flex-shrink-0">
               <MessageCircle className="w-4 h-4 text-white" />
             </div>
             <div className="rounded-2xl rounded-tl-sm px-4 py-3 bg-[#1a2332]">
@@ -757,13 +757,13 @@ export default function SupportPage() {
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleInputSubmit()}
               placeholder={lastBotMessage?.inputPlaceholder || "Digite aqui..."}
-              className="flex-1 bg-[#0D1117] border border-[#30363D] rounded-xl px-4 py-3 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#34d399] transition-colors"
+              className="flex-1 bg-[#0D1117] border border-[#30363D] rounded-xl px-4 py-3 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#4da6ff] transition-colors"
               autoFocus
             />
             <Button
               onClick={handleInputSubmit}
               disabled={!inputValue.trim()}
-              className="bg-gradient-to-r from-[#34d399] to-[#10b981] hover:opacity-90 text-white px-4 rounded-xl disabled:opacity-50"
+              className="bg-gradient-to-r from-[#4da6ff] to-[#2190ff] hover:opacity-90 text-white px-4 rounded-xl disabled:opacity-50"
             >
               <Send className="w-5 h-5" />
             </Button>

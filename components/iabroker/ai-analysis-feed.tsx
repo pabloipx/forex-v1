@@ -44,7 +44,7 @@ export function AiAnalysisFeed({ active, recovering }: { active: boolean; recove
 
   const tone = recovering
     ? { text: "text-red-400", bg: "bg-red-400", soft: "bg-red-400/15", border: "border-red-400/25" }
-    : { text: "text-lime-400", bg: "bg-lime-400", soft: "bg-lime-400/15", border: "border-lime-400/25" }
+    : { text: "text-sky-400", bg: "bg-sky-400", soft: "bg-sky-400/15", border: "border-sky-400/25" }
 
   const visible = Array.from({ length: VISIBLE }, (_, i) => {
     const index = cursor - (VISIBLE - 1) + i
@@ -76,7 +76,7 @@ export function AiAnalysisFeed({ active, recovering }: { active: boolean; recove
             {s.current && active ? (
               <span
                 className={`h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 border-t-transparent ${
-                  recovering ? "border-red-400" : "border-lime-400"
+                  recovering ? "border-red-400" : "border-sky-400"
                 }`}
                 aria-hidden="true"
               />

@@ -28,9 +28,9 @@ const RULE_SECTIONS = [
     id: "gerais",
     title: "Restrições gerais",
     body: [
-      "• Não se apresente como um funcionário/representante da Profit Trading Global ou as suas fontes de tráfego como perfis oficiais da Profit Trading Global em redes sociais ou websites. Suas fontes de tráfego não devem induzir ao erro, fazendo crer que são oficiais, e não devem ser semelhantes aos websites e/ou perfis de redes sociais oficiais da Profit Trading Global. Se você utilizar um website para a promoção da Profit Trading Global, ele não deve conter a marca Profit Trading Global em seu nome e deve ser claramente identificado como não oficial na primeira tela.",
-      "• Não faça login na conta da Profit Trading Global do seu cliente e não realize operações em nome deles. Não é permitido operar em nome de outra pessoa para promover a corretora e criar conteúdo para fins de marketing. Você só pode operar estritamente na sua própria conta.",
-      "• Não compre publicidade usando o link de afiliado e não dê lances para consultas de marca da Profit Trading Global. Publicidade contextual de pesquisa e display só pode ser usada ao promover seus próprios websites.",
+      "• Não se apresente como um funcionário/representante da Kryptobit ou as suas fontes de tráfego como perfis oficiais da Kryptobit em redes sociais ou websites. Suas fontes de tráfego não devem induzir ao erro, fazendo crer que são oficiais, e não devem ser semelhantes aos websites e/ou perfis de redes sociais oficiais da Kryptobit. Se você utilizar um website para a promoção da Kryptobit, ele não deve conter a marca Kryptobit em seu nome e deve ser claramente identificado como não oficial na primeira tela.",
+      "• Não faça login na conta da Kryptobit do seu cliente e não realize operações em nome deles. Não é permitido operar em nome de outra pessoa para promover a corretora e criar conteúdo para fins de marketing. Você só pode operar estritamente na sua própria conta.",
+      "• Não compre publicidade usando o link de afiliado e não dê lances para consultas de marca da Kryptobit. Publicidade contextual de pesquisa e display só pode ser usada ao promover seus próprios websites.",
     ],
   },
   {
@@ -54,14 +54,14 @@ const RULE_SECTIONS = [
     id: "negativas",
     title: "Palavras negativas",
     body: [
-      "Ao rodar campanhas pagas, adicione como palavras negativas os termos de marca: Profit Trading Global, Profit Trading Global, Profit Trading Global login, Profit Trading Global entrar, Profit Trading Global oficial, Profit Trading Global app e variações com erros de digitação.",
+      "Ao rodar campanhas pagas, adicione como palavras negativas os termos de marca: Kryptobit, Kryptobit, Kryptobit login, Kryptobit entrar, Kryptobit oficial, Kryptobit app e variações com erros de digitação.",
     ],
   },
   {
     id: "apps",
     title: "Diretrizes de aplicativos",
     body: [
-      "Aplicativos próprios não podem usar o nome nem o logotipo da Profit Trading Global como identidade principal, devem informar de forma visível que não são oficiais e precisam de aprovação prévia do gerente antes da publicação nas lojas.",
+      "Aplicativos próprios não podem usar o nome nem o logotipo da Kryptobit como identidade principal, devem informar de forma visível que não são oficiais e precisam de aprovação prévia do gerente antes da publicação nas lojas.",
     ],
   },
   {
@@ -110,12 +110,12 @@ export function OfferDetail({ offer, affiliate, onBack }: OfferDetailProps) {
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <span className="flex h-14 w-14 items-center justify-center rounded-full border border-gray-200 bg-gray-900 text-sm font-semibold text-emerald-400">
+        <span className="flex h-14 w-14 items-center justify-center rounded-full border border-gray-200 bg-gray-900 text-sm font-semibold text-blue-400">
           UB
         </span>
         <div>
           <h2 className="text-[26px] font-normal leading-tight text-gray-900">{offer.title}</h2>
-          <p className="text-[15px] text-emerald-600">Ativa</p>
+          <p className="text-[15px] text-blue-600">Ativa</p>
         </div>
       </header>
 
@@ -127,7 +127,7 @@ export function OfferDetail({ offer, affiliate, onBack }: OfferDetailProps) {
             onClick={() => setTab(item)}
             className={`-mb-px border-b-2 pb-3 text-[15px] transition-colors ${
               tab === item
-                ? "border-emerald-600 text-emerald-700"
+                ? "border-blue-600 text-blue-700"
                 : "border-transparent text-gray-600 hover:text-gray-900"
             }`}
           >
@@ -158,7 +158,7 @@ export function OfferDetail({ offer, affiliate, onBack }: OfferDetailProps) {
                 value={afftrack}
                 onChange={(event) => setAfftrack(event.target.value.replace(/\s/g, ""))}
                 placeholder="Inserir afftrack"
-                className="h-12 rounded-lg border border-gray-300 px-4 text-[15px] text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-emerald-500"
+                className="h-12 rounded-lg border border-gray-300 px-4 text-[15px] text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-blue-500"
               />
             </div>
 
@@ -175,10 +175,10 @@ export function OfferDetail({ offer, affiliate, onBack }: OfferDetailProps) {
                   aria-label="Copiar link"
                   className="flex h-8 w-8 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-800"
                 >
-                  {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                  {copied ? <Check className="h-4 w-4 text-blue-600" /> : <Copy className="h-4 w-4" />}
                 </button>
               </div>
-              {copied && <span className="text-sm text-emerald-600">Link copiado para a área de transferência</span>}
+              {copied && <span className="text-sm text-blue-600">Link copiado para a área de transferência</span>}
             </div>
           </div>
 
@@ -251,7 +251,7 @@ export function OfferDetail({ offer, affiliate, onBack }: OfferDetailProps) {
       {tab === "Anunciante" && (
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
           <article className="flex flex-col gap-5 rounded-xl border border-gray-200 p-6 text-[15px] leading-relaxed text-gray-700">
-            <p>Profit Trading Global — A mais simples, completa e lucrativa plataforma de trading.</p>
+            <p>Kryptobit — A mais simples, completa e lucrativa plataforma de trading.</p>
             <p>
               Promova: cursos, salas de sinais, robôs de trading, canais de operação ao vivo, entre outros produtos e
               ganhe comissões ao cadastrar novos traders.
@@ -272,10 +272,10 @@ export function OfferDetail({ offer, affiliate, onBack }: OfferDetailProps) {
           </article>
 
           <aside className="flex flex-col gap-5">
-            <div className="flex items-center justify-center rounded-xl border border-gray-200 p-8">
+            <div className="flex items-center justify-center rounded-xl border border-gray-200 bg-[#0B1220] p-8">
               <Image
-                src="/images/ptg-logo.svg"
-                alt="Profit Trading Global"
+                src="/images/kryptobit-logo.png"
+                alt="Kryptobit"
                 width={1500}
                 height={400}
                 className="h-10 w-auto"
@@ -285,7 +285,7 @@ export function OfferDetail({ offer, affiliate, onBack }: OfferDetailProps) {
             <div className="flex flex-col gap-5 rounded-xl border border-gray-200 p-5">
               <div>
                 <p className="text-[15px] text-gray-500">Site</p>
-                <a href="/" className="text-[15px] text-emerald-700 hover:underline">
+                <a href="/" className="text-[15px] text-blue-700 hover:underline">
                   https://profittradingglobal.com
                 </a>
               </div>

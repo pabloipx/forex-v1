@@ -66,8 +66,8 @@ export default function KYCPage() {
 
       // Check if there are actual documents submitted
       const { data: kycRequests, error: kycError } = await supabase
-        .from("kyc_requests")
-        .select("id, status, rejection_reason, document_front_url")
+        .from("kyc_submissions")
+        .select("id, status, rejection_reason:review_notes, document_front_url:document_front_path")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(1)
@@ -249,7 +249,7 @@ export default function KYCPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
       </div>
     )
   }
@@ -268,22 +268,22 @@ export default function KYCPage() {
         </header>
 
         <div className="p-4 max-w-lg mx-auto">
-          <Card className="border-green-500/30 bg-emerald-500/5">
+          <Card className="border-blue-500/30 bg-blue-500/5">
             <CardContent className="pt-6">
               <div className="text-center py-8">
-                <div className="w-20 h-20 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle className="h-10 w-10 text-emerald-500" />
+                <div className="w-20 h-20 rounded-full bg-blue-500/20 flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle className="h-10 w-10 text-blue-500" />
                 </div>
-                <h2 className="text-2xl font-bold text-emerald-500 mb-2">Conta Verificada</h2>
+                <h2 className="text-2xl font-bold text-blue-500 mb-2">Conta Verificada</h2>
                 <p className="text-muted-foreground mb-6">
                   Sua conta foi verificada com sucesso! Você tem acesso completo a todas as funcionalidades, incluindo
                   saques.
                 </p>
                 <div className="space-y-3">
-                  <Button onClick={() => router.push("/withdraw")} className="w-full bg-emerald-600 hover:bg-emerald-700">
+                  <Button onClick={() => router.push("/withdraw")} className="w-full bg-blue-600 hover:bg-blue-700">
                     Fazer Saque
                   </Button>
-                  <Button onClick={() => router.push("/trade")} variant="outline" className="w-full">
+                  <Button onClick={() => router.push("/futures")} variant="outline" className="w-full">
                     Voltar ao Trading
                   </Button>
                 </div>
@@ -311,11 +311,11 @@ export default function KYCPage() {
       <div className="p-4 max-w-lg mx-auto space-y-6">
         {/* Success Message */}
         {success && (
-          <Card className="border-green-500 bg-emerald-500/10">
+          <Card className="border-blue-500 bg-blue-500/10">
             <CardContent className="pt-6">
               <div className="text-center">
-                <CheckCircle className="h-12 w-12 text-emerald-500 mx-auto mb-3" />
-                <p className="text-emerald-500 font-semibold">Documentos enviados com sucesso!</p>
+                <CheckCircle className="h-12 w-12 text-blue-500 mx-auto mb-3" />
+                <p className="text-blue-500 font-semibold">Documentos enviados com sucesso!</p>
                 <p className="text-muted-foreground text-sm mt-2">Aguarde a análise em até 24 horas.</p>
               </div>
             </CardContent>
@@ -338,17 +338,17 @@ export default function KYCPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
-              {kycStatus === "pending" && <Clock className="h-5 w-5 text-emerald-500" />}
+              {kycStatus === "pending" && <Clock className="h-5 w-5 text-blue-500" />}
               {kycStatus === "rejected" && <XCircle className="h-5 w-5 text-red-500" />}
-              {kycStatus === "unverified" && <AlertTriangle className="h-5 w-5 text-emerald-500" />}
+              {kycStatus === "unverified" && <AlertTriangle className="h-5 w-5 text-blue-500" />}
               Status da Verificação
             </CardTitle>
           </CardHeader>
           <CardContent>
             {kycStatus === "pending" && (
               <div className="text-center py-4">
-                <Clock className="h-16 w-16 text-emerald-500 mx-auto mb-4" />
-                <p className="text-emerald-500 font-semibold text-lg">Em Análise</p>
+                <Clock className="h-16 w-16 text-blue-500 mx-auto mb-4" />
+                <p className="text-blue-500 font-semibold text-lg">Em Análise</p>
                 <p className="text-muted-foreground mt-2">
                   Seus documentos foram enviados e estão sendo analisados. Aguarde a aprovação em até 24 horas.
                 </p>
@@ -366,8 +366,8 @@ export default function KYCPage() {
 
             {kycStatus === "unverified" && (
               <div className="text-center py-4">
-                <AlertTriangle className="h-16 w-16 text-emerald-500 mx-auto mb-4" />
-                <p className="text-emerald-500 font-semibold text-lg">Aguardando Documento</p>
+                <AlertTriangle className="h-16 w-16 text-blue-500 mx-auto mb-4" />
+                <p className="text-blue-500 font-semibold text-lg">Aguardando Documento</p>
                 <p className="text-muted-foreground mt-2">
                   Para realizar saques, você precisa verificar sua conta enviando seus documentos abaixo.
                 </p>
@@ -464,13 +464,13 @@ export default function KYCPage() {
                     {[documentFrontPath, documentBackPath, selfiePath].map((p, i) => (
                       <span
                         key={i}
-                        className={`h-1.5 w-8 rounded-full transition-colors ${p ? "bg-emerald-500" : "bg-muted"}`}
+                        className={`h-1.5 w-8 rounded-full transition-colors ${p ? "bg-blue-500" : "bg-muted"}`}
                       />
                     ))}
                   </div>
                 </div>
                 <Button
-                  className="h-13 w-full bg-emerald-600 py-4 text-base font-semibold hover:bg-emerald-700 disabled:opacity-50"
+                  className="h-13 w-full bg-blue-600 py-4 text-base font-semibold hover:bg-blue-700 disabled:opacity-50"
                   onClick={handleSubmit}
                   disabled={submitting || !allUploaded}
                 >
@@ -523,7 +523,7 @@ function DocumentStep({
       <div className="flex items-start gap-3 p-4 pb-3">
         <div
           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors ${
-            uploaded ? "bg-emerald-500 text-white" : "bg-muted text-muted-foreground"
+            uploaded ? "bg-blue-500 text-white" : "bg-muted text-muted-foreground"
           }`}
         >
           {uploaded ? <Check className="h-4 w-4" /> : step}
@@ -543,7 +543,7 @@ function DocumentStep({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={preview || "/placeholder.svg"} alt={alt} className="h-48 w-full object-cover" />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-            <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-emerald-500 px-2.5 py-1 text-xs font-medium text-white shadow">
+            <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-blue-500 px-2.5 py-1 text-xs font-medium text-white shadow">
               <CheckCircle className="h-3.5 w-3.5" />
               Enviado
             </div>
@@ -562,14 +562,14 @@ function DocumentStep({
             type="button"
             onClick={onPick}
             disabled={uploading}
-            className="group flex w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-border bg-muted/30 py-8 transition-colors hover:border-emerald-500 hover:bg-emerald-500/5 disabled:cursor-not-allowed disabled:opacity-60"
+            className="group flex w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-border bg-muted/30 py-8 transition-colors hover:border-blue-500 hover:bg-blue-500/5 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {uploading ? (
-              <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
+              <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
             ) : (
               <>
-                <span className="rounded-full bg-emerald-500/10 p-3 transition-colors group-hover:bg-emerald-500/20">
-                  <Camera className="h-6 w-6 text-emerald-500" />
+                <span className="rounded-full bg-blue-500/10 p-3 transition-colors group-hover:bg-blue-500/20">
+                  <Camera className="h-6 w-6 text-blue-500" />
                 </span>
                 <span className="text-sm font-medium text-foreground">{actionLabel}</span>
                 <span className="text-xs text-muted-foreground">Formatos aceitos: JPG, PNG, WEBP</span>

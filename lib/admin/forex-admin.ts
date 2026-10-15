@@ -45,6 +45,7 @@ export interface AdminKyc {
   email: string
   document_type: string | null
   status: string
+  review_notes: string | null
   created_at: string
   files: { label: string; path: string | null }[]
 }
@@ -141,7 +142,13 @@ export async function forceCancelOrder(userId: string, orderId: string) {
 // ---------- Visão geral ----------
 
 export async function getOverview() {
-  const [positions, orders, users] = await Promise.all([listOpenPositions(), listOpenOrders(), listUsers()])
+  const [positions, orders, users, cash, kyc] = await Promise.all([
+    listOpenPositions(),
+    listOpenOrders(),
+    listUsers(),
+    getCashflow().catch(() => null),
+    listKyc().catch(() => [] as AdminKyc[]),
+  ])
   const real = positions.filter((p) => !p.is_demo)
 
   let closed: Pick<Position, "realized_pnl" | "fees_paid" | "closed_at" | "status">[] = []
@@ -179,7 +186,8 @@ export async function getOverview() {
     mode: testMode() ? "test" : "database",
     users: users.length,
     blockedUsers: users.filter((u) => u.is_blocked).length,
-    pendingKyc: users.filter((u) => u.kyc_status === "pending" || u.kyc_status === "submitted").length,
+    pendingKyc: kyc.filter((k) => k.status === "pending").length,
+    cash,
     totalRealBalance: users.reduce((s, u) => s + u.balance_real, 0),
     openPositions: real.length,
     openOrders: orders.filter((o) => !o.is_demo).length,
@@ -300,8 +308,13 @@ export async function listAdjustments(): Promise<AdminAdjustment[]> {
 
 export async function listKyc(): Promise<AdminKyc[]> {
   if (testMode()) return []
-  const { data, error } = await db().from("kyc_requests").select("*").order("created_at", { ascending: false }).limit(200)
-  if (error) return []
+  const { data, error } = await db()
+    .from("kyc_submissions")
+    .select("id, user_id, status, document_type, document_front_path, document_back_path, selfie_path, review_notes, created_at")
+    .neq("status", "draft")
+    .order("created_at", { ascending: false })
+    .limit(200)
+  if (error) throw new TradingError("Não foi possível carregar o KYC", 500)
   const emails = await emailMap((data ?? []).map((r) => r.user_id as string))
   return (data ?? []).map((r) => ({
     id: r.id,
@@ -309,21 +322,28 @@ export async function listKyc(): Promise<AdminKyc[]> {
     email: emails[r.user_id] ?? "—",
     document_type: r.document_type,
     status: r.status ?? "pending",
+    review_notes: r.review_notes ?? null,
     created_at: r.created_at,
     files: [
-      { label: "Frente", path: r.document_front_url },
-      { label: "Verso", path: r.document_back_url },
-      { label: "Selfie", path: r.selfie_with_document_url },
+      { label: "Frente", path: r.document_front_path },
+      { label: "Verso", path: r.document_back_path },
+      { label: "Selfie", path: r.selfie_path },
     ],
   }))
 }
 
 export async function reviewKyc(id: string, approve: boolean, reason: string | null) {
   if (testMode()) throw new TradingError("KYC exige o banco de dados configurado")
+  if (!approve && !reason?.trim()) throw new TradingError("Informe o motivo da rejeição")
   const client = db()
   const { data: req, error } = await client
-    .from("kyc_requests")
-    .update({ status: approve ? "approved" : "rejected", rejection_reason: approve ? null : reason, reviewed_at: new Date().toISOString() })
+    .from("kyc_submissions")
+    .update({
+      status: approve ? "approved" : "rejected",
+      review_notes: approve ? null : reason,
+      reviewed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", id)
     .select("user_id")
     .single()
@@ -332,6 +352,132 @@ export async function reviewKyc(id: string, approve: boolean, reason: string | n
     .from("profiles")
     .update({ kyc_status: approve ? "approved" : "rejected", is_verified: approve })
     .eq("id", req.user_id)
+}
+
+// ---------- Saques ----------
+
+export interface AdminWithdrawal {
+  id: string
+  user_id: string
+  email: string
+  full_name: string | null
+  amount: number
+  currency: string
+  method: string
+  destination: Record<string, string | null>
+  status: string
+  rejection_reason: string | null
+  created_at: string
+  reviewed_at: string | null
+  kyc_status: string
+}
+
+export async function listWithdrawals(): Promise<AdminWithdrawal[]> {
+  if (testMode()) return []
+  const client = db()
+  const { data, error } = await client
+    .from("withdrawals")
+    .select("id, user_id, amount, currency, method, destination, status, rejection_reason, created_at, reviewed_at")
+    .order("created_at", { ascending: false })
+    .limit(300)
+  if (error) throw new TradingError("Não foi possível carregar os saques", 500)
+  const ids = [...new Set((data ?? []).map((r) => r.user_id as string))]
+  const { data: profiles } = ids.length
+    ? await client.from("profiles").select("id, email, full_name, kyc_status").in("id", ids)
+    : { data: [] }
+  const byId = Object.fromEntries((profiles ?? []).map((p) => [p.id as string, p]))
+  return (data ?? []).map((r) => ({
+    id: r.id,
+    user_id: r.user_id,
+    email: byId[r.user_id]?.email ?? "—",
+    full_name: byId[r.user_id]?.full_name ?? null,
+    amount: Number(r.amount),
+    currency: r.currency ?? "BRL",
+    method: r.method,
+    destination: (r.destination ?? {}) as Record<string, string | null>,
+    status: r.status ?? "pending",
+    rejection_reason: r.rejection_reason ?? null,
+    created_at: r.created_at,
+    reviewed_at: r.reviewed_at ?? null,
+    kyc_status: byId[r.user_id]?.kyc_status ?? "—",
+  }))
+}
+
+export async function reviewWithdrawal(id: string, status: "approved" | "paid" | "rejected", reason: string | null) {
+  if (testMode()) throw new TradingError("Saques exigem o banco de dados configurado")
+  if (status === "rejected" && !reason?.trim()) throw new TradingError("Informe o motivo da rejeição")
+  const { data, error } = await db().rpc("admin_review_withdrawal", { p_id: id, p_status: status, p_reason: reason })
+  if (error) throw new TradingError(error.message, 400)
+  return data as string
+}
+
+// ---------- Depósitos ----------
+
+export interface AdminDeposit {
+  id: string
+  user_id: string
+  email: string
+  account_type: string
+  amount: number
+  currency: string
+  method: string | null
+  provider: string | null
+  external_id: string | null
+  status: string
+  created_at: string
+  confirmed_at: string | null
+}
+
+export async function listDeposits(): Promise<AdminDeposit[]> {
+  if (testMode()) return []
+  const { data, error } = await db()
+    .from("deposits")
+    .select("id, user_id, account_type, amount, currency, method, provider, external_id, status, created_at, confirmed_at")
+    .order("created_at", { ascending: false })
+    .limit(300)
+  if (error) throw new TradingError("Não foi possível carregar os depósitos", 500)
+  const emails = await emailMap((data ?? []).map((r) => r.user_id as string))
+  return (data ?? []).map((r) => ({
+    id: r.id,
+    user_id: r.user_id,
+    email: emails[r.user_id] ?? "—",
+    account_type: r.account_type ?? "real",
+    amount: Number(r.amount),
+    currency: r.currency ?? "BRL",
+    method: r.method ?? null,
+    provider: r.provider ?? null,
+    external_id: r.external_id ?? null,
+    status: r.status ?? "pending",
+    created_at: r.created_at,
+    confirmed_at: r.confirmed_at ?? null,
+  }))
+}
+
+export async function reviewDeposit(id: string, confirm: boolean) {
+  if (testMode()) throw new TradingError("Depósitos exigem o banco de dados configurado")
+  const { data, error } = await db().rpc("admin_review_deposit", { p_id: id, p_confirm: confirm })
+  if (error) throw new TradingError(error.message, 400)
+  return data as string
+}
+
+export async function getCashflow() {
+  if (testMode()) return { pendingWithdrawals: 0, pendingWithdrawalsAmount: 0, pendingDeposits: 0, deposits24: 0, withdrawalsPaid24: 0 }
+  const client = db()
+  const since = new Date(Date.now() - 86400_000).toISOString()
+  const [{ data: pw }, { count: pd }, { data: d24 }, { data: w24 }] = await Promise.all([
+    client.from("withdrawals").select("amount").in("status", ["pending", "approved"]),
+    client.from("deposits").select("id", { count: "exact", head: true }).eq("status", "pending"),
+    client.from("deposits").select("amount").eq("status", "confirmed").eq("account_type", "real").gte("confirmed_at", since),
+    client.from("withdrawals").select("amount").eq("status", "paid").gte("reviewed_at", since),
+  ])
+  const total = (rows: { amount: unknown }[] | null) => (rows ?? []).reduce((s, r) => s + Number(r.amount ?? 0), 0)
+  return {
+    pendingWithdrawals: pw?.length ?? 0,
+    pendingWithdrawalsAmount: total(pw),
+    pendingDeposits: pd ?? 0,
+    deposits24: total(d24),
+    withdrawalsPaid24: total(w24),
+  }
 }
 
 export async function signKycFile(path: string) {

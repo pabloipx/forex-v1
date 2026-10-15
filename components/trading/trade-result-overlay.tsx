@@ -48,7 +48,7 @@ export function TradeResultOverlay({
     return () => clearTimeout(timer)
   }, [durationMs])
 
-  const accent = isWin ? "#22c55e" : "#ef4444"
+  const accent = isWin ? "#2190ff" : "#ef4444"
   const formatted = amount.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
   return (
@@ -97,7 +97,7 @@ export function TradeResultOverlay({
                 <span
                   className="animate-result-badge relative flex h-16 w-16 items-center justify-center rounded-full"
                   style={{
-                    background: `linear-gradient(145deg, ${accent} 0%, ${isWin ? "#15803d" : "#b91c1c"} 100%)`,
+                    background: `linear-gradient(145deg, ${accent} 0%, ${isWin ? "#0b5ed7" : "#b91c1c"} 100%)`,
                     boxShadow: `0 8px 24px -4px ${accent}aa`,
                   }}
                 >

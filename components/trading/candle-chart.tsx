@@ -129,7 +129,7 @@ export function CandleChart({ candles, currentPrice, activeTrades, symbol }: Can
       const lowY = priceToY(candle.low)
 
       // Wick
-      ctx.strokeStyle = isGreen ? "#34d399" : "#EF4444"
+      ctx.strokeStyle = isGreen ? "#4da6ff" : "#EF4444"
       ctx.lineWidth = 1
       ctx.beginPath()
       ctx.moveTo(x, highY)
@@ -137,7 +137,7 @@ export function CandleChart({ candles, currentPrice, activeTrades, symbol }: Can
       ctx.stroke()
 
       // Body
-      ctx.fillStyle = isGreen ? "#34d399" : "#EF4444"
+      ctx.fillStyle = isGreen ? "#4da6ff" : "#EF4444"
       const bodyTop = Math.min(openY, closeY)
       const bodyHeight = Math.max(1, Math.abs(closeY - openY))
       ctx.fillRect(x - bodyWidth / 2, bodyTop, bodyWidth, bodyHeight)
@@ -145,7 +145,7 @@ export function CandleChart({ candles, currentPrice, activeTrades, symbol }: Can
 
     // Draw current price line
     const currentY = priceToY(currentPrice)
-    ctx.strokeStyle = "#10b981"
+    ctx.strokeStyle = "#2190ff"
     ctx.lineWidth = 1
     ctx.setLineDash([5, 3])
     ctx.beginPath()
@@ -155,7 +155,7 @@ export function CandleChart({ candles, currentPrice, activeTrades, symbol }: Can
     ctx.setLineDash([])
 
     // Current price label
-    ctx.fillStyle = "#10b981"
+    ctx.fillStyle = "#2190ff"
     ctx.fillRect(dimensions.width - padding.right, currentY - 10, padding.right - 5, 20)
     ctx.fillStyle = "#FFFFFF"
     ctx.font = "bold 10px monospace"
@@ -169,7 +169,7 @@ export function CandleChart({ candles, currentPrice, activeTrades, symbol }: Can
         const entryY = priceToY(trade.entryPrice)
         const isCall = trade.direction === "call"
 
-        ctx.strokeStyle = isCall ? "#34d399" : "#EF4444"
+        ctx.strokeStyle = isCall ? "#4da6ff" : "#EF4444"
         ctx.lineWidth = 2
         ctx.setLineDash([3, 3])
         ctx.beginPath()
@@ -179,7 +179,7 @@ export function CandleChart({ candles, currentPrice, activeTrades, symbol }: Can
         ctx.setLineDash([])
 
         // Trade label
-        ctx.fillStyle = isCall ? "#34d399" : "#EF4444"
+        ctx.fillStyle = isCall ? "#4da6ff" : "#EF4444"
         ctx.fillRect(padding.left, entryY - 12, 60, 24)
         ctx.fillStyle = "#FFFFFF"
         ctx.font = "bold 10px Inter, sans-serif"

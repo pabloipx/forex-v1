@@ -64,7 +64,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
           <CardTitle className="text-sm font-medium text-zinc-400">Total P&L</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className={`text-2xl font-bold ${stats.totalProfit >= 0 ? "text-emerald-500" : "text-red-500"}`}>
+          <div className={`text-2xl font-bold ${stats.totalProfit >= 0 ? "text-blue-500" : "text-red-500"}`}>
             ${stats.totalProfit.toFixed(2)}
           </div>
         </CardContent>

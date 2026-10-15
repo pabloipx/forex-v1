@@ -1,7 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowDownToLine, ArrowUpFromLine, ShieldCheck, ShieldAlert } from "lucide-react"
+import { ArrowDownToLine, ArrowUpFromLine } from "lucide-react"
+import { KycCard } from "./kyc-card"
 import { cn } from "@/lib/utils"
 import { useFuturesState } from "@/hooks/use-futures"
 import type { AccountMode, Position } from "@/lib/futures/types"
@@ -97,16 +98,7 @@ function AccountCard({ mode }: { mode: AccountMode }) {
   )
 }
 
-const KYC_LABEL: Record<string, string> = {
-  approved: "Verificada",
-  pending: "Não enviada",
-  submitted: "Em análise",
-  under_review: "Em análise",
-  rejected: "Rejeitada",
-}
-
 export function OverviewTab({ profile }: { profile: ProfileData }) {
-  const verified = profile.kyc_status === "approved" || profile.is_verified
   const missing = (
     [
       ["full_name", "Nome completo"],
@@ -122,22 +114,7 @@ export function OverviewTab({ profile }: { profile: ProfileData }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="grid gap-4 md:grid-cols-3">
-        <div className="flex items-start gap-3 rounded-md border border-term-line bg-term-panel p-4">
-          {verified ? (
-            <ShieldCheck className="size-5 shrink-0 text-long" aria-hidden />
-          ) : (
-            <ShieldAlert className="size-5 shrink-0 text-primary" aria-hidden />
-          )}
-          <div className="flex flex-col gap-1">
-            <p className="text-sm font-semibold">Verificação (KYC)</p>
-            <p className="text-sm text-term-muted">{KYC_LABEL[profile.kyc_status] ?? profile.kyc_status}</p>
-            {!verified && (
-              <Link href="/kyc" className="text-sm font-medium text-primary hover:underline">
-                Verificar identidade
-              </Link>
-            )}
-          </div>
-        </div>
+        <KycCard status={profile.kyc_status} isVerified={profile.is_verified} />
         <div className="flex flex-col gap-2 rounded-md border border-term-line bg-term-panel p-4">
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold">Cadastro</p>

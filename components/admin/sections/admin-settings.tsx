@@ -43,7 +43,7 @@ export function AdminSettings({ section }: AdminSettingsProps) {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-2">Nome da Plataforma</label>
-                  <Input defaultValue="Profit Trading Global" className="bg-[#1E2430] border-[#2A3142] text-white" />
+                  <Input defaultValue="Kryptobit" className="bg-[#1E2430] border-[#2A3142] text-white" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-2">Email de Suporte</label>
@@ -148,7 +148,7 @@ export function AdminSettings({ section }: AdminSettingsProps) {
           <h1 className="text-2xl font-bold text-white">{getSectionTitle()}</h1>
           <p className="text-gray-400 mt-1">Ajuste as configurações da plataforma</p>
         </div>
-        <Button onClick={handleSave} className="bg-[#10b981] hover:bg-[#047857]">
+        <Button onClick={handleSave} className="bg-[#2190ff] hover:bg-[#0b5ed7]">
           <Save className="w-4 h-4 mr-2" />
           {saved ? "Salvo!" : "Salvar"}
         </Button>

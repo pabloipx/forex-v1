@@ -71,7 +71,7 @@ export default function AffiliateLoginPage() {
   if (checking) {
     return (
       <div className="min-h-screen w-full flex items-center justify-center bg-[#fafafa]">
-        <Loader2 className="w-7 h-7 animate-spin text-emerald-500" />
+        <Loader2 className="w-7 h-7 animate-spin text-blue-500" />
       </div>
     )
   }
@@ -98,7 +98,7 @@ export default function AffiliateLoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
-              className="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 text-[15px] text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:opacity-60"
+              className="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 text-[15px] text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-60"
             />
           </div>
 
@@ -115,7 +115,7 @@ export default function AffiliateLoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
-                className="h-12 w-full rounded-lg border border-gray-300 bg-white pl-4 pr-12 text-[15px] text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:opacity-60"
+                className="h-12 w-full rounded-lg border border-gray-300 bg-white pl-4 pr-12 text-[15px] text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-60"
               />
               <button
                 type="button"
@@ -128,7 +128,7 @@ export default function AffiliateLoginPage() {
             </div>
           </div>
 
-          <Link href="/auth/forgot-password" className="text-[15px] font-medium text-emerald-700 hover:underline">
+          <Link href="/auth/forgot-password" className="text-[15px] font-medium text-blue-700 hover:underline">
             Esqueci minha senha :(
           </Link>
 
@@ -139,7 +139,7 @@ export default function AffiliateLoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-emerald-400 text-[15px] font-semibold text-gray-900 transition-colors hover:bg-emerald-500 disabled:opacity-70"
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-blue-400 text-[15px] font-semibold text-gray-900 transition-colors hover:bg-blue-500 disabled:opacity-70"
           >
             {isLoading ? (
               <>
@@ -153,7 +153,7 @@ export default function AffiliateLoginPage() {
 
           <p className="text-center text-[15px] text-gray-600">
             Não tem uma conta?{" "}
-            <Link href="/auth/sign-up" className="font-medium text-emerald-700 hover:underline">
+            <Link href="/auth/sign-up" className="font-medium text-blue-700 hover:underline">
               Registrar agora
             </Link>
           </p>
@@ -182,7 +182,7 @@ export default function AffiliateLoginPage() {
         </div>
         <p className="flex items-center gap-4 text-sm text-gray-500">
           <span>afiliados@profittradingglobal.com</span>
-          <span>© Profit Trading Global 2026</span>
+          <span>© Kryptobit 2026</span>
         </p>
       </footer>
     </div>

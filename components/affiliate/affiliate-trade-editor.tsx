@@ -109,7 +109,7 @@ export function AffiliateTradeEditor() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-6 h-6 text-[#10b981] animate-spin" />
+        <Loader2 className="w-6 h-6 text-[#2190ff] animate-spin" />
       </div>
     )
   }
@@ -138,7 +138,7 @@ export function AffiliateTradeEditor() {
           <p className="text-white/30 text-[10px]">Total</p>
         </div>
         <div className="p-2.5 rounded-lg bg-[#121826] border border-[#1F2933] text-center">
-          <p className="text-[#26a69a] font-bold text-sm">{stats.wins}</p>
+          <p className="text-[#2190ff] font-bold text-sm">{stats.wins}</p>
           <p className="text-white/30 text-[10px]">Acertos</p>
         </div>
         <div className="p-2.5 rounded-lg bg-[#121826] border border-[#1F2933] text-center">
@@ -188,7 +188,7 @@ export function AffiliateTradeEditor() {
                     <span
                       className={`text-[10px] px-1.5 py-0.5 rounded flex items-center gap-0.5 ${
                         trade.direction === "call"
-                          ? "bg-[#26a69a]/15 text-[#26a69a]"
+                          ? "bg-[#2190ff]/15 text-[#2190ff]"
                           : "bg-red-500/15 text-red-400"
                       }`}
                     >
@@ -196,7 +196,7 @@ export function AffiliateTradeEditor() {
                       {trade.direction === "call" ? "CALL" : "PUT"}
                     </span>
                     {trade.is_demo && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#10b981]/15 text-[#10b981]">DEMO</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#2190ff]/15 text-[#2190ff]">DEMO</span>
                     )}
                     {trade.is_manually_adjusted && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400">EDITADO</span>
@@ -210,7 +210,7 @@ export function AffiliateTradeEditor() {
                         {formatDate(trade.created_at)} - {formatCurrency(trade.amount)}
                       </p>
                       <p className={`text-[11px] font-medium ${
-                        trade.result === "win" ? "text-[#26a69a]" : trade.result === "loss" ? "text-red-400" : "text-amber-400"
+                        trade.result === "win" ? "text-[#2190ff]" : trade.result === "loss" ? "text-red-400" : "text-amber-400"
                       }`}>
                         {trade.result === "win" ? "ACERTO" : trade.result === "loss" ? "ERRO" : "PENDENTE"}
                         <span className="text-white/20 ml-1">
@@ -225,8 +225,8 @@ export function AffiliateTradeEditor() {
                         disabled={isSaving}
                         className={`px-2 py-1.5 rounded-lg text-[11px] font-medium transition-all flex items-center gap-1 ${
                           trade.result === "win"
-                            ? "bg-[#26a69a] text-white"
-                            : "bg-white/[0.04] text-white/40 hover:bg-[#26a69a]/20 hover:text-[#26a69a] border border-[#1F2933]"
+                            ? "bg-[#2190ff] text-white"
+                            : "bg-white/[0.04] text-white/40 hover:bg-[#2190ff]/20 hover:text-[#2190ff] border border-[#1F2933]"
                         }`}
                       >
                         {isSaving ? <RefreshCw className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />}

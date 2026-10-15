@@ -25,7 +25,7 @@ const ACCOUNT_TYPES: Record<string, string> = {
 }
 
 const fieldClass =
-  "h-12 w-full rounded-lg border border-gray-300 bg-white px-4 text-[15px] text-gray-900 outline-none placeholder:text-gray-400 focus:border-emerald-500"
+  "h-12 w-full rounded-lg border border-gray-300 bg-white px-4 text-[15px] text-gray-900 outline-none placeholder:text-gray-400 focus:border-blue-500"
 
 const readOnlyClass = "h-12 w-full rounded-lg bg-gray-100 px-4 text-[15px] leading-[3rem] text-gray-700"
 
@@ -88,7 +88,7 @@ export function SectionProfile() {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-emerald-500" />
+        <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
       </div>
     )
   }
@@ -103,7 +103,7 @@ export function SectionProfile() {
           <p className="text-[15px] text-gray-700">Email</p>
           <p className={readOnlyClass}>{profile?.email}</p>
           {profile?.email_confirmed && (
-            <span className="w-fit rounded-md bg-emerald-50 px-2.5 py-1 text-sm font-medium text-emerald-700">
+            <span className="w-fit rounded-md bg-blue-50 px-2.5 py-1 text-sm font-medium text-blue-700">
               Confirmado
             </span>
           )}
@@ -203,7 +203,7 @@ export function SectionProfile() {
           <p
             className={`mt-5 rounded-lg px-3 py-2.5 text-sm ${
               feedback.type === "ok"
-                ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
+                ? "border border-blue-200 bg-blue-50 text-blue-700"
                 : "border border-red-200 bg-red-50 text-red-600"
             }`}
           >
@@ -214,7 +214,7 @@ export function SectionProfile() {
         <button
           type="submit"
           disabled={saving}
-          className="mt-5 flex h-12 items-center gap-2 rounded-lg bg-emerald-400 px-6 text-[15px] font-medium text-gray-900 transition-colors hover:bg-emerald-500 disabled:opacity-60"
+          className="mt-5 flex h-12 items-center gap-2 rounded-lg bg-blue-400 px-6 text-[15px] font-medium text-gray-900 transition-colors hover:bg-blue-500 disabled:opacity-60"
         >
           {saving && <Loader2 className="h-4 w-4 animate-spin" />}
           Guardar alterações

@@ -17,7 +17,7 @@ const PIX_KEY_TYPES = [
 ]
 
 const fieldClass =
-  "h-12 w-full rounded-lg border border-gray-300 bg-white px-4 text-[15px] text-gray-900 outline-none placeholder:text-gray-400 focus:border-emerald-500"
+  "h-12 w-full rounded-lg border border-gray-300 bg-white px-4 text-[15px] text-gray-900 outline-none placeholder:text-gray-400 focus:border-blue-500"
 
 interface PaymentMethodDrawerProps {
   open: boolean
@@ -115,8 +115,8 @@ export function PaymentMethodDrawer({ open, onClose, onSaved }: PaymentMethodDra
         className="relative flex h-full w-full max-w-[516px] flex-col bg-white shadow-xl"
       >
         <div className="flex items-start justify-between px-8 pt-7">
-          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-50">
-            <CreditCard className="h-5 w-5 text-emerald-600" />
+          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-50">
+            <CreditCard className="h-5 w-5 text-blue-600" />
           </span>
           <button
             type="button"
@@ -139,7 +139,7 @@ export function PaymentMethodDrawer({ open, onClose, onSaved }: PaymentMethodDra
                 onClick={() => setSelectOpen((v) => !v)}
                 aria-expanded={selectOpen}
                 className={`${fieldClass} flex items-center justify-between text-left ${
-                  selectOpen ? "border-emerald-500" : ""
+                  selectOpen ? "border-blue-500" : ""
                 }`}
               >
                 {info.label}
@@ -160,7 +160,7 @@ export function PaymentMethodDrawer({ open, onClose, onSaved }: PaymentMethodDra
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                       aria-label="Buscar método de pagamento"
-                      className="h-10 w-full rounded-lg border border-emerald-500 bg-white pl-9 pr-3 text-[15px] text-gray-900 outline-none"
+                      className="h-10 w-full rounded-lg border border-blue-500 bg-white pl-9 pr-3 text-[15px] text-gray-900 outline-none"
                     />
                   </div>
                   <ul className="mt-2 flex flex-col">
@@ -261,7 +261,7 @@ export function PaymentMethodDrawer({ open, onClose, onSaved }: PaymentMethodDra
             type="button"
             onClick={submit}
             disabled={saving || !canSave}
-            className="flex h-12 flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-400 text-[15px] font-medium text-gray-900 transition-colors hover:bg-emerald-500 disabled:bg-emerald-100 disabled:text-gray-400"
+            className="flex h-12 flex-1 items-center justify-center gap-2 rounded-lg bg-blue-400 text-[15px] font-medium text-gray-900 transition-colors hover:bg-blue-500 disabled:bg-blue-100 disabled:text-gray-400"
           >
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
             Guardar

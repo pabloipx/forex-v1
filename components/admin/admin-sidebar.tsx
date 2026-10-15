@@ -68,8 +68,8 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
       {/* Logo */}
       <div className="p-4 border-b border-[#1E2430]">
         <Image
-          src="/images/ptg-logo.svg"
-          alt="Profit Trading Global"
+          src="/images/kryptobit-logo.png"
+          alt="Kryptobit"
           width={150}
           height={40}
           priority
@@ -87,7 +87,7 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
             className={cn(
               "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
               activeSection === item.id
-                ? "bg-[#10b981]/20 text-[#34d399]"
+                ? "bg-[#2190ff]/20 text-[#4da6ff]"
                 : "text-gray-400 hover:text-white hover:bg-[#1E2430]",
             )}
           >
@@ -114,7 +114,7 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                     activeSection === item.id
-                      ? "bg-[#10b981]/20 text-[#34d399]"
+                      ? "bg-[#2190ff]/20 text-[#4da6ff]"
                       : "text-gray-400 hover:text-white hover:bg-[#1E2430]",
                   )}
                 >
@@ -144,7 +144,7 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                     activeSection === item.id
-                      ? "bg-[#10b981]/20 text-[#34d399]"
+                      ? "bg-[#2190ff]/20 text-[#4da6ff]"
                       : "text-gray-400 hover:text-white hover:bg-[#1E2430]",
                   )}
                 >
@@ -174,7 +174,7 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                     activeSection === item.id
-                      ? "bg-[#10b981]/20 text-[#34d399]"
+                      ? "bg-[#2190ff]/20 text-[#4da6ff]"
                       : "text-gray-400 hover:text-white hover:bg-[#1E2430]",
                   )}
                 >
