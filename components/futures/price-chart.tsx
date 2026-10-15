@@ -19,7 +19,7 @@ import {
 } from "lightweight-charts"
 import { cn } from "@/lib/utils"
 import { formatPrice, type FuturesMarket } from "@/lib/futures/markets"
-import { INTERVALS, INTERVAL_SECONDS, type Candle, type ChartInterval } from "@/lib/futures/candles"
+import { INTERVALS, INTERVAL_SECONDS, type Candle, type ChartInterval } from "@/lib/futures/chart-intervals"
 import type { Order, Position } from "@/lib/futures/types"
 import { DrawingLayer, DrawingToolbar, useDrawingState } from "./chart-drawings"
 import { useChartScripts } from "@/hooks/use-chart-scripts"

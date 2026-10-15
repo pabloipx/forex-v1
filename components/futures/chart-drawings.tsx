@@ -22,7 +22,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { formatPrice } from "@/lib/futures/markets"
-import type { Candle } from "@/lib/futures/candles"
+import type { Candle } from "@/lib/futures/chart-intervals"
 
 export type DrawTool = "cursor" | "trend" | "ray" | "hline" | "vline" | "rect" | "fib" | "measure" | "text"
 type ShapeType = Exclude<DrawTool, "cursor">

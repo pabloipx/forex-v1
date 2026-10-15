@@ -1,26 +1,8 @@
 import type { FuturesMarket } from "./markets"
-import { getAllTickers } from "./prices"
+import { getRawTickers } from "./prices"
+import { INTERVAL_SECONDS, type Candle, type ChartInterval } from "./chart-intervals"
 
-export const INTERVALS = ["1m", "5m", "15m", "1h", "4h", "1d"] as const
-export type ChartInterval = (typeof INTERVALS)[number]
-
-export const INTERVAL_SECONDS: Record<ChartInterval, number> = {
-  "1m": 60,
-  "5m": 300,
-  "15m": 900,
-  "1h": 3600,
-  "4h": 14400,
-  "1d": 86400,
-}
-
-export interface Candle {
-  time: number
-  open: number
-  high: number
-  low: number
-  close: number
-  volume: number
-}
+export { INTERVALS, INTERVAL_SECONDS, type Candle, type ChartInterval } from "./chart-intervals"
 
 const cache = new Map<string, { at: number; data: Candle[] }>()
 const TTL_MS = 15_000
@@ -107,7 +89,7 @@ export async function getCandles(market: FuturesMarket, interval: ChartInterval)
 
   const [raw, tickers] = await Promise.all([
     market.source === "binance" ? fromBinance(market, interval) : fromYahoo(market, interval),
-    getAllTickers().catch(() => ({}) as Record<string, { price: number }>),
+    getRawTickers().catch(() => ({}) as Record<string, { price: number }>),
   ])
 
   let data = raw

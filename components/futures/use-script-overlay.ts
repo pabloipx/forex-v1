@@ -14,7 +14,7 @@ import {
   type Time,
   type UTCTimestamp,
 } from "lightweight-charts"
-import type { Candle } from "@/lib/futures/candles"
+import type { Candle } from "@/lib/futures/chart-intervals"
 import type { ChartScript } from "@/hooks/use-chart-scripts"
 import { runScript, type ScriptOutput } from "@/lib/futures/script-runtime"
 
