@@ -13,13 +13,13 @@ import { UsersSection } from "./users-section"
 import { KycSection } from "./kyc-section"
 import { WithdrawalsSection } from "./withdrawals-section"
 import { DepositsSection } from "./deposits-section"
-import { AdminManipulation } from "@/components/admin/sections/admin-manipulation"
+import { ManipulationSection } from "./manipulation-section"
 
 const SECTIONS = [
   { id: "overview", label: "Visão geral", icon: BarChart3, Component: OverviewSection },
   { id: "positions", label: "Posições e ordens", icon: CandlestickChart, Component: PositionsSection },
   { id: "markets", label: "Mercados", icon: SlidersHorizontal, Component: MarketsSection },
-  { id: "manipulation", label: "Manipulação", icon: Zap, Component: AdminManipulation },
+  { id: "manipulation", label: "Manipulação", icon: Zap, Component: ManipulationSection },
   { id: "users", label: "Usuários e saldos", icon: Users, Component: UsersSection },
   { id: "withdrawals", label: "Saques", icon: ArrowUpFromLine, Component: WithdrawalsSection },
   { id: "deposits", label: "Depósitos", icon: ArrowDownToLine, Component: DepositsSection },
@@ -35,8 +35,13 @@ export function ForexAdmin() {
   const [section, setSection] = useState<SectionId>("overview")
 
   useEffect(() => {
-    const fromHash = window.location.hash.slice(1) as SectionId
-    if (SECTIONS.some((s) => s.id === fromHash)) setSection(fromHash)
+    const sync = () => {
+      const fromHash = window.location.hash.slice(1) as SectionId
+      if (SECTIONS.some((s) => s.id === fromHash)) setSection(fromHash)
+    }
+    sync()
+    window.addEventListener("hashchange", sync)
+    return () => window.removeEventListener("hashchange", sync)
   }, [])
 
   useEffect(() => {

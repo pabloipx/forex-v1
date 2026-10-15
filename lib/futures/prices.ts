@@ -125,7 +125,15 @@ async function loadAll(): Promise<Record<string, Ticker>> {
   return data
 }
 
+/** Preços como a corretora os pratica: feed real + manipulações do admin em vigor. */
 export async function getAllTickers(): Promise<Record<string, Ticker>> {
+  const raw = await getRawTickers()
+  const { applyToTickers } = await import("./manipulation")
+  return applyToTickers(raw)
+}
+
+/** Preços do feed real, sem manipulação. */
+export async function getRawTickers(): Promise<Record<string, Ticker>> {
   if (cache && Date.now() - cache.at < TTL_MS) return cache.data
   if (!inflight) {
     inflight = loadAll()
