@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, type FormEvent } from "react"
+import { useDeferredValue, useMemo, useState, type FormEvent } from "react"
+import { UserLogsDialog } from "./user-logs-dialog"
 import { toast } from "sonner"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge, DataTable, ErrorNote, Panel, SmallButton, inputCls, td } from "./ui"
@@ -113,10 +114,12 @@ function AdjustDialog({ user, onClose }: { user: UserRow | null; onClose: () => 
 }
 
 export function UsersSection() {
-  const { data, error } = useAdminView<UserRow[]>("users", 10000)
+  const { data, error } = useAdminView<UserRow[]>("users", 30000)
   const adjustments = useAdminView<Adjustment[]>("adjustments")
   const [query, setQuery] = useState("")
+  const deferredQuery = useDeferredValue(query)
   const [adjusting, setAdjusting] = useState<UserRow | null>(null)
+  const [viewingLogs, setViewingLogs] = useState<UserRow | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
 
   const toggleBlock = async (u: UserRow) => {
@@ -132,10 +135,13 @@ export function UsersSection() {
     }
   }
 
-  const q = query.toLowerCase()
-  const rows = (data ?? []).filter(
-    (u) => !q || u.email.toLowerCase().includes(q) || (u.full_name ?? "").toLowerCase().includes(q) || (u.phone ?? "").includes(q),
-  )
+  const rows = useMemo(() => {
+    const q = deferredQuery.trim().toLowerCase()
+    if (!q) return data ?? []
+    return (data ?? []).filter(
+      (u) => u.email.toLowerCase().includes(q) || (u.full_name ?? "").toLowerCase().includes(q) || (u.phone ?? "").includes(q),
+    )
+  }, [data, deferredQuery])
 
   return (
     <div className="flex flex-col gap-4">
@@ -173,6 +179,9 @@ export function UsersSection() {
               <td className={td}>{u.is_blocked ? <Badge tone="down">Bloqueado</Badge> : <Badge tone="up">Ativo</Badge>}</td>
               <td className={td}>
                 <div className="flex gap-1.5">
+                  <SmallButton tone="muted" onClick={() => setViewingLogs(u)}>
+                    Logs
+                  </SmallButton>
                   <SmallButton tone="accent" onClick={() => setAdjusting(u)}>
                     Saldo
                   </SmallButton>
@@ -205,6 +214,7 @@ export function UsersSection() {
       </Panel>
 
       <AdjustDialog user={adjusting} onClose={() => setAdjusting(null)} />
+      <UserLogsDialog user={viewingLogs} onClose={() => setViewingLogs(null)} />
     </div>
   )
 }
