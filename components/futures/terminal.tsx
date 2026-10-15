@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useRef, useState } from "react"
+import { TERM_THEME_COOKIE, type TermTheme } from "@/lib/futures/term-theme"
 import { useRouter } from "next/navigation"
 import { Toaster, toast } from "sonner"
 import { MARKET_MAP } from "@/lib/futures/markets"
@@ -46,9 +47,20 @@ function ChartViewToggle({ value, onChange }: { value: ChartView; onChange: (v: 
   )
 }
 
-export function FuturesTerminal({ symbol }: { symbol: string }) {
+export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; initialTheme: TermTheme }) {
   const router = useRouter()
   const market = MARKET_MAP[symbol]
+  const rootRef = useRef<HTMLDivElement>(null)
+  const [theme, setTheme] = useState<TermTheme>(initialTheme)
+
+  const toggleTheme = useCallback(() => {
+    const next: TermTheme = theme === "light" ? "dark" : "light"
+    const root = rootRef.current
+    root?.classList.add("term-switching")
+    setTheme(next)
+    document.cookie = `${TERM_THEME_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`
+    requestAnimationFrame(() => requestAnimationFrame(() => root?.classList.remove("term-switching")))
+  }, [theme])
   const [account, setAccount] = useState<AccountMode>("demo")
   const [limitPrice, setLimitPrice] = useState("")
 
@@ -88,9 +100,17 @@ export function FuturesTerminal({ symbol }: { symbol: string }) {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-term-bg text-term-text lg:h-dvh phone:h-dvh phone:min-h-0 phone:overflow-hidden">
+    <div
+      ref={rootRef}
+      className={cn(
+        "flex min-h-dvh flex-col bg-term-bg text-term-text lg:h-dvh phone:h-dvh phone:min-h-0 phone:overflow-hidden",
+        theme === "light" ? "term-light" : "term-dark",
+      )}
+    >
       <RotateDevice />
       <TopNav
+        theme={theme}
+        onToggleTheme={toggleTheme}
         account={account}
         onAccountChange={setAccount}
         authenticated={!!state?.authenticated}
@@ -106,6 +126,7 @@ export function FuturesTerminal({ symbol }: { symbol: string }) {
                 {chartView === "candles" ? (
                   <PriceChart
                     market={market}
+                    theme={theme}
                     last={last}
                     positions={state?.positions ?? []}
                     openOrders={state?.openOrders ?? []}
@@ -157,7 +178,7 @@ export function FuturesTerminal({ symbol }: { symbol: string }) {
           />
         </aside>
       </main>
-      <Toaster theme="dark" position="top-center" richColors />
+      <Toaster theme={theme} position="top-center" richColors />
     </div>
   )
 }

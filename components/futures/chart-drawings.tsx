@@ -42,7 +42,7 @@ interface Drawing {
 
 const SINGLE_CLICK: ShapeType[] = ["hline", "vline", "text"]
 const FIB_LEVELS = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1]
-const SWATCHES = ["#2190ff", "#089981", "#f23645", "#e6e9f0"]
+const SWATCHES = ["#2190ff", "#089981", "#f23645", "#9598a1"]
 const STORAGE_PREFIX = "fx-drawings:"
 
 export const TOOLS: { id: DrawTool; label: string; icon: LucideIcon }[] = [
@@ -548,7 +548,7 @@ export function DrawingLayer({ state, chart, getSeries, barsRef, step, decimals 
             cx={h.x}
             cy={h.y}
             r={5}
-            fill="#15181d"
+            className="fill-term-panel"
             stroke={stroke}
             strokeWidth={2}
             style={{ pointerEvents: shapePE as "auto" | "none", cursor: "grab" }}

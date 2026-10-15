@@ -21,19 +21,26 @@ import { cn } from "@/lib/utils"
 import { formatPrice, type FuturesMarket } from "@/lib/futures/markets"
 import { INTERVALS, INTERVAL_SECONDS, type Candle, type ChartInterval } from "@/lib/futures/chart-intervals"
 import type { Order, Position } from "@/lib/futures/types"
+import { CHART_THEMES, type ChartTheme, type TermTheme } from "@/lib/futures/term-theme"
+
+function chartLayoutOptions(t: ChartTheme) {
+  return {
+    layout: { background: { type: ColorType.Solid, color: t.bg }, textColor: t.text },
+    grid: { vertLines: { color: t.grid }, horzLines: { color: t.grid } },
+    crosshair: {
+      vertLine: { color: t.crosshair, labelBackgroundColor: t.crosshairLabel },
+      horzLine: { color: t.crosshair, labelBackgroundColor: t.crosshairLabel },
+    },
+    rightPriceScale: { borderColor: t.border },
+    timeScale: { borderColor: t.border },
+  }
+}
 import { DrawingLayer, DrawingToolbar, useDrawingState } from "./chart-drawings"
 import { useChartScripts } from "@/hooks/use-chart-scripts"
 import { ScriptEditor } from "./script-editor"
 import { useScriptOverlay } from "./use-script-overlay"
 
 const COLORS = {
-  bg: "#131722",
-  grid: "rgba(42, 46, 57, 0.6)",
-  border: "#2a2e39",
-  text: "#b2b5be",
-  crosshair: "#758696",
-  crosshairLabel: "#2a2e39",
-  watermark: "rgba(178, 181, 190, 0.06)",
   up: "#089981",
   down: "#f23645",
   accent: "#2190ff",
@@ -46,6 +53,7 @@ type ChartStyle = "candles" | "line"
 
 interface PriceChartProps {
   market: FuturesMarket
+  theme: TermTheme
   last: number | null
   positions: Position[]
   openOrders: Order[]
@@ -70,7 +78,10 @@ const fetcher = async (url: string) => {
   return json.candles as Candle[]
 }
 
-function PriceChartImpl({ market, last, positions, openOrders, onLineDrag, toolbarExtra }: PriceChartProps) {
+function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag, toolbarExtra }: PriceChartProps) {
+  const palette = CHART_THEMES[theme]
+  const paletteRef = useRef(palette)
+  paletteRef.current = palette
   const [interval, setIntervalValue] = useState<ChartInterval>("15m")
   const [style, setStyle] = useState<ChartStyle>("candles")
   const [showVolume, setShowVolume] = useState(true)
@@ -151,7 +162,7 @@ function PriceChartImpl({ market, last, positions, openOrders, onLineDrag, toolb
     el.replaceChildren(
       ...parts.flatMap(([label, value]) => {
         const l = document.createElement("span")
-        l.style.color = COLORS.text
+        l.style.color = paletteRef.current.text
         l.textContent = `${label} `
         const v = document.createElement("span")
         v.style.color = color
@@ -169,23 +180,24 @@ function PriceChartImpl({ market, last, positions, openOrders, onLineDrag, toolb
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
+    const t = paletteRef.current
     const chart = createChart(el, {
       autoSize: true,
       layout: {
-        background: { type: ColorType.Solid, color: COLORS.bg },
-        textColor: COLORS.text,
+        background: { type: ColorType.Solid, color: t.bg },
+        textColor: t.text,
         fontSize: 11,
         fontFamily: "-apple-system, BlinkMacSystemFont, 'Trebuchet MS', Roboto, Ubuntu, sans-serif",
         attributionLogo: false,
       },
-      grid: { vertLines: { color: COLORS.grid }, horzLines: { color: COLORS.grid } },
+      grid: { vertLines: { color: t.grid }, horzLines: { color: t.grid } },
       crosshair: {
         mode: CrosshairMode.Normal,
-        vertLine: { color: COLORS.crosshair, width: 1, style: LineStyle.LargeDashed, labelBackgroundColor: COLORS.crosshairLabel },
-        horzLine: { color: COLORS.crosshair, width: 1, style: LineStyle.LargeDashed, labelBackgroundColor: COLORS.crosshairLabel },
+        vertLine: { color: t.crosshair, width: 1, style: LineStyle.LargeDashed, labelBackgroundColor: t.crosshairLabel },
+        horzLine: { color: t.crosshair, width: 1, style: LineStyle.LargeDashed, labelBackgroundColor: t.crosshairLabel },
       },
-      rightPriceScale: { borderColor: COLORS.border, scaleMargins: { top: 0.1, bottom: 0.2 } },
-      timeScale: { borderColor: COLORS.border, timeVisible: true, secondsVisible: false, rightOffset: 8, barSpacing: 7, minBarSpacing: 2 },
+      rightPriceScale: { borderColor: t.border, scaleMargins: { top: 0.1, bottom: 0.2 } },
+      timeScale: { borderColor: t.border, timeVisible: true, secondsVisible: false, rightOffset: 8, barSpacing: 7, minBarSpacing: 2 },
       kineticScroll: { touch: true, mouse: false },
       handleScroll: { vertTouchDrag: false },
       localization: { locale: "pt-BR" },
@@ -202,7 +214,7 @@ function PriceChartImpl({ market, last, positions, openOrders, onLineDrag, toolb
     watermarkRef.current = createTextWatermark(chart.panes()[0], {
       horzAlign: "center",
       vertAlign: "center",
-      lines: [{ text: market.symbol, color: COLORS.watermark, fontSize: 64, fontStyle: "bold" }],
+      lines: [{ text: market.symbol, color: t.watermark, fontSize: 64, fontStyle: "bold" }],
     })
     lineRef.current = chart.addSeries(LineSeries, { color: COLORS.accent, lineWidth: 2, visible: false })
     volumeRef.current = chart.addSeries(HistogramSeries, {
@@ -237,9 +249,15 @@ function PriceChartImpl({ market, last, positions, openOrders, onLineDrag, toolb
 
   useEffect(() => {
     watermarkRef.current?.applyOptions({
-      lines: [{ text: market.symbol, color: COLORS.watermark, fontSize: 64, fontStyle: "bold" }],
+      lines: [{ text: market.symbol, color: palette.watermark, fontSize: 64, fontStyle: "bold" }],
     })
-  }, [market.symbol])
+  }, [market.symbol, palette])
+
+  useEffect(() => {
+    chartRef.current?.applyOptions(chartLayoutOptions(palette))
+    if (!hoverRef.current) renderLegend(lastCandleRef.current)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [palette])
 
   useEffect(() => {
     const fmt = { type: "price" as const, precision: market.priceDecimals, minMove: 10 ** -market.priceDecimals }

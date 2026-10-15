@@ -1,12 +1,15 @@
 "use client"
 
 import Link from "next/link"
-import { ChevronDown, Wallet, UserRound } from "lucide-react"
+import { ChevronDown, Moon, Sun, Wallet, UserRound } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { AccountMode } from "@/lib/futures/types"
 import { formatUsd } from "@/lib/futures/markets"
+import type { TermTheme } from "@/lib/futures/term-theme"
 
 interface TopNavProps {
+  theme: TermTheme
+  onToggleTheme: () => void
   account: AccountMode
   onAccountChange: (a: AccountMode) => void
   authenticated: boolean
@@ -20,7 +23,7 @@ const links = [
   { href: "/withdraw", label: "Sacar" },
 ]
 
-export function TopNav({ account, onAccountChange, authenticated, email, balances }: TopNavProps) {
+export function TopNav({ theme, onToggleTheme, account, onAccountChange, authenticated, email, balances }: TopNavProps) {
   return (
     <header className="flex h-12 shrink-0 items-center justify-between gap-4 border-b border-term-line bg-term-bg px-3 lg:px-4">
       <div className="flex min-w-0 items-center gap-6">
@@ -46,6 +49,15 @@ export function TopNav({ account, onAccountChange, authenticated, email, balance
       </div>
 
       <div className="flex items-center gap-2 lg:gap-3">
+        <button
+          type="button"
+          onClick={onToggleTheme}
+          aria-label={theme === "light" ? "Ativar tema escuro" : "Ativar tema claro"}
+          title={theme === "light" ? "Tema escuro" : "Tema claro"}
+          className="flex size-8 items-center justify-center rounded-md text-term-muted hover:bg-term-panel hover:text-term-text"
+        >
+          {theme === "light" ? <Moon className="size-4" aria-hidden="true" /> : <Sun className="size-4" aria-hidden="true" />}
+        </button>
         <div role="radiogroup" aria-label="Tipo de conta" className="flex rounded-md bg-term-panel p-0.5 text-xs">
           {(["real", "demo"] as const).map((a) => (
             <button
