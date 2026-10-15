@@ -3,28 +3,16 @@
 import type React from "react"
 import { createClient } from "@/lib/supabase/client"
 import Link from "next/link"
-import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
-import { Loader2 } from "lucide-react"
+import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { recordDeviceSession } from "@/lib/device-session"
-
-function Flag({ code, className }: { code: string; className?: string }) {
-  return (
-    <Image
-      src={`https://flagcdn.com/w40/${code.toLowerCase()}.png`}
-      alt={code}
-      width={24}
-      height={18}
-      className={className}
-      unoptimized
-    />
-  )
-}
+import { AUTH_ACCENT, AUTH_ACCENT_TEXT, AUTH_INPUT, AUTH_LABEL, AuthLayout } from "@/components/auth/auth-layout"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isCheckingSession, setIsCheckingSession] = useState(true)
@@ -96,98 +84,95 @@ export default function LoginPage() {
 
   if (isCheckingSession) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-white">
-        <div className="w-10 h-10 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen w-full flex items-center justify-center bg-[#f5f6fa]">
+        <div className="w-10 h-10 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
-  const inputClass =
-    "w-full h-12 px-4 rounded-md bg-white text-gray-800 text-[15px] border border-gray-300 outline-none transition-colors placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
-
   return (
-    <div className="min-h-screen w-full bg-white flex flex-col">
-      {/* Header */}
-      <header className="flex items-center justify-between px-6 py-3 border-b border-gray-100 bg-gray-50/60">
-        <Link href="/" className="flex items-center">
-          <Image src="/images/kryptobit-logo.png" alt="Kryptobit" width={150} height={38} className="h-9 w-auto" unoptimized />
-        </Link>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-gray-600 text-sm font-medium">
-            <Flag code="BR" className="rounded-full w-5 h-5 object-cover" />
-            Pt
-          </div>
-          <Link
-            href="/auth/sign-up"
-            className="rounded-md border border-blue-500 text-blue-600 hover:bg-blue-50 px-6 h-10 flex items-center font-medium text-sm transition-colors"
-          >
-            Registrar-se
-          </Link>
-        </div>
-      </header>
-
-      {/* Form */}
-      <main className="flex-1 flex flex-col items-center px-5 py-10">
-        <h1 className="text-3xl font-semibold text-gray-500 mb-8 text-center">Entrar</h1>
-
-        <form onSubmit={handleLogin} className="w-full max-w-[420px] flex flex-col gap-4">
+    <AuthLayout
+      title={<h1 className="text-xl font-semibold text-gray-900">Entrar</h1>}
+      switchHref="/auth/sign-up"
+      switchLabel="Criar conta"
+    >
+      <form onSubmit={handleLogin} className="flex flex-col gap-4 px-6 pt-7 pb-10">
+        <div className="flex flex-col gap-2">
+          <label htmlFor="email" className={AUTH_LABEL}>
+            E-mail
+          </label>
           <input
+            id="email"
             type="email"
-            placeholder="E-mail"
+            placeholder="seu@email.com"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
             disabled={isLoading}
-            className={inputClass}
+            className={AUTH_INPUT}
           />
-          <input
-            type="password"
-            placeholder="Senha"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
-            disabled={isLoading}
-            className={inputClass}
-          />
+        </div>
 
-          <div className="text-right -mt-1">
-            <Link href="/auth/forgot-password" className="text-sm text-blue-600 hover:underline">
-              Esqueceu sua senha?
-            </Link>
+        <div className="flex flex-col gap-2">
+          <label htmlFor="password" className={AUTH_LABEL}>
+            Senha
+          </label>
+          <div className="relative">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Sua senha"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              disabled={isLoading}
+              className={`${AUTH_INPUT} pr-11`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
           </div>
+        </div>
 
-          {error && (
-            <div className="text-sm p-3 rounded-md flex items-center gap-2 text-red-600 bg-red-50 border border-red-200">
-              <span>⚠</span>
-              {error}
-            </div>
+        <Link href="/auth/forgot-password" className={`self-end text-sm ${AUTH_ACCENT_TEXT} hover:underline`}>
+          Esqueceu sua senha?
+        </Link>
+
+        {error && (
+          <div role="alert" className="text-sm p-3 rounded-lg text-red-600 bg-red-50 border border-red-200">
+            {error}
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={isLoading}
+          className={`mt-1 w-full h-12 rounded-full font-semibold text-base flex items-center justify-center gap-2 transition-colors disabled:opacity-70 ${AUTH_ACCENT}`}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Entrando...
+            </>
+          ) : (
+            "Entrar"
           )}
+        </button>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full h-14 rounded-md text-white font-semibold text-base bg-blue-600 hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Entrando...
-              </>
-            ) : (
-              "Entrar"
-            )}
-          </button>
-
-          <p className="text-center text-gray-500 text-sm pt-2">
-            Não tem uma conta?{" "}
-            <Link href="/auth/sign-up" className="font-semibold text-blue-600 hover:underline">
-              Registrar-se
-            </Link>
-          </p>
-        </form>
-      </main>
-    </div>
+        <p className="text-center text-gray-500 text-sm">
+          Não tem uma conta?{" "}
+          <Link href="/auth/sign-up" className={`font-semibold ${AUTH_ACCENT_TEXT} hover:underline`}>
+            Criar conta
+          </Link>
+        </p>
+      </form>
+    </AuthLayout>
   )
 }

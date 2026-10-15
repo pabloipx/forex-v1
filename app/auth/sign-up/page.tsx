@@ -8,18 +8,17 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useState, useEffect, Suspense } from "react"
 import {
   ArrowLeft,
-  ArrowRightLeft,
   CheckCircle2,
   ChevronDown,
   Eye,
   EyeOff,
   Gift,
-  Globe,
   Loader2,
   MapPin,
   X,
 } from "lucide-react"
 import { recordDeviceSession } from "@/lib/device-session"
+import { AUTH_ACCENT, AUTH_ACCENT_TEXT, AUTH_INPUT, AUTH_LABEL, AuthLayout } from "@/components/auth/auth-layout"
 
 const COUNTRIES = [
   { name: "Brasil", code: "BR", dial: "+55" },
@@ -31,15 +30,6 @@ const COUNTRIES = [
   { name: "Espanha", code: "ES", dial: "+34" },
 ]
 
-const STATS = [
-  { value: "24/7", label: "Mercado aberto" },
-  { value: "0", label: "Taxa de cadastro" },
-  { value: "PIX", label: "Depósito instantâneo" },
-]
-
-const ACCENT = "bg-[#f7a600] hover:bg-[#e89c00] text-gray-900"
-const ACCENT_TEXT = "text-[#e89c00]"
-
 function Flag({ code, className }: { code: string; className?: string }) {
   return (
     <Image
@@ -50,35 +40,6 @@ function Flag({ code, className }: { code: string; className?: string }) {
       className={className}
       unoptimized
     />
-  )
-}
-
-function HeroPanel() {
-  return (
-    <aside className="relative hidden lg:flex lg:w-1/2 flex-col justify-between overflow-hidden bg-gray-900">
-      <Image
-        src="/images/signup-hero.png"
-        alt=""
-        fill
-        priority
-        sizes="50vw"
-        className="object-cover"
-      />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/20" aria-hidden />
-
-      <h2 className="relative z-10 ml-auto max-w-md px-12 pt-16 text-right text-4xl font-normal leading-tight text-white text-balance">
-        Opere futuros de cripto diretamente com a Kryptobit
-      </h2>
-
-      <div className="relative z-10 grid grid-cols-3 bg-black/45 backdrop-blur-md px-12 py-6">
-        {STATS.map((s, i) => (
-          <div key={s.label} className={`flex flex-col gap-1 ${i > 0 ? "border-l border-white/20 pl-10" : ""}`}>
-            <span className="text-4xl font-light text-white">{s.value}</span>
-            <span className="text-lg text-white/80">{s.label}</span>
-          </div>
-        ))}
-      </div>
-    </aside>
   )
 }
 
@@ -106,7 +67,7 @@ function TermsModal({ onClose }: { onClose: () => void }) {
           <p>Operações financeiras envolvem riscos e podem resultar em perdas. A Kryptobit não garante lucros.</p>
         </div>
         <div className="p-4 border-t border-gray-200">
-          <button onClick={onClose} className={`w-full h-12 rounded-full font-semibold transition-colors ${ACCENT}`}>
+          <button onClick={onClose} className={`w-full h-12 rounded-full font-semibold transition-colors ${AUTH_ACCENT}`}>
             Li e Entendi
           </button>
         </div>
@@ -213,12 +174,12 @@ function SignUpForm() {
     return (
       <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
         <div className="text-center px-6 animate-in fade-in zoom-in duration-500">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center bg-amber-100">
-            <CheckCircle2 className={`w-12 h-12 ${ACCENT_TEXT}`} />
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center bg-blue-100">
+            <CheckCircle2 className={`w-12 h-12 ${AUTH_ACCENT_TEXT}`} />
           </div>
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Conta criada com sucesso!</h1>
           <p className="text-gray-500 mb-6">Você será redirecionado para a plataforma...</p>
-          <div className={`flex items-center justify-center gap-2 ${ACCENT_TEXT}`}>
+          <div className={`flex items-center justify-center gap-2 ${AUTH_ACCENT_TEXT}`}>
             <Loader2 className="w-5 h-5 animate-spin" />
             <span>Entrando...</span>
           </div>
@@ -227,61 +188,33 @@ function SignUpForm() {
     )
   }
 
-  const inputClass =
-    "w-full h-12 px-4 rounded-lg bg-gray-100 text-gray-900 text-[15px] border border-transparent outline-none transition-colors placeholder:text-gray-400 focus:border-[#f7a600] focus:bg-white"
-  const labelClass = "text-sm font-medium text-gray-800"
+  const inputClass = AUTH_INPUT
+  const labelClass = AUTH_LABEL
 
   return (
-    <div className="min-h-screen w-full flex bg-[#f5f6fa]">
-      {showTerms && <TermsModal onClose={() => setShowTerms(false)} />}
-
-      <HeroPanel />
-
-      <main className="flex-1 flex items-center justify-center px-5 py-10">
-        <div className="w-full max-w-[440px] flex flex-col gap-5">
-          <div className="relative flex items-center justify-center">
-            <Link href="/" aria-label="Kryptobit - página inicial">
-              <Image
-                src="/images/kryptobit-logo-dark.png"
-                alt="Kryptobit"
-                width={150}
-                height={38}
-                className="h-9 w-auto"
-                unoptimized
-              />
-            </Link>
-            <span className="absolute right-0 flex items-center gap-1.5 text-gray-700" aria-label="Idioma: Português">
-              <Globe className="w-5 h-5" />
-            </span>
-          </div>
-
-          <section className="rounded-2xl bg-white shadow-sm">
-            <header className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-              <div className="flex items-center gap-2">
-                {step === 2 && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setStep(1)
-                      setError(null)
-                    }}
-                    className="p-1 -ml-1 rounded-md text-gray-500 hover:bg-gray-100"
-                    aria-label="Voltar"
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                  </button>
-                )}
-                <h1 className="text-xl font-semibold text-gray-900">Criar conta</h1>
-              </div>
-              <Link
-                href="/auth/login"
-                className={`flex items-center gap-1.5 text-sm font-medium ${ACCENT_TEXT} hover:underline`}
-              >
-                <ArrowRightLeft className="w-3.5 h-3.5" />
-                Acesse agora
-              </Link>
-            </header>
-
+    <AuthLayout
+      overlay={showTerms && <TermsModal onClose={() => setShowTerms(false)} />}
+      switchHref="/auth/login"
+      switchLabel="Acesse agora"
+      title={
+        <>
+          {step === 2 && (
+            <button
+              type="button"
+              onClick={() => {
+                setStep(1)
+                setError(null)
+              }}
+              className="p-1 -ml-1 rounded-md text-gray-500 hover:bg-gray-100"
+              aria-label="Voltar"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+          )}
+          <h1 className="text-xl font-semibold text-gray-900">Criar conta</h1>
+        </>
+      }
+    >
             {step === 1 ? (
               <form onSubmit={handleContinue} className="flex flex-col gap-4 px-6 pt-7 pb-12">
                 <div className="flex flex-col gap-3">
@@ -338,14 +271,14 @@ function SignUpForm() {
                     type="checkbox"
                     checked={acceptedTerms}
                     onChange={(e) => setAcceptedTerms(e.target.checked)}
-                    className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-[#f7a600]"
+                    className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-blue-600"
                   />
                   <span>
                     Ao selecionar &quot;Criar uma conta&quot;, você concorda com{" "}
-                    <button type="button" onClick={() => setShowTerms(true)} className={`${ACCENT_TEXT} hover:underline`}>
+                    <button type="button" onClick={() => setShowTerms(true)} className={`${AUTH_ACCENT_TEXT} hover:underline`}>
                       Termos de Serviço
                     </button>{" "}
-                    e <span className={ACCENT_TEXT}>Política de Privacidade</span> e confirma ter 18 anos ou mais.
+                    e <span className={AUTH_ACCENT_TEXT}>Política de Privacidade</span> e confirma ter 18 anos ou mais.
                   </span>
                 </label>
 
@@ -353,7 +286,7 @@ function SignUpForm() {
 
                 <button
                   type="submit"
-                  className={`mt-2 w-full h-12 rounded-full font-semibold text-base flex items-center justify-center gap-2 transition-colors ${ACCENT}`}
+                  className={`mt-2 w-full h-12 rounded-full font-semibold text-base flex items-center justify-center gap-2 transition-colors ${AUTH_ACCENT}`}
                 >
                   <Gift className="w-4 h-4" />
                   Criar uma conta
@@ -484,7 +417,7 @@ function SignUpForm() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className={`mt-1 w-full h-12 rounded-full font-semibold text-base flex items-center justify-center gap-2 transition-colors disabled:opacity-70 ${ACCENT}`}
+                  className={`mt-1 w-full h-12 rounded-full font-semibold text-base flex items-center justify-center gap-2 transition-colors disabled:opacity-70 ${AUTH_ACCENT}`}
                 >
                   {isLoading ? (
                     <>
@@ -500,10 +433,7 @@ function SignUpForm() {
                 </button>
               </form>
             )}
-          </section>
-        </div>
-      </main>
-    </div>
+    </AuthLayout>
   )
 }
 
