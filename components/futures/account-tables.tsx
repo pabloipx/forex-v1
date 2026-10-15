@@ -7,18 +7,19 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { cn } from "@/lib/utils"
 import { MARKET_MAP, formatPrice, formatUsd, notionalUsd, unrealizedPnl } from "@/lib/futures/markets"
 import type { AccountMode, FuturesState, Order, Position } from "@/lib/futures/types"
-import { futuresApi, type Ticker } from "@/hooks/use-futures"
+import { futuresApi, type DerivativesInfo, type Ticker } from "@/hooks/use-futures"
 
 interface AccountTablesProps {
   state: FuturesState | undefined
   account: AccountMode
   marks: Record<string, Ticker>
+  derivs?: Record<string, DerivativesInfo>
   liveSymbol: string
   livePrice: number | null
   onChanged: () => void
 }
 
-type Tab = "positions" | "orders" | "history" | "fills" | "pnl"
+type Tab = "positions" | "orders" | "history" | "fills" | "pnl" | "funding"
 
 const ORDER_TYPE: Record<string, string> = { market: "Mercado", limit: "Limitada", conditional: "Condicional" }
 const STATUS: Record<string, string> = {
@@ -32,6 +33,7 @@ const CLOSE_REASON: Record<string, string> = {
   take_profit: "Take Profit",
   stop_loss: "Stop Loss",
   liquidation: "Liquidação",
+  trailing_stop: "Trailing stop",
   reduce: "Ordem",
 }
 
@@ -63,12 +65,15 @@ function TpSlDialog({ position, onClose, onSaved }: { position: Position; onClos
   const market = MARKET_MAP[position.symbol]
   const [tp, setTp] = useState(position.take_profit?.toString() ?? "")
   const [sl, setSl] = useState(position.stop_loss?.toString() ?? "")
+  const [trail, setTrail] = useState(position.trailing_distance?.toString() ?? "")
   const [saving, setSaving] = useState(false)
 
   const save = async () => {
     setSaving(true)
     try {
       await futuresApi.setTpSl(position.id, tp ? Number(tp) : null, sl ? Number(sl) : null)
+      const nextTrail = trail ? Number(trail) : null
+      if (nextTrail !== (position.trailing_distance ?? null)) await futuresApi.setTrailing(position.id, nextTrail)
       toast.success("TP/SL atualizado")
       onSaved()
       onClose()
@@ -104,6 +109,12 @@ function TpSlDialog({ position, onClose, onSaved }: { position: Position; onClos
         </DialogHeader>
         {input("Take Profit", tp, setTp)}
         {input("Stop Loss", sl, setSl)}
+        {input("Trailing stop", trail, setTrail)}
+        <p className="text-[11px] leading-relaxed text-term-muted">
+          Trailing stop: distância em preço ({market?.quote ?? "USDT"}) a partir do melhor preço atingido. O stop acompanha o
+          mercado a favor e fecha a posição se o preço recuar essa distância.
+          {position.trailing_peak ? ` Melhor preço atual: ${formatPrice(position.trailing_peak, market?.priceDecimals ?? 2)}.` : ""}
+        </p>
         <button
           onClick={save}
           disabled={saving}
@@ -274,13 +285,31 @@ function OrdersTable({ orders, onCancel }: { orders: Order[]; onCancel?: (id: st
   )
 }
 
-export function AccountTables({ state, account, marks, liveSymbol, livePrice, onChanged }: AccountTablesProps) {
+export function AccountTables({ state, account, marks, derivs, liveSymbol, livePrice, onChanged }: AccountTablesProps) {
   const [tab, setTab] = useState<Tab>("positions")
   const [editing, setEditing] = useState<Position | null>(null)
+  const [closingAll, setClosingAll] = useState(false)
   const positions = state?.positions ?? []
   const openOrders = state?.openOrders ?? []
+  const funding = state?.fundingHistory ?? []
 
-  const markOf = (symbol: string) => (symbol === liveSymbol && livePrice ? livePrice : (marks[symbol]?.price ?? null))
+  // PnL e risco usam o preço de marcação; o último negócio é só fallback.
+  const markOf = (symbol: string) =>
+    derivs?.[symbol]?.markPrice ?? (symbol === liveSymbol && livePrice ? livePrice : (marks[symbol]?.price ?? null))
+
+  const closeAll = async () => {
+    if (!window.confirm(`Fechar todas as ${positions.length} posições a mercado?`)) return
+    setClosingAll(true)
+    try {
+      await futuresApi.closeAll(account)
+      toast.success("Todas as posições foram fechadas")
+      onChanged()
+    } catch (e) {
+      toast.error((e as Error).message)
+    } finally {
+      setClosingAll(false)
+    }
+  }
 
   const cancel = async (id: string) => {
     try {
@@ -307,6 +336,7 @@ export function AccountTables({ state, account, marks, liveSymbol, livePrice, on
     ["history", "Histórico de ordens"],
     ["fills", "Histórico de trades"],
     ["pnl", "P&L fechado"],
+    ["funding", "Financiamento"],
   ]
 
   const authenticated = state?.authenticated
@@ -330,6 +360,15 @@ export function AccountTables({ state, account, marks, liveSymbol, livePrice, on
             </button>
           ))}
         </div>
+        {tab === "positions" && positions.length > 0 && (
+          <button
+            onClick={closeAll}
+            disabled={closingAll}
+            className="shrink-0 rounded bg-short/15 px-2 py-1 text-xs font-semibold text-short hover:bg-short/25 disabled:opacity-50"
+          >
+            {closingAll ? "Fechando..." : "Fechar tudo"}
+          </button>
+        )}
         {tab === "orders" && openOrders.length > 0 && (
           <button onClick={cancelAll} className="shrink-0 text-xs font-medium text-primary hover:underline">
             Cancelar todas
@@ -409,6 +448,36 @@ export function AccountTables({ state, account, marks, liveSymbol, livePrice, on
                     </tr>
                   )
                 })}
+              </tbody>
+            </table>
+          )
+        ) : tab === "funding" ? (
+          funding.length === 0 ? (
+            <Empty text="Nenhuma cobrança de financiamento ainda. A cobrança ocorre a cada 8h nas posições abertas." />
+          ) : (
+            <table className="w-full text-xs">
+              <thead>
+                <tr>
+                  <Th>Contrato</Th>
+                  <Th right>Taxa</Th>
+                  <Th right>Preço marca</Th>
+                  <Th right>Valor (USD)</Th>
+                  <Th right>Horário</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {funding.map((f) => (
+                  <tr key={f.id} className="border-t border-term-line/60 text-term-text hover:bg-term-line/30">
+                    <Td className="font-sans font-semibold">{f.symbol}</Td>
+                    <Td right>{(f.rate * 100).toFixed(4)}%</Td>
+                    <Td right>{formatPrice(f.mark_price, MARKET_MAP[f.symbol]?.priceDecimals ?? 2)}</Td>
+                    <Td right className={f.amount >= 0 ? "text-long" : "text-short"}>
+                      {f.amount >= 0 ? "+" : ""}
+                      {formatUsd(f.amount, 4)}
+                    </Td>
+                    <Td right className="text-term-muted">{time(f.funding_time)}</Td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           )
