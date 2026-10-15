@@ -1,6 +1,6 @@
 "use client"
 
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import useSWR from "swr"
 import {
   CandlestickSeries,
@@ -247,13 +247,14 @@ function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  useEffect(() => {
+  // Layout effects: o canvas troca de cor no mesmo frame que o CSS, sem piscar o tema antigo.
+  useLayoutEffect(() => {
     watermarkRef.current?.applyOptions({
       lines: [{ text: market.symbol, color: palette.watermark, fontSize: 64, fontStyle: "bold" }],
     })
   }, [market.symbol, palette])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     chartRef.current?.applyOptions(chartLayoutOptions(palette))
     if (!hoverRef.current) renderLegend(lastCandleRef.current)
     // eslint-disable-next-line react-hooks/exhaustive-deps

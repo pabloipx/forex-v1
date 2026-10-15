@@ -153,6 +153,12 @@
   transition: none !important;
 }
 
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 220ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* Adicionando animações suaves para melhor UX */
 @layer base {
   * {

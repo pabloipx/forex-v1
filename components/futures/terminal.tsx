@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useRef, useState } from "react"
+import { flushSync } from "react-dom"
 import { TERM_THEME_COOKIE, type TermTheme } from "@/lib/futures/term-theme"
 import { useRouter } from "next/navigation"
 import { Toaster, toast } from "sonner"
@@ -56,10 +57,24 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
   const toggleTheme = useCallback(() => {
     const next: TermTheme = theme === "light" ? "dark" : "light"
     const root = rootRef.current
-    root?.classList.add("term-switching")
-    setTheme(next)
     document.cookie = `${TERM_THEME_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`
-    requestAnimationFrame(() => requestAnimationFrame(() => root?.classList.remove("term-switching")))
+
+    // Aplica tudo de uma vez (CSS + canvas) com as transições por elemento desligadas;
+    // a suavidade vem de um único crossfade da página inteira (View Transitions).
+    const apply = () => {
+      root?.classList.add("term-switching")
+      flushSync(() => setTheme(next))
+    }
+    const done = () => requestAnimationFrame(() => root?.classList.remove("term-switching"))
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    if (!document.startViewTransition || reduceMotion) {
+      apply()
+      done()
+      return
+    }
+    const transition = document.startViewTransition(apply)
+    transition.finished.finally(done)
   }, [theme])
   const [account, setAccount] = useState<AccountMode>("demo")
   const [limitPrice, setLimitPrice] = useState("")
