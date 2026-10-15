@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react"
 import { toast } from "sonner"
 import { Pencil } from "lucide-react"
+import { Slider } from "@/components/ui/slider"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import { MARKET_MAP, formatPrice, formatUsd, notionalUsd, unrealizedPnl } from "@/lib/futures/markets"
@@ -127,16 +128,91 @@ function TpSlDialog({ position, onClose, onSaved }: { position: Position; onClos
   )
 }
 
+function LeverageDialog({ position, onClose, onSaved }: { position: Position; onClose: () => void; onSaved: () => void }) {
+  const market = MARKET_MAP[position.symbol]
+  const max = market?.maxLeverage ?? 100
+  const [lev, setLev] = useState(position.leverage)
+  const [saving, setSaving] = useState(false)
+  const newMargin = (position.margin * position.leverage) / lev
+  const delta = newMargin - position.margin
+
+  const save = async () => {
+    setSaving(true)
+    try {
+      await futuresApi.setLeverage(position.id, lev)
+      toast.success(`Alavancagem ajustada para ${lev}x`)
+      onSaved()
+      onClose()
+    } catch (e) {
+      toast.error((e as Error).message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="border-term-line bg-term-panel text-term-text sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Ajustar alavancagem · {position.symbol}</DialogTitle>
+          <DialogDescription className="text-term-muted">
+            A margem da posição é recalculada e o preço de liquidação muda.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-term-muted">Alavancagem</span>
+          <span className="font-mono text-2xl font-semibold text-term-text">{lev}x</span>
+        </div>
+        <Slider min={1} max={max} step={1} value={[lev]} onValueChange={([v]) => setLev(v)} aria-label="Alavancagem" />
+        <div className="flex justify-between font-mono text-[11px] text-term-muted">
+          <span>1x</span>
+          <span>{max}x</span>
+        </div>
+        <dl className="flex flex-col gap-1 text-xs">
+          <div className="flex justify-between">
+            <dt className="text-term-muted">Margem atual</dt>
+            <dd className="font-mono">{formatUsd(position.margin)}</dd>
+          </div>
+          <div className="flex justify-between">
+            <dt className="text-term-muted">Nova margem</dt>
+            <dd className="font-mono">
+              {formatUsd(newMargin)}{" "}
+              <span className={delta > 0 ? "text-short" : "text-long"}>
+                ({delta > 0 ? "+" : ""}
+                {formatUsd(delta)})
+              </span>
+            </dd>
+          </div>
+        </dl>
+        {lev >= 50 && (
+          <p className="rounded-md bg-short/10 p-2 text-xs leading-relaxed text-short">
+            Alavancagem alta: uma variação pequena no preço de marcação pode liquidar a posição.
+          </p>
+        )}
+        <button
+          onClick={save}
+          disabled={saving || lev === position.leverage}
+          className="rounded-md bg-primary py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
+        >
+          {saving ? "Salvando..." : "Confirmar"}
+        </button>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 function PositionRow({
   p,
   mark,
   onChanged,
   onEditTpSl,
+  onEditLeverage,
 }: {
   p: Position
   mark: number | null
   onChanged: () => void
   onEditTpSl: () => void
+  onEditLeverage: () => void
 }) {
   const market = MARKET_MAP[p.symbol]
   const [limitPrice, setLimitPrice] = useState("")
@@ -166,7 +242,14 @@ function PositionRow({
         <span className="flex flex-col leading-tight">
           <span className="font-semibold text-term-text">{p.symbol}</span>
           <span className="text-[11px]">
-            <SideLabel side={p.side} /> <span className="text-term-muted">{p.margin_mode === "cross" ? "Cruzada" : "Isolada"} {p.leverage}x</span>
+            <SideLabel side={p.side} /> <button
+              onClick={onEditLeverage}
+              className="inline-flex items-center gap-1 text-term-muted hover:text-primary"
+            >
+              {p.margin_mode === "cross" ? "Cruzada" : "Isolada"} {p.leverage}x
+              <Pencil className="size-2.5" aria-hidden="true" />
+              <span className="sr-only">Ajustar alavancagem</span>
+            </button>
           </span>
         </span>
       </Td>
@@ -288,6 +371,7 @@ function OrdersTable({ orders, onCancel }: { orders: Order[]; onCancel?: (id: st
 export function AccountTables({ state, account, marks, derivs, liveSymbol, livePrice, onChanged }: AccountTablesProps) {
   const [tab, setTab] = useState<Tab>("positions")
   const [editing, setEditing] = useState<Position | null>(null)
+  const [editingLev, setEditingLev] = useState<Position | null>(null)
   const [closingAll, setClosingAll] = useState(false)
   const positions = state?.positions ?? []
   const openOrders = state?.openOrders ?? []
@@ -400,7 +484,7 @@ export function AccountTables({ state, account, marks, derivs, liveSymbol, liveP
               </thead>
               <tbody>
                 {positions.map((p) => (
-                  <PositionRow key={p.id} p={p} mark={markOf(p.symbol)} onChanged={onChanged} onEditTpSl={() => setEditing(p)} />
+                  <PositionRow key={p.id} p={p} mark={markOf(p.symbol)} onChanged={onChanged} onEditTpSl={() => setEditing(p)} onEditLeverage={() => setEditingLev(p)} />
                 ))}
               </tbody>
             </table>
@@ -525,6 +609,7 @@ export function AccountTables({ state, account, marks, derivs, liveSymbol, liveP
         )}
       </div>
       {editing && <TpSlDialog position={editing} onClose={() => setEditing(null)} onSaved={onChanged} />}
+      {editingLev && <LeverageDialog position={editingLev} onClose={() => setEditingLev(null)} onSaved={onChanged} />}
     </section>
   )
 }
