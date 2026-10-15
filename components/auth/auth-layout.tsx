@@ -11,7 +11,6 @@ export const AUTH_LABEL = "text-sm font-medium text-gray-800"
 
 const STATS = [
   { value: "24/7", label: "Mercado aberto" },
-  { value: "0", label: "Taxa de cadastro" },
   { value: "PIX", label: "Depósito instantâneo" },
 ]
 
@@ -25,7 +24,7 @@ function HeroPanel() {
         Opere futuros de cripto diretamente com a Kryptobit
       </h2>
 
-      <div className="relative z-10 grid grid-cols-3 bg-black/45 backdrop-blur-md px-12 py-6">
+      <div className="relative z-10 grid grid-cols-2 bg-black/45 backdrop-blur-md px-12 py-6">
         {STATS.map((s, i) => (
           <div key={s.label} className={`flex flex-col gap-1 ${i > 0 ? "border-l border-white/20 pl-10" : ""}`}>
             <span className="text-4xl font-light text-white">{s.value}</span>
