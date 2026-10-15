@@ -229,12 +229,19 @@ export async function listUsers(): Promise<AdminUser[]> {
     ]
   }
   const client = db()
-  const [{ data: profiles, error }, { data: balances }, { data: open }] = await Promise.all([
-    client.from("profiles").select("*").order("created_at", { ascending: false }).limit(1000),
-    client.from("user_balances").select("user_id, balance_real, balance_demo"),
-    client.from("futures_positions").select("user_id").eq("status", "open"),
-  ])
+  const { data: profiles, error } = await client
+    .from("profiles")
+    .select("id, email, full_name, phone, country, kyc_status, is_blocked, created_at, last_login_at")
+    .order("created_at", { ascending: false })
+    .limit(1000)
   if (error) throw new TradingError("Tabela profiles ausente. Rode scripts/setup_completo.sql.", 500)
+  const ids = (profiles ?? []).map((p) => p.id as string)
+  const [{ data: balances }, { data: open }] = ids.length
+    ? await Promise.all([
+        client.from("user_balances").select("user_id, balance_real, balance_demo").in("user_id", ids),
+        client.from("futures_positions").select("user_id").eq("status", "open").in("user_id", ids),
+      ])
+    : [{ data: [] }, { data: [] }]
   const bal = Object.fromEntries((balances ?? []).map((b) => [b.user_id as string, b]))
   const openCount: Record<string, number> = {}
   for (const r of open ?? []) openCount[r.user_id as string] = (openCount[r.user_id as string] ?? 0) + 1

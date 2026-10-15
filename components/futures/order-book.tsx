@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { memo, useMemo, useState } from "react"
 import { ArrowDown, ArrowUp } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { formatPrice, type FuturesMarket } from "@/lib/futures/markets"
@@ -58,6 +58,98 @@ function fmtQty(q: number) {
   return q >= 1000 ? q.toLocaleString("en-US", { maximumFractionDigits: 0 }) : q.toFixed(q < 1 ? 4 : 3)
 }
 
+interface BookRowProps {
+  price: number
+  qty: number
+  total: number
+  side: "bid" | "ask"
+  max: number
+  decimals: number
+  onPriceClick: (price: number) => void
+}
+
+// Linha estável (key por posição): o DOM é reaproveitado a cada tick e só textos e
+// transform mudam. scaleX roda no compositor, sem reflow como animar width.
+const BookRow = memo(function BookRow({ price, qty, total, side, max, decimals, onPriceClick }: BookRowProps) {
+  const empty = price <= 0
+  const totalScale = max > 0 ? Math.min(1, total / max) : 0
+  const qtyScale = max > 0 ? Math.min(1, qty / max) : 0
+  return (
+    <button
+      type="button"
+      disabled={empty}
+      onClick={() => onPriceClick(price)}
+      className="relative grid h-5 w-full shrink-0 grid-cols-3 items-center overflow-hidden px-3 text-right font-mono text-xs tabular-nums hover:bg-term-line/50 disabled:pointer-events-none"
+    >
+      <span
+        aria-hidden="true"
+        className={cn(
+          "absolute inset-0 origin-right transition-transform duration-200 ease-out",
+          side === "bid" ? "bg-long/10" : "bg-short/10",
+        )}
+        style={{ transform: `scaleX(${totalScale})` }}
+      />
+      <span
+        aria-hidden="true"
+        className={cn(
+          "absolute inset-0 origin-right transition-transform duration-200 ease-out",
+          side === "bid" ? "bg-long/20" : "bg-short/20",
+        )}
+        style={{ transform: `scaleX(${qtyScale})` }}
+      />
+      <span className={cn("relative truncate text-left", side === "bid" ? "text-long" : "text-short")}>
+        {empty ? "--" : formatPrice(price, decimals)}
+      </span>
+      <span className="relative truncate text-term-text">{empty ? "" : fmtQty(qty)}</span>
+      <span className="relative truncate text-term-text">{empty ? "" : fmtQty(total)}</span>
+    </button>
+  )
+})
+
+const EMPTY_LEVEL: GroupedLevel = { price: 0, qty: 0, total: 0 }
+
+function BookSide({
+  levels,
+  rows,
+  side,
+  max,
+  decimals,
+  onPriceClick,
+}: {
+  levels: GroupedLevel[]
+  rows: number
+  side: "bid" | "ask"
+  max: number
+  decimals: number
+  onPriceClick: (price: number) => void
+}) {
+  // Sempre o mesmo número de linhas: a altura não pula quando o livro chega incompleto.
+  const filled = Array.from({ length: rows }, (_, i) => levels[i] ?? EMPTY_LEVEL)
+  return (
+    // flex-1 + min-h-0: as linhas que não cabem são cortadas na ponta longe do spread,
+    // nunca por cima do cabeçalho ou do rodapé.
+    <div
+      className={cn(
+        "flex min-h-0 flex-1 overflow-hidden [contain:strict]",
+        side === "ask" ? "flex-col-reverse" : "flex-col",
+      )}
+    >
+      {filled.map((l, i) => (
+        <BookRow
+          key={i}
+          price={l.price}
+          qty={l.qty}
+          total={l.total}
+          side={side}
+          max={max}
+          decimals={decimals}
+          onPriceClick={onPriceClick}
+        />
+      ))}
+    </div>
+  )
+}
+
 function Book({ market, feed, onPriceClick }: OrderBookProps) {
   const [view, setView] = useState<View>("both")
   const tick = 10 ** -market.priceDecimals
@@ -74,7 +166,10 @@ function Book({ market, feed, onPriceClick }: OrderBookProps) {
   const bestBid = feed.bids[0]?.[0]
   const spread = bestAsk != null && bestBid != null && bestAsk >= bestBid ? bestAsk - bestBid : null
   const mid = spread != null ? (bestAsk! + bestBid!) / 2 : null
-  const spreadDecimals = rawDecimals([...feed.asks, ...feed.bids], market.priceDecimals)
+  const spreadDecimals = Math.max(
+    rawDecimals(feed.asks, market.priceDecimals),
+    rawDecimals(feed.bids, market.priceDecimals),
+  )
   const spreadPct = spread != null && mid ? (spread / mid) * 100 : null
 
   const bidVol = bids.reduce((s, l) => s + l.qty, 0)
@@ -83,39 +178,6 @@ function Book({ market, feed, onPriceClick }: OrderBookProps) {
 
   const prevTrade = feed.trades[1]?.price
   const up = feed.last != null && prevTrade != null ? feed.last >= prevTrade : true
-
-  const Row = ({ price, qty, total, side }: { price: number; qty: number; total: number; side: "bid" | "ask" }) => (
-    <button
-      onClick={() => onPriceClick(price)}
-      className="relative grid w-full grid-cols-3 px-3 py-[3px] text-right font-mono text-xs hover:bg-term-line/50"
-    >
-      {max > 0 && (
-        <>
-          <span
-            aria-hidden="true"
-            className={cn(
-              "absolute inset-y-0 right-0 transition-[width] duration-200",
-              side === "bid" ? "bg-long/10" : "bg-short/10",
-            )}
-            style={{ width: `${Math.min(100, (total / max) * 100)}%` }}
-          />
-          <span
-            aria-hidden="true"
-            className={cn(
-              "absolute inset-y-0 right-0 transition-[width] duration-200",
-              side === "bid" ? "bg-long/20" : "bg-short/20",
-            )}
-            style={{ width: `${Math.min(100, (qty / max) * 100)}%` }}
-          />
-        </>
-      )}
-      <span className={cn("relative text-left", side === "bid" ? "text-long" : "text-short")}>
-        {formatPrice(price, groupDecimals)}
-      </span>
-      <span className="relative text-term-text">{fmtQty(qty)}</span>
-      <span className="relative text-term-text">{fmtQty(total)}</span>
-    </button>
-  )
 
   return (
     <div className="flex h-full flex-col">
@@ -161,11 +223,7 @@ function Book({ market, feed, onPriceClick }: OrderBookProps) {
       </div>
 
       {view !== "bids" && (
-        <div className="flex flex-col-reverse">
-          {asks.map((l) => (
-            <Row key={`a${l.price}`} {...l} side="ask" />
-          ))}
-        </div>
+        <BookSide levels={asks} rows={rows} side="ask" max={max} decimals={groupDecimals} onPriceClick={onPriceClick} />
       )}
 
       <div className="flex items-center gap-2 px-3 py-2">
@@ -210,11 +268,7 @@ function Book({ market, feed, onPriceClick }: OrderBookProps) {
       </div>
 
       {view !== "asks" && (
-        <div className="flex flex-col">
-          {bids.map((l) => (
-            <Row key={`b${l.price}`} {...l} side="bid" />
-          ))}
-        </div>
+        <BookSide levels={bids} rows={rows} side="bid" max={max} decimals={groupDecimals} onPriceClick={onPriceClick} />
       )}
 
       {bidVol + askVol > 0 ? (

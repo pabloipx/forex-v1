@@ -113,16 +113,50 @@
   --color-atlas-success: #2190ff;
 
   /* Terminal de derivativos (futuros/forex) */
-  --color-term-bg: #0a0d14;
-  --color-term-panel: #131722;
-  --color-term-line: #232836;
-  --color-term-text: #e6e9f0;
-  --color-term-muted: #7d8496;
+  --color-term-bg: var(--term-bg);
+  --color-term-panel: var(--term-panel);
+  --color-term-line: var(--term-line);
+  --color-term-text: var(--term-text);
+  --color-term-muted: var(--term-muted);
   --color-term-up: #089981;
   --color-term-down: #f23645;
   --color-long: #089981;
   --color-short: #f23645;
   --color-pending: #f0b90b;
+}
+
+/* Paleta do terminal: escura por padrao (admin/perfil), clara via .term-light */
+:root {
+  --term-bg: #0a0d14;
+  --term-panel: #131722;
+  --term-line: #232836;
+  --term-text: #e6e9f0;
+  --term-muted: #7d8496;
+}
+
+.term-light {
+  --term-bg: #eef1f5;
+  --term-panel: #ffffff;
+  --term-line: #e3e7ee;
+  --term-text: #131722;
+  --term-muted: #6a7180;
+  color-scheme: light;
+}
+
+.term-dark {
+  color-scheme: dark;
+}
+
+/* Evita animar milhares de elementos ao trocar o tema */
+.term-switching,
+.term-switching * {
+  transition: none !important;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 220ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Adicionando animações suaves para melhor UX */
