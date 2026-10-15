@@ -122,6 +122,7 @@
   --color-term-down: #f23645;
   --color-long: #089981;
   --color-short: #f23645;
+  --color-pending: #f0b90b;
 }
 
 /* Adicionando animações suaves para melhor UX */
