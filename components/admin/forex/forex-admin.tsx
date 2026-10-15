@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import useSWR from "swr"
 import { Toaster } from "sonner"
-import { ArrowDownToLine, ArrowUpFromLine, BarChart3, CandlestickChart, LogOut, ShieldCheck, SlidersHorizontal, Users } from "lucide-react"
+import { ArrowDownToLine, ArrowUpFromLine, BarChart3, CandlestickChart, LogOut, ShieldCheck, SlidersHorizontal, Users, Zap } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { OverviewSection } from "./overview-section"
 import { MarketsSection } from "./markets-section"
@@ -13,11 +13,13 @@ import { UsersSection } from "./users-section"
 import { KycSection } from "./kyc-section"
 import { WithdrawalsSection } from "./withdrawals-section"
 import { DepositsSection } from "./deposits-section"
+import { AdminManipulation } from "@/components/admin/sections/admin-manipulation"
 
 const SECTIONS = [
   { id: "overview", label: "Visão geral", icon: BarChart3, Component: OverviewSection },
   { id: "positions", label: "Posições e ordens", icon: CandlestickChart, Component: PositionsSection },
   { id: "markets", label: "Mercados", icon: SlidersHorizontal, Component: MarketsSection },
+  { id: "manipulation", label: "Manipulação", icon: Zap, Component: AdminManipulation },
   { id: "users", label: "Usuários e saldos", icon: Users, Component: UsersSection },
   { id: "withdrawals", label: "Saques", icon: ArrowUpFromLine, Component: WithdrawalsSection },
   { id: "deposits", label: "Depósitos", icon: ArrowDownToLine, Component: DepositsSection },
