@@ -87,24 +87,42 @@ export function useDrawingState(symbol: string): DrawingState {
   const [locked, setLocked] = useState(false)
   const [hidden, setHidden] = useState(false)
   const [selected, setSelected] = useState<string | null>(null)
-  const [store, setStore] = useState<{ symbol: string; items: Drawing[] }>({ symbol: "", items: [] })
+  const [store, setStore] = useState<{ symbol: string; items: Drawing[]; dirty?: boolean }>({ symbol: "", items: [] })
 
   useEffect(() => {
     setStore({ symbol, items: loadDrawings(symbol) })
     setSelected(null)
   }, [symbol])
 
-  const setDrawings = useCallback(
-    (fn: (d: Drawing[]) => Drawing[]) =>
-      setStore((s) => {
-        const items = fn(s.items)
-        try {
-          localStorage.setItem(STORAGE_PREFIX + s.symbol, JSON.stringify(items))
-        } catch {}
-        return { ...s, items }
-      }),
-    [],
-  )
+  const setDrawings = useCallback((fn: (d: Drawing[]) => Drawing[]) => setStore((s) => ({ ...s, items: fn(s.items), dirty: true })), [])
+
+  // Arrastar gera dezenas de updates por segundo: agrupa a gravacao e garante flush ao sair/trocar de simbolo.
+  const pendingRef = useRef<{ symbol: string; items: Drawing[] } | null>(null)
+  const flush = useCallback(() => {
+    const p = pendingRef.current
+    if (!p) return
+    pendingRef.current = null
+    try {
+      localStorage.setItem(STORAGE_PREFIX + p.symbol, JSON.stringify(p.items))
+    } catch {}
+  }, [])
+
+  useEffect(() => {
+    if (!store.dirty || !store.symbol) return
+    pendingRef.current = { symbol: store.symbol, items: store.items }
+    const t = setTimeout(flush, 250)
+    return () => clearTimeout(t)
+  }, [store, flush])
+
+  useEffect(() => {
+    window.addEventListener("pagehide", flush)
+    return () => {
+      window.removeEventListener("pagehide", flush)
+      flush()
+    }
+  }, [flush])
+
+  useEffect(() => flush, [symbol, flush])
 
   return {
     tool,
