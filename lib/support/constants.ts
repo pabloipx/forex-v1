@@ -16,7 +16,7 @@ export const SUPPORT_MAX_OPEN_TICKETS = 1
 
 export const SUPPORT_AGENT = {
   name: "Joel Cunha",
-  avatar: "/images/support/joel-avatar.png",
+  avatar: "/images/support/joel-cunha.png",
 }
 
 export const SUPPORT_STATUS_LABEL: Record<SupportStatus, string> = {
