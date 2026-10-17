@@ -1,9 +1,7 @@
 import { createClient, createAdminClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
-const CRYPTO_WALLET = "0x4a46afb8Cd04C21FD1370ECbdC1C543352e55e60"
-const CRYPTO_MIN_USD = 20
-const USD_TO_BRL = 6.0
+import { CRYPTO_MIN_USD, CRYPTO_OPTIONS, USD_TO_BRL, isCryptoType } from "@/lib/deposit/crypto"
 
 export async function POST(request: Request) {
   try {
@@ -19,7 +17,12 @@ export async function POST(request: Request) {
     // O valor em reais NAO e aceito do cliente: ele e sempre recalculado no servidor a partir do
     // valor em dolar. Antes o corpo da requisicao podia enviar amountBrl livremente, entao um
     // deposito de US$ 20 podia ser registrado como R$ 999.999 e creditado nesse valor na aprovacao.
-    const { amountUsd, txHash } = await request.json()
+    const { amountUsd, txHash, cryptoType } = await request.json()
+
+    if (!isCryptoType(cryptoType)) {
+      return NextResponse.json({ error: "Criptomoeda invalida" }, { status: 400 })
+    }
+    const crypto = CRYPTO_OPTIONS[cryptoType]
 
     // Validations
     const numAmount = Number(amountUsd)
@@ -27,7 +30,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `Valor minimo e $${CRYPTO_MIN_USD} USD` }, { status: 400 })
     }
 
-    if (!txHash || txHash.trim().length < 10) {
+    if (typeof txHash !== "string" || txHash.trim().length < 10 || txHash.trim().length > 200) {
       return NextResponse.json({ error: "Hash da transacao invalido" }, { status: 400 })
     }
 
@@ -61,12 +64,12 @@ export async function POST(request: Request) {
         external_id: cleanTxHash,
         payment_details: {
           type: "crypto",
-          currency: "USDT",
-          network: "Ethereum (ERC-20)",
+          currency: crypto.symbol,
+          network: crypto.network,
           amount_usd: numAmount,
           amount_brl: amountBrl,
           tx_hash: cleanTxHash,
-          wallet_address: CRYPTO_WALLET,
+          wallet_address: crypto.wallet,
         },
       })
       .select()
