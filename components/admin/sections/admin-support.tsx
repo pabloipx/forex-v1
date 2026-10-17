@@ -17,6 +17,17 @@ import { MessageComposer } from "@/components/support/message-composer"
 import { StatusBadge } from "@/components/support/status-badge"
 import { postSupport, supportFetcher } from "@/components/support/support-fetcher"
 import { cn } from "@/lib/utils"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 type AdminTicket = SupportTicket & { user_id: string; user_name: string; user_email: string }
 type ListResponse = {
@@ -228,12 +239,17 @@ function AdminTicketChat({ id, onBack, onChanged }: { id: string; onBack: () => 
   const ticket = data?.ticket
   const closed = ticket?.status === "closed"
 
+  const [actionError, setActionError] = useState<string | null>(null)
+
   async function setStatus(status: "open" | "closed") {
     setUpdating(true)
+    setActionError(null)
     try {
       await postSupport(url, { status }, "PATCH")
       await mutate()
       onChanged()
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Não foi possível atualizar o ticket")
     } finally {
       setUpdating(false)
     }
@@ -275,19 +291,54 @@ function AdminTicketChat({ id, onBack, onChanged }: { id: string; onBack: () => 
             <span className="rounded bg-[#0F151E] px-2 py-1 font-mono text-xs text-orange-400">#{ticket.ticket_number}</span>
             <span className="rounded bg-[#0F151E] px-2 py-1 text-xs text-gray-300">{categoryLabel(ticket.category)}</span>
             <StatusBadge status={ticket.status} label={SUPPORT_STATUS_LABEL[ticket.status]} />
-            <button
-              type="button"
-              disabled={updating}
-              onClick={() => setStatus(closed ? "open" : "closed")}
-              className="flex items-center gap-1.5 rounded-lg bg-[#1A1F2E] px-3 py-1.5 text-xs font-medium text-gray-200 hover:bg-[#232A3A] disabled:opacity-50"
-            >
-              {closed ? (
+            {closed ? (
+              <button
+                type="button"
+                disabled={updating}
+                onClick={() => setStatus("open")}
+                className="flex items-center gap-1.5 rounded-lg bg-[#1A1F2E] px-3 py-1.5 text-xs font-medium text-gray-200 hover:bg-[#232A3A] disabled:opacity-50"
+              >
                 <RotateCcw className="size-3.5" aria-hidden="true" />
-              ) : (
-                <CheckCircle2 className="size-3.5" aria-hidden="true" />
-              )}
-              {closed ? "Reabrir" : "Encerrar"}
-            </button>
+                Reabrir
+              </button>
+            ) : (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <button
+                    type="button"
+                    disabled={updating}
+                    className="flex items-center gap-1.5 rounded-lg bg-orange-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-600 disabled:opacity-50"
+                  >
+                    {updating ? (
+                      <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+                    ) : (
+                      <CheckCircle2 className="size-3.5" aria-hidden="true" />
+                    )}
+                    Encerrar atendimento
+                  </button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="border-[#1E2633] bg-[#131A24] text-white">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Encerrar atendimento #{ticket.ticket_number}?</AlertDialogTitle>
+                    <AlertDialogDescription className="text-gray-400">
+                      O chat será fechado para {data?.user.full_name || data?.user.email || "o lead"} e ele receberá
+                      uma mensagem de encerramento. Se precisar, ele poderá abrir um novo ticket.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="border-[#1E2633] bg-[#1A1F2E] text-gray-200 hover:bg-[#232A3A] hover:text-white">
+                      Cancelar
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => setStatus("closed")}
+                      className="bg-orange-500 text-white hover:bg-orange-600"
+                    >
+                      Encerrar
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
         ) : null}
       </div>
@@ -318,9 +369,16 @@ function AdminTicketChat({ id, onBack, onChanged }: { id: string; onBack: () => 
         <div ref={endRef} />
       </div>
 
-      <div className="shrink-0 border-t border-[#1E2633] p-3">
+      <div className="flex shrink-0 flex-col gap-2 border-t border-[#1E2633] p-3">
+        {actionError ? (
+          <p role="alert" className="text-center text-xs text-red-400">
+            {actionError}
+          </p>
+        ) : null}
         {closed ? (
-          <p className="py-2 text-center text-sm text-gray-500">Ticket encerrado. Reabra para responder.</p>
+          <p className="py-2 text-center text-sm text-gray-500">
+            Atendimento encerrado. O lead pode abrir um novo ticket se precisar.
+          </p>
         ) : (
           <MessageComposer
             placeholder="Responder ao lead... (Enter envia, Shift+Enter quebra linha)"

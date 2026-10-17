@@ -43,8 +43,8 @@ export async function POST(request: Request) {
     .neq("status", "closed")
   if ((count ?? 0) >= SUPPORT_MAX_OPEN_TICKETS) {
     return NextResponse.json(
-      { error: "Você já tem muitos atendimentos em aberto. Continue por um deles." },
-      { status: 429 },
+      { error: "Você já tem um atendimento em andamento. Continue por ele até que seja encerrado." },
+      { status: 409 },
     )
   }
 

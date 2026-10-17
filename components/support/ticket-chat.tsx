@@ -89,7 +89,9 @@ export function TicketChat({ id, onNew, onChanged }: TicketChatProps) {
 
       {closed ? (
         <div className="flex shrink-0 flex-col items-center gap-2 border-t border-term-line px-4 py-3 sm:flex-row sm:justify-between">
-          <p className="text-sm text-term-muted">Este atendimento foi encerrado.</p>
+          <p className="text-pretty text-sm text-term-muted">
+            Este atendimento foi encerrado. Precisa de mais ajuda? Abra um novo.
+          </p>
           <button
             type="button"
             onClick={onNew}

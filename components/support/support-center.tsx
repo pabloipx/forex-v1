@@ -37,7 +37,7 @@ export function SupportCenter() {
           <ChatHeader status="Online · responde em minutos" />
           <SupportWelcome
             tickets={tickets}
-            onStart={() => setView({ kind: "new" })}
+            onStart={() => setView(activeTicket ? { kind: "ticket", id: activeTicket.id } : { kind: "new" })}
             onOpen={(id) => setView({ kind: "ticket", id })}
           />
         </>

@@ -12,7 +12,7 @@ export type SupportCategory = (typeof SUPPORT_CATEGORIES)[number]["id"]
 export type SupportStatus = "open" | "answered" | "closed"
 
 export const SUPPORT_MESSAGE_MAX = 4000
-export const SUPPORT_MAX_OPEN_TICKETS = 5
+export const SUPPORT_MAX_OPEN_TICKETS = 1
 
 export const SUPPORT_AGENT = {
   name: "Thiago Morais",
