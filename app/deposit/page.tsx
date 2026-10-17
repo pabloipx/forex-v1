@@ -714,84 +714,74 @@ export default function DepositPage() {
           <div className="w-full lg:max-w-md space-y-6">
         {/* Method selector */}
         <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-[#6B7280] mb-2.5">Metodo de pagamento</p>
-          <div className={`grid gap-2.5 ${cardEnabled && cryptoEnabled ? "grid-cols-3" : cardEnabled || cryptoEnabled ? "grid-cols-2" : "grid-cols-1"}`}>
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-white">Métodos disponíveis</p>
+          <div className="grid grid-cols-1 gap-3">
             <button
               type="button"
               disabled
               aria-disabled="true"
               title="PIX indisponível no momento"
-              className={`group relative flex flex-col items-center gap-2 px-3 py-4 rounded-2xl border transition-all duration-200 overflow-hidden cursor-not-allowed opacity-60 ${
-                method === "pix"
-                  ? "border-[#2190ff] bg-gradient-to-b from-[#2190ff]/15 to-transparent shadow-[0_0_0_1px_rgba(33,144,255,0.35),0_8px_24px_-8px_rgba(33,144,255,0.5)]"
-                  : "border-[#1F2933] bg-[#121826] hover:border-[#374151] hover:bg-[#161d2b]"
-              }`}
+              className="relative flex min-h-24 cursor-not-allowed items-center gap-4 rounded-lg bg-[#262b3a] px-6 py-5 text-left opacity-60"
             >
-              {method === "pix" && (
-                <span className="absolute top-2 right-2 flex items-center justify-center w-4 h-4 rounded-full bg-[#2190ff]">
-                  <Check className="w-3 h-3 text-white" strokeWidth={3} />
-                </span>
-              )}
-              <span className={`flex items-center justify-center w-10 h-10 rounded-xl transition-colors ${method === "pix" ? "bg-white" : "bg-[#0d0d0f] group-hover:bg-white/95"}`}>
-                <Image
-                  src="/images/a57db68e-f6a1-44c5-bde8.jpeg"
-                  alt="PIX"
-                  width={24}
-                  height={24}
-                  className="w-6 h-6 rounded-md"
-                />
+              <Image
+                src="/images/a57db68e-f6a1-44c5-bde8.jpeg"
+                alt=""
+                width={44}
+                height={44}
+                className="h-11 w-11 shrink-0 rounded-lg"
+              />
+              <span className="flex min-w-0 flex-col gap-1">
+                <span className="truncate text-base font-medium text-white">PIX (Apenas seu CPF)</span>
+                <span className="text-sm text-[#9CA3AF]">Temporariamente indisponível</span>
               </span>
-              <span className="flex flex-col items-center leading-tight">
-                <span className={`text-sm font-bold ${method === "pix" ? "text-white" : "text-white/80"}`}>PIX</span>
-                <span className="mt-1 rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-400">Indisponível</span>
+              <span className="ml-auto shrink-0 rounded-full bg-red-500/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-red-400">
+                Indisponível
               </span>
             </button>
             {cardEnabled && (
               <button
+                type="button"
                 onClick={() => { setMethod("card"); setError(null); setCardAmountSelected(false) }}
                 aria-pressed={method === "card"}
-                className={`group relative flex flex-col items-center gap-2 px-3 py-4 rounded-2xl border transition-all duration-200 overflow-hidden ${
-                  method === "card"
-                    ? "border-[#2190ff] bg-gradient-to-b from-[#2190ff]/15 to-transparent shadow-[0_0_0_1px_rgba(33,144,255,0.35),0_8px_24px_-8px_rgba(33,144,255,0.5)]"
-                    : "border-[#1F2933] bg-[#121826] hover:border-[#374151] hover:bg-[#161d2b]"
+                className={`relative flex min-h-24 items-center gap-4 rounded-lg px-6 py-5 text-left transition-colors ${
+                  method === "card" ? "bg-[#2a3142] ring-2 ring-[#2190ff]" : "bg-[#262b3a] hover:bg-[#2d3344]"
                 }`}
               >
+                <span aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-[#2190ff]">
+                  <CreditCard className="h-5 w-5 text-white" />
+                </span>
+                <span className="flex min-w-0 flex-col gap-1">
+                  <span className="truncate text-base font-medium text-white">Cartão</span>
+                  <span className="text-sm text-[#9CA3AF]">Crédito ou débito</span>
+                </span>
                 {method === "card" && (
-                  <span className="absolute top-2 right-2 flex items-center justify-center w-4 h-4 rounded-full bg-[#2190ff]">
-                    <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                  <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-[#2190ff]">
+                    <Check className="h-3 w-3 text-white" strokeWidth={3} />
                   </span>
                 )}
-                <span className={`flex items-center justify-center w-10 h-10 rounded-xl transition-colors ${method === "card" ? "bg-[#2190ff]" : "bg-[#0d0d0f] group-hover:bg-[#161d2b]"}`}>
-                  <CreditCard className={`w-5 h-5 ${method === "card" ? "text-white" : "text-white/70"}`} />
-                </span>
-                <span className="flex flex-col items-center leading-tight">
-                  <span className={`text-sm font-bold ${method === "card" ? "text-white" : "text-white/80"}`}>Cartao</span>
-                  <span className="text-[10px] text-[#6B7280]">Credito / Debito</span>
-                </span>
               </button>
             )}
             {cryptoEnabled && (
               <button
+                type="button"
                 onClick={() => { setMethod("crypto"); setError(null) }}
                 aria-pressed={method === "crypto"}
-                className={`group relative flex flex-col items-center gap-2 px-3 py-4 rounded-2xl border transition-all duration-200 overflow-hidden ${
-                  method === "crypto"
-                    ? "border-[#2190ff] bg-gradient-to-b from-[#2190ff]/15 to-transparent shadow-[0_0_0_1px_rgba(33,144,255,0.35),0_8px_24px_-8px_rgba(33,144,255,0.5)]"
-                    : "border-[#1F2933] bg-[#121826] hover:border-[#374151] hover:bg-[#161d2b]"
+                className={`relative flex min-h-24 items-center gap-4 rounded-lg px-6 py-5 text-left transition-colors ${
+                  method === "crypto" ? "bg-[#2a3142] ring-2 ring-[#2190ff]" : "bg-[#262b3a] hover:bg-[#2d3344]"
                 }`}
               >
+                <span aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#26A17B] text-xl font-bold text-white">
+                  ₮
+                </span>
+                <span className="flex min-w-0 flex-col gap-1">
+                  <span className="truncate text-base font-medium text-white">Criptomoeda</span>
+                  <span className="text-sm leading-snug text-[#9CA3AF]">USDT, BTC, ETH ou SOL · mín. US$ 20</span>
+                </span>
                 {method === "crypto" && (
-                  <span className="absolute top-2 right-2 flex items-center justify-center w-4 h-4 rounded-full bg-[#2190ff]">
-                    <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                  <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-[#2190ff]">
+                    <Check className="h-3 w-3 text-white" strokeWidth={3} />
                   </span>
                 )}
-                <span className={`flex items-center justify-center w-10 h-10 rounded-xl transition-colors ${method === "crypto" ? "bg-[#26A17B]" : "bg-[#0d0d0f] group-hover:bg-[#161d2b]"}`}>
-                  <span className={`text-lg font-bold ${method === "crypto" ? "text-white" : "text-white/70"}`}>₮</span>
-                </span>
-                <span className="flex flex-col items-center leading-tight">
-                  <span className={`text-sm font-bold ${method === "crypto" ? "text-white" : "text-white/80"}`}>Cripto</span>
-                  <span className="text-[10px] text-[#6B7280]">USDT · BTC · ETH · SOL</span>
-                </span>
               </button>
             )}
           </div>

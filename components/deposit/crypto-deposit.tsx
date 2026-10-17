@@ -80,9 +80,9 @@ export function CryptoDeposit({
   if (!showQR) {
     return (
       <div className="flex flex-col gap-4">
-        <fieldset className="flex flex-col gap-2">
-          <legend className="mb-2 text-sm font-medium text-white">Escolha a criptomoeda</legend>
-          <div className="grid grid-cols-2 gap-3">
+        <fieldset className="flex flex-col">
+          <legend className="mb-3 text-xs font-semibold uppercase tracking-wider text-white">Moedas disponíveis</legend>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {CRYPTO_LIST.map((option) => {
               const active = option.id === cryptoType
               return (
@@ -91,24 +91,30 @@ export function CryptoDeposit({
                   type="button"
                   onClick={() => onCryptoTypeChange(option.id)}
                   aria-pressed={active}
-                  className="flex items-center gap-3 rounded-xl border-2 bg-[#121826] p-3 text-left transition-all"
-                  style={{
-                    borderColor: active ? option.color : "#1F2933",
-                    backgroundColor: active ? `${option.color}1A` : undefined,
-                  }}
+                  className={`relative flex min-h-24 items-center gap-4 rounded-lg px-6 py-5 text-left transition-colors ${
+                    active
+                      ? "bg-[#2a3142] ring-2 ring-[#2190ff]"
+                      : "bg-[#262b3a] hover:bg-[#2d3344]"
+                  }`}
                 >
                   <span
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg font-bold text-white"
-                    style={{ backgroundColor: active ? option.color : `${option.color}33` }}
+                    aria-hidden="true"
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xl font-bold text-white"
+                    style={{ backgroundColor: option.color }}
                   >
                     {option.glyph}
                   </span>
-                  <span className="flex min-w-0 flex-col">
-                    <span className="font-semibold" style={{ color: active ? option.color : "#FFFFFF" }}>
-                      {option.symbol}
+                  <span className="flex min-w-0 flex-col gap-1">
+                    <span className="truncate text-base font-medium text-white">{option.name}</span>
+                    <span className="text-sm leading-snug text-[#9CA3AF]">
+                      {option.symbol} · Rede {option.network} · mín. US$ {CRYPTO_MIN_USD}
                     </span>
-                    <span className="truncate text-xs text-[#9CA3AF]">Rede {option.network}</span>
                   </span>
+                  {active && (
+                    <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-[#2190ff]">
+                      <Check className="h-3 w-3 text-white" strokeWidth={3} />
+                    </span>
+                  )}
                 </button>
               )
             })}
