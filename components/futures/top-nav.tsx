@@ -1,7 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { ChevronDown, Moon, Sun, Wallet } from "lucide-react"
+import { Moon, Sun, Wallet } from "lucide-react"
+import { UserMenu } from "./user-menu"
 import { cn } from "@/lib/utils"
 import type { AccountMode } from "@/lib/futures/types"
 import { formatUsd } from "@/lib/futures/markets"
@@ -123,20 +124,7 @@ export function TopNav({ theme, onToggleTheme, account, onAccountChange, authent
             >
               <Wallet className="size-4" aria-hidden="true" />
             </Link>
-            <Link
-              href="/profile"
-              title={email}
-              className="flex items-center gap-1 rounded-full p-0.5 pr-1.5 text-term-muted transition-colors hover:bg-term-panel hover:text-term-text"
-            >
-              <span
-                aria-hidden="true"
-                className="flex size-8 items-center justify-center rounded-full bg-primary/15 text-sm font-bold text-primary"
-              >
-                {initial}
-              </span>
-              <ChevronDown className="hidden size-3.5 sm:block" aria-hidden="true" />
-              <span className="sr-only">Perfil</span>
-            </Link>
+            <UserMenu email={email} initial={initial} />
           </>
         ) : (
           <>

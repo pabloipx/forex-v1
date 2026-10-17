@@ -27,6 +27,7 @@ import {
   Gift,
   Repeat,
   Bot,
+  Headset,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -39,6 +40,7 @@ import { UsersChart, DepositsChart } from "@/components/admin/sections/tab-chart
 import { AdminAssets } from "@/components/admin/sections/admin-assets"
 import { AdminManipulation } from "@/components/admin/sections/admin-manipulation"
 import { AdminPromotions } from "@/components/admin/sections/admin-promotions"
+import { AdminSupport } from "@/components/admin/sections/admin-support"
 
 // A autorizacao do painel e feita por cookie HttpOnly assinado, enviado automaticamente
 // pelo navegador em requisicoes same-origin. Nenhum segredo trafega pelo bundle.
@@ -106,7 +108,7 @@ interface KycRequest {
 export default function AdminDashboardClient() {
   const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [activeTab, setActiveTab] = useState<"home" | "users" | "deposits" | "withdrawals" | "kyc" | "trades" | "affiliates" | "promotions" | "cards" | "assets" | "manipulation" | "robo_ia" | "settings">("home")
+  const [activeTab, setActiveTab] = useState<"home" | "users" | "deposits" | "withdrawals" | "kyc" | "trades" | "affiliates" | "promotions" | "cards" | "assets" | "manipulation" | "robo_ia" | "support" | "settings">("home")
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   // Stats - initialize with default values to prevent null errors
@@ -254,6 +256,7 @@ export default function AdminDashboardClient() {
     { id: "deposits", label: "Depositos", icon: CreditCard },
     { id: "withdrawals", label: "Saques", icon: Banknote },
     { id: "kyc", label: "KYC", icon: ShieldCheck },
+    { id: "support", label: "Suporte", icon: Headset },
     { id: "robo_ia", label: "Robo IA", icon: Bot },
     { id: "affiliates", label: "Afiliados", icon: UserPlus },
     { id: "promotions", label: "Promocoes", icon: Gift },
@@ -2181,6 +2184,8 @@ export default function AdminDashboardClient() {
           {activeTab === "affiliates" && <AdminAffiliates />}
 
           {activeTab === "promotions" && <AdminPromotions />}
+
+          {activeTab === "support" && <AdminSupport />}
 
           {activeTab === "cards" && <AdminCards />}
 

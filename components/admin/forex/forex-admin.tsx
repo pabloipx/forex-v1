@@ -4,7 +4,8 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import useSWR from "swr"
 import { Toaster } from "sonner"
-import { ArrowDownToLine, ArrowUpFromLine, BarChart3, CandlestickChart, LogOut, ShieldCheck, SlidersHorizontal, Users, Zap } from "lucide-react"
+import { ArrowDownToLine, ArrowUpFromLine, BarChart3, CandlestickChart, Headset, LogOut, ShieldCheck, SlidersHorizontal, Users, Zap } from "lucide-react"
+import { AdminSupport } from "@/components/admin/sections/admin-support"
 import { cn } from "@/lib/utils"
 import { OverviewSection } from "./overview-section"
 import { MarketsSection } from "./markets-section"
@@ -24,6 +25,7 @@ const SECTIONS = [
   { id: "withdrawals", label: "Saques", icon: ArrowUpFromLine, Component: WithdrawalsSection },
   { id: "deposits", label: "Depósitos", icon: ArrowDownToLine, Component: DepositsSection },
   { id: "kyc", label: "KYC", icon: ShieldCheck, Component: KycSection },
+  { id: "support", label: "Suporte", icon: Headset, Component: AdminSupport },
 ] as const
 
 type SectionId = (typeof SECTIONS)[number]["id"]
