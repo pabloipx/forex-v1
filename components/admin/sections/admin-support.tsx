@@ -166,7 +166,7 @@ export function AdminSupport() {
                         </span>
                         <time className="shrink-0 text-[11px] text-gray-500">{formatSupportTime(t.last_message_at)}</time>
                       </span>
-                      <span className="truncate text-xs text-gray-400">{t.subject}</span>
+                      <span className="truncate text-xs text-gray-400"><span className="font-mono text-orange-400">#{t.ticket_number}</span> · {t.subject}</span>
                       <span className="mt-1 flex items-center gap-2">
                         <span className="rounded bg-[#0F151E] px-1.5 py-0.5 text-[11px] text-gray-400">
                           {categoryLabel(t.category)}
@@ -272,6 +272,7 @@ function AdminTicketChat({ id, onBack, onChanged }: { id: string; onBack: () => 
         </div>
         {ticket ? (
           <div className="flex items-center gap-2">
+            <span className="rounded bg-[#0F151E] px-2 py-1 font-mono text-xs text-orange-400">#{ticket.ticket_number}</span>
             <span className="rounded bg-[#0F151E] px-2 py-1 text-xs text-gray-300">{categoryLabel(ticket.category)}</span>
             <StatusBadge status={ticket.status} label={SUPPORT_STATUS_LABEL[ticket.status]} />
             <button

@@ -12,7 +12,7 @@ export async function GET(_request: Request, { params }: Context) {
 
   const { data: ticket } = await admin
     .from("support_tickets")
-    .select("id, user_id, category, subject, status, unread_admin, last_message_at, created_at")
+    .select("id, ticket_number, user_id, category, subject, status, unread_admin, last_message_at, created_at")
     .eq("id", id)
     .maybeSingle()
   if (!ticket) return NextResponse.json({ error: "Ticket não encontrado" }, { status: 404 })

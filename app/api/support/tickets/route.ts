@@ -11,7 +11,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from("support_tickets")
-    .select("id, category, subject, status, unread_admin, unread_user, last_message_at, created_at")
+    .select("id, ticket_number, category, subject, status, unread_admin, unread_user, last_message_at, created_at")
     .eq("user_id", user.id)
     .order("last_message_at", { ascending: false })
     .limit(50)

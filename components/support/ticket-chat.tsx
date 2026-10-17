@@ -1,26 +1,34 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { Fragment, useEffect, useRef } from "react"
 import useSWR from "swr"
-import { ChevronLeft, Loader2 } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import {
-  SUPPORT_STATUS_LABEL,
-  categoryLabel,
+  findCategory,
+  formatDayLabel,
   type SupportMessage,
+  type SupportStatus,
   type SupportTicket,
 } from "@/lib/support/constants"
-import { MessageBubble } from "./message-bubble"
-import { MessageComposer } from "./message-composer"
-import { StatusBadge } from "./status-badge"
+import { ChatHeader } from "./chat-header"
+import { ChatBubble, DaySeparator } from "./chat-bubble"
+import { ChatComposer } from "./chat-composer"
+import { ScriptChoice, ScriptIntro } from "./chat-script"
 import { postSupport, supportFetcher } from "./support-fetcher"
+
+const HEADER_STATUS: Record<SupportStatus, string> = {
+  open: "Aguardando atendente",
+  answered: "Em atendimento",
+  closed: "Atendimento encerrado",
+}
 
 interface TicketChatProps {
   id: string
-  onBack: () => void
+  onNew: () => void
   onChanged: () => void
 }
 
-export function TicketChat({ id, onBack, onChanged }: TicketChatProps) {
+export function TicketChat({ id, onNew, onChanged }: TicketChatProps) {
   const url = `/api/support/tickets/${id}`
   const { data, error, mutate } = useSWR<{ ticket: SupportTicket; messages: SupportMessage[] }>(url, supportFetcher, {
     refreshInterval: 5000,
@@ -34,62 +42,73 @@ export function TicketChat({ id, onBack, onChanged }: TicketChatProps) {
 
   const ticket = data?.ticket
   const closed = ticket?.status === "closed"
+  const introDay = ticket ? formatDayLabel(ticket.created_at) : null
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex h-12 shrink-0 items-center gap-2 border-b border-term-line px-4">
-        <button
-          type="button"
-          onClick={onBack}
-          aria-label="Voltar aos atendimentos"
-          className="-ml-2 flex size-8 items-center justify-center rounded-full text-term-muted hover:bg-term-line hover:text-term-text md:hidden"
-        >
-          <ChevronLeft className="size-4" aria-hidden="true" />
-        </button>
-        <div className="flex min-w-0 flex-1 items-center gap-2">
-          <h2 className="truncate text-sm font-semibold">{ticket ? categoryLabel(ticket.category) : "Atendimento"}</h2>
-          {ticket ? <StatusBadge status={ticket.status} label={SUPPORT_STATUS_LABEL[ticket.status]} /> : null}
-        </div>
-      </div>
+    <>
+      <ChatHeader
+        status={ticket ? HEADER_STATUS[ticket.status] : "Carregando..."}
+        subtitle={ticket ? `Suporte oficial · ${findCategory(ticket.category).short}` : undefined}
+        ticketNumber={ticket?.ticket_number}
+        live={!closed}
+      />
 
-      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-5" aria-live="polite">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3 py-4 sm:px-4" aria-live="polite">
         {error ? (
-          <p className="text-center text-sm text-term-down">{error.message}</p>
-        ) : !data ? (
+          <p className="m-auto text-sm text-term-down">{error.message}</p>
+        ) : !data || !ticket ? (
           <div className="flex flex-1 items-center justify-center text-term-muted">
             <Loader2 className="size-5 animate-spin" aria-label="Carregando" />
           </div>
         ) : (
-          data.messages.map((m) => (
-            <MessageBubble
-              key={m.id}
-              mine={m.sender === "user"}
-              author={m.sender === "admin" ? "Suporte Kryptobit" : undefined}
-              body={m.body}
-              time={m.created_at}
-            />
-          ))
+          <>
+            <DaySeparator label={introDay ?? "Hoje"} />
+            <ScriptIntro time={ticket.created_at} />
+            <ScriptChoice category={ticket.category} time={ticket.created_at} />
+            {data.messages.map((m, i) => {
+              const day = formatDayLabel(m.created_at)
+              const prevDay = i === 0 ? introDay : formatDayLabel(data.messages[i - 1].created_at)
+              return (
+                <Fragment key={m.id}>
+                  {day !== prevDay ? <DaySeparator label={day} /> : null}
+                  <ChatBubble from={m.sender === "user" ? "user" : "agent"} time={m.created_at}>
+                    {m.body}
+                  </ChatBubble>
+                </Fragment>
+              )
+            })}
+            {ticket.status === "open" && data.messages.every((m) => m.sender === "user") ? (
+              <p className="py-2 text-center text-xs text-term-muted">
+                Recebemos sua mensagem. Um atendente vai responder em instantes.
+              </p>
+            ) : null}
+          </>
         )}
         <div ref={endRef} />
       </div>
 
-      <div className="shrink-0 border-t border-term-line p-3">
-        {closed ? (
-          <p className="py-2 text-center text-sm text-term-muted">
-            Este atendimento foi encerrado. Abra um novo se precisar de ajuda.
-          </p>
-        ) : (
-          <MessageComposer
-            placeholder="Escreva uma mensagem..."
-            disabled={!data}
-            onSend={async (message) => {
-              await postSupport(url, { message })
-              await mutate()
-              onChanged()
-            }}
-          />
-        )}
-      </div>
-    </div>
+      {closed ? (
+        <div className="flex shrink-0 flex-col items-center gap-2 border-t border-term-line px-4 py-3 sm:flex-row sm:justify-between">
+          <p className="text-sm text-term-muted">Este atendimento foi encerrado.</p>
+          <button
+            type="button"
+            onClick={onNew}
+            className="rounded-xl bg-support px-4 py-2 text-sm font-semibold text-support-foreground transition-opacity hover:opacity-90"
+          >
+            Iniciar novo atendimento
+          </button>
+        </div>
+      ) : (
+        <ChatComposer
+          placeholder="Escreva uma mensagem..."
+          disabled={!data}
+          onSend={async (message) => {
+            await postSupport(url, { message })
+            await mutate()
+            onChanged()
+          }}
+        />
+      )}
+    </>
   )
 }

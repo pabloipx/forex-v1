@@ -10,7 +10,7 @@ export async function GET(request: Request) {
 
   let query = admin
     .from("support_tickets")
-    .select("id, user_id, category, subject, status, unread_admin, unread_user, last_message_at, created_at")
+    .select("id, ticket_number, user_id, category, subject, status, unread_admin, unread_user, last_message_at, created_at")
     .order("last_message_at", { ascending: false })
     .limit(200)
   if (status === "open" || status === "answered" || status === "closed") query = query.eq("status", status)
