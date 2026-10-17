@@ -87,7 +87,7 @@ export function AdminSupport() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <SummaryCard label="Aguardando resposta" value={summary?.open} tone="text-amber-500" />
+        <SummaryCard label="Aguardando resposta" value={summary?.open} tone="text-support" />
         <SummaryCard label="Não lidos" value={summary?.unread} tone="text-blue-500" />
         <SummaryCard label="Respondidos" value={summary?.answered} tone="text-term-up" />
         <SummaryCard label="Encerrados" value={summary?.closed} tone="text-gray-400" />
@@ -177,7 +177,7 @@ export function AdminSupport() {
                         </span>
                         <time className="shrink-0 text-[11px] text-gray-500">{formatSupportTime(t.last_message_at)}</time>
                       </span>
-                      <span className="truncate text-xs text-gray-400"><span className="font-mono text-orange-400">#{t.ticket_number}</span> · {t.subject}</span>
+                      <span className="truncate text-xs text-gray-400"><span className="font-mono text-support">#{t.ticket_number}</span> · {t.subject}</span>
                       <span className="mt-1 flex items-center gap-2">
                         <span className="rounded bg-[#0F151E] px-1.5 py-0.5 text-[11px] text-gray-400">
                           {categoryLabel(t.category)}
@@ -288,7 +288,7 @@ function AdminTicketChat({ id, onBack, onChanged }: { id: string; onBack: () => 
         </div>
         {ticket ? (
           <div className="flex items-center gap-2">
-            <span className="rounded bg-[#0F151E] px-2 py-1 font-mono text-xs text-orange-400">#{ticket.ticket_number}</span>
+            <span className="rounded bg-[#0F151E] px-2 py-1 font-mono text-xs text-support">#{ticket.ticket_number}</span>
             <span className="rounded bg-[#0F151E] px-2 py-1 text-xs text-gray-300">{categoryLabel(ticket.category)}</span>
             <StatusBadge status={ticket.status} label={SUPPORT_STATUS_LABEL[ticket.status]} />
             {closed ? (
@@ -307,7 +307,7 @@ function AdminTicketChat({ id, onBack, onChanged }: { id: string; onBack: () => 
                   <button
                     type="button"
                     disabled={updating}
-                    className="flex items-center gap-1.5 rounded-lg bg-orange-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-600 disabled:opacity-50"
+                    className="flex items-center gap-1.5 rounded-lg bg-support px-3 py-1.5 text-xs font-semibold text-support-foreground hover:bg-support/90 disabled:opacity-50"
                   >
                     {updating ? (
                       <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
@@ -331,7 +331,7 @@ function AdminTicketChat({ id, onBack, onChanged }: { id: string; onBack: () => 
                     </AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => setStatus("closed")}
-                      className="bg-orange-500 text-white hover:bg-orange-600"
+                      className="bg-support text-support-foreground hover:bg-support/90"
                     >
                       Encerrar
                     </AlertDialogAction>

@@ -15,8 +15,8 @@ export const SUPPORT_MESSAGE_MAX = 4000
 export const SUPPORT_MAX_OPEN_TICKETS = 1
 
 export const SUPPORT_AGENT = {
-  name: "Thiago Morais",
-  avatar: "/images/support/thiago-avatar.png",
+  name: "Joel Cunha",
+  avatar: "/images/support/joel-avatar.png",
 }
 
 export const SUPPORT_STATUS_LABEL: Record<SupportStatus, string> = {

@@ -2,7 +2,7 @@ import type { SupportStatus } from "@/lib/support/constants"
 import { cn } from "@/lib/utils"
 
 const STYLES: Record<SupportStatus, string> = {
-  open: "bg-amber-500/15 text-amber-500",
+  open: "bg-support/15 text-support",
   answered: "bg-term-up/15 text-term-up",
   closed: "bg-term-line text-term-muted",
 }
