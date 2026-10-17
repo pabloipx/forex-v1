@@ -433,13 +433,14 @@ export interface AdminDeposit {
   status: string
   created_at: string
   confirmed_at: string | null
+  crypto: { currency: string; network: string; amount_usd: number; tx_hash: string } | null
 }
 
 export async function listDeposits(): Promise<AdminDeposit[]> {
   if (testMode()) return []
   const { data, error } = await db()
     .from("deposits")
-    .select("id, user_id, account_type, amount, currency, method, provider, external_id, status, created_at, confirmed_at")
+    .select("id, user_id, account_type, amount, currency, method, provider, external_id, status, created_at, confirmed_at, payment_details")
     .order("created_at", { ascending: false })
     .limit(300)
   if (error) throw new TradingError("Não foi possível carregar os depósitos", 500)
@@ -457,7 +458,20 @@ export async function listDeposits(): Promise<AdminDeposit[]> {
     status: r.status ?? "pending",
     created_at: r.created_at,
     confirmed_at: r.confirmed_at ?? null,
+    crypto: cryptoDetails(r.payment_details),
   }))
+}
+
+function cryptoDetails(details: unknown): AdminDeposit["crypto"] {
+  if (!details || typeof details !== "object") return null
+  const d = details as Record<string, unknown>
+  if (d.type !== "crypto") return null
+  return {
+    currency: String(d.currency ?? "USDT"),
+    network: String(d.network ?? ""),
+    amount_usd: Number(d.amount_usd ?? 0),
+    tx_hash: String(d.tx_hash ?? ""),
+  }
 }
 
 export async function reviewDeposit(id: string, confirm: boolean) {

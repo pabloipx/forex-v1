@@ -7,6 +7,8 @@ import { createClient } from "@/lib/supabase/client"
 import { ChevronLeft, Copy, Check, Loader2, Clock, RefreshCw, CreditCard, CheckCircle2, XCircle, X, Info, Sparkles, ShieldCheck, Lock } from "lucide-react"
 import Image from "next/image"
 import { QRCodeSVG } from "qrcode.react"
+import { CRYPTO_MIN_USD, CRYPTO_OPTIONS, USD_TO_BRL, type CryptoType } from "@/lib/deposit/crypto"
+import { CryptoDeposit } from "@/components/deposit/crypto-deposit"
 
 const QUICK_AMOUNTS = [50, 100, 500, 1000, 5000, 10000, 50000, 100000]
 
@@ -21,18 +23,10 @@ const QUICK_AMOUNTS = [50, 100, 500, 1000, 5000, 10000, 50000, 100000]
 }
 
 type DepositMethod = "pix" | "card" | "crypto"
-type CryptoType = "usdt" | "btc"
-
-const CRYPTO_WALLETS = {
-  usdt: "0x4a46afb8Cd04C21FD1370ECbdC1C543352e55e60",
-  btc: "0x49aE47169789c90D1bD9655E5cdA5a21F99CC058"
-}
-const CRYPTO_MIN_USD = 20
-const USD_TO_BRL = 6.0 // Taxa de conversão USD para BRL
 
 export default function DepositPage() {
   const router = useRouter()
-  const [method, setMethod] = useState<DepositMethod>("pix")
+  const [method, setMethod] = useState<DepositMethod>("crypto")
   const [amount, setAmount] = useState("50,00")
   const [acceptTerms, setAcceptTerms] = useState(false)
   // Codigo promocional ja validado pelo servidor; enviado junto ao gerar o PIX.
@@ -62,8 +56,7 @@ export default function DepositPage() {
 
   // Deposit methods enabled state
   const [cardEnabled, setCardEnabled] = useState(true)
-  const [cryptoEnabled, setCryptoEnabled] = useState(false)
-  const [cryptoCopied, setCryptoCopied] = useState(false)
+  const cryptoEnabled = true
   const [methodsLoading, setMethodsLoading] = useState(true)
   
   // Crypto form state
@@ -75,7 +68,7 @@ export default function DepositPage() {
   const [showCryptoQR, setShowCryptoQR] = useState(false)
   
   // Current wallet based on crypto type
-  const currentCryptoWallet = CRYPTO_WALLETS[cryptoType]
+  const crypto = CRYPTO_OPTIONS[cryptoType]
   
   // Computed BRL value based on USD amount for crypto
   const cryptoAmountBrl = useMemo(() => {
@@ -95,13 +88,8 @@ export default function DepositPage() {
         const res = await fetch("/api/settings/deposit-methods")
         const data = await res.json()
         setCardEnabled(data.card_enabled !== false)
-        setCryptoEnabled(data.crypto_enabled === true)
-        // If current method is disabled, switch to pix
         if (data.card_enabled === false && method === "card") {
-          setMethod("pix")
-        }
-        if (data.crypto_enabled === false && method === "crypto") {
-          setMethod("pix")
+          setMethod("crypto")
         }
       } catch (err) {
         console.error("Error fetching deposit methods:", err)
@@ -428,7 +416,7 @@ export default function DepositPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amountUsd: numAmount,
-          amountBrl: numAmount * USD_TO_BRL,
+          cryptoType,
           txHash: cryptoTxHash.trim(),
         }),
       })
@@ -700,9 +688,7 @@ export default function DepositPage() {
       ? "PIX (Apenas seu CPF)"
       : method === "card"
         ? "Cartão de Crédito/Débito"
-        : cryptoType === "usdt"
-          ? "USDT (Tether)"
-          : "Bitcoin (BTC)"
+        : `${crypto.name} (${crypto.symbol})`
 
   return (
     <div className="min-h-screen bg-[#0d0d0f]">
@@ -731,9 +717,11 @@ export default function DepositPage() {
           <p className="text-xs font-medium uppercase tracking-wider text-[#6B7280] mb-2.5">Metodo de pagamento</p>
           <div className={`grid gap-2.5 ${cardEnabled && cryptoEnabled ? "grid-cols-3" : cardEnabled || cryptoEnabled ? "grid-cols-2" : "grid-cols-1"}`}>
             <button
-              onClick={() => { setMethod("pix"); setError(null) }}
-              aria-pressed={method === "pix"}
-              className={`group relative flex flex-col items-center gap-2 px-3 py-4 rounded-2xl border transition-all duration-200 overflow-hidden ${
+              type="button"
+              disabled
+              aria-disabled="true"
+              title="PIX indisponível no momento"
+              className={`group relative flex flex-col items-center gap-2 px-3 py-4 rounded-2xl border transition-all duration-200 overflow-hidden cursor-not-allowed opacity-60 ${
                 method === "pix"
                   ? "border-[#2190ff] bg-gradient-to-b from-[#2190ff]/15 to-transparent shadow-[0_0_0_1px_rgba(33,144,255,0.35),0_8px_24px_-8px_rgba(33,144,255,0.5)]"
                   : "border-[#1F2933] bg-[#121826] hover:border-[#374151] hover:bg-[#161d2b]"
@@ -755,7 +743,7 @@ export default function DepositPage() {
               </span>
               <span className="flex flex-col items-center leading-tight">
                 <span className={`text-sm font-bold ${method === "pix" ? "text-white" : "text-white/80"}`}>PIX</span>
-                <span className="text-[10px] text-[#6B7280]">Aprovacao na hora</span>
+                <span className="mt-1 rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-400">Indisponível</span>
               </span>
             </button>
             {cardEnabled && (
@@ -802,7 +790,7 @@ export default function DepositPage() {
                 </span>
                 <span className="flex flex-col items-center leading-tight">
                   <span className={`text-sm font-bold ${method === "crypto" ? "text-white" : "text-white/80"}`}>Cripto</span>
-                  <span className="text-[10px] text-[#6B7280]">USDT / BTC</span>
+                  <span className="text-[10px] text-[#6B7280]">USDT · BTC · ETH · SOL</span>
                 </span>
               </button>
             )}
@@ -817,7 +805,7 @@ export default function DepositPage() {
             ) : method === "card" ? (
               <CreditCard className="w-5 h-5 text-[#0d0d0f]" />
             ) : (
-              <span className="text-[#0d0d0f] font-bold text-lg">{cryptoType === "usdt" ? "₮" : "₿"}</span>
+              <span className="font-bold text-lg" style={{ color: crypto.color }}>{crypto.glyph}</span>
             )}
           </div>
           <h1 className="text-2xl font-semibold text-white text-balance">{methodTitle}</h1>
@@ -1013,259 +1001,22 @@ export default function DepositPage() {
 
         {/* Crypto deposit section */}
         {method === "crypto" && (
-          <div className="space-y-4">
-            {cryptoSuccess ? (
-              <div className="bg-[#121826] border border-blue-500/30 rounded-xl p-6 text-center space-y-4">
-                <div className="w-16 h-16 mx-auto rounded-full bg-blue-500/20 flex items-center justify-center">
-                  <CheckCircle2 className="w-8 h-8 text-blue-500" />
-                </div>
-                <div>
-                  <h3 className="text-white font-semibold text-lg">Deposito Registrado!</h3>
-                  <p className="text-[#9CA3AF] text-sm mt-2">Seu deposito de ${cryptoAmountUsd} USD (R$ {cryptoAmountBrl}) foi registrado com sucesso.</p>
-                  <p className="text-[#9CA3AF] text-sm mt-1">Nossa equipe de analise liberara seu saldo em ate 15 minutos apos a confirmacao do pagamento.</p>
-                </div>
-                <button
-                  onClick={() => router.push("/dashboard")}
-                  className="w-full py-3 rounded-xl font-semibold text-white bg-[#2190ff] hover:bg-[#0b5ed7] transition-colors"
-                >
-                  Voltar ao Dashboard
-                </button>
-              </div>
-            ) : !showCryptoQR ? (
-              <>
-                {/* Crypto Type Selector */}
-                <div className="space-y-2">
-                  <label className="text-white text-sm font-medium">Escolha a criptomoeda</label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={() => setCryptoType("usdt")}
-                      className={`p-4 rounded-xl border-2 transition-all ${
-                        cryptoType === "usdt"
-                          ? "border-[#26A17B] bg-[#26A17B]/10"
-                          : "border-[#1F2933] bg-[#121826] hover:border-[#26A17B]/50"
-                      }`}
-                    >
-                      <div className="flex flex-col items-center gap-2">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          cryptoType === "usdt" ? "bg-[#26A17B]" : "bg-[#26A17B]/20"
-                        }`}>
-                          <span className="text-white font-bold text-lg">₮</span>
-                        </div>
-                        <div className="text-center">
-                          <p className={`font-semibold ${cryptoType === "usdt" ? "text-[#26A17B]" : "text-white"}`}>USDT</p>
-                          <p className="text-[#9CA3AF] text-xs">Tether</p>
-                        </div>
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => setCryptoType("btc")}
-                      className={`p-4 rounded-xl border-2 transition-all ${
-                        cryptoType === "btc"
-                          ? "border-[#F7931A] bg-[#F7931A]/10"
-                          : "border-[#1F2933] bg-[#121826] hover:border-[#F7931A]/50"
-                      }`}
-                    >
-                      <div className="flex flex-col items-center gap-2">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          cryptoType === "btc" ? "bg-[#F7931A]" : "bg-[#F7931A]/20"
-                        }`}>
-                          <span className="text-white font-bold text-lg">₿</span>
-                        </div>
-                        <div className="text-center">
-                          <p className={`font-semibold ${cryptoType === "btc" ? "text-[#F7931A]" : "text-white"}`}>BTC</p>
-                          <p className="text-[#9CA3AF] text-xs">Bitcoin</p>
-                        </div>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-
-                {/* USD Amount Input */}
-                <div className="space-y-2">
-                  <label className="text-white text-sm font-medium">Valor em USD</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#26A17B] font-bold text-lg">$</span>
-                    <input
-                      type="number"
-                      min={CRYPTO_MIN_USD}
-                      step="1"
-                      value={cryptoAmountUsd}
-                      onChange={(e) => setCryptoAmountUsd(e.target.value)}
-                      placeholder={`Minimo $${CRYPTO_MIN_USD}`}
-                      className="w-full bg-[#0B0F14] border border-[#1F2933] rounded-xl py-4 pl-10 pr-4 text-white text-xl font-semibold placeholder:text-[#4B5563] focus:outline-none focus:border-[#26A17B]"
-                    />
-                  </div>
-                </div>
-
-                {/* BRL Conversion Display */}
-                <div className={`bg-[#121826] border rounded-xl p-4 ${cryptoType === "usdt" ? "border-[#26A17B]/30" : "border-[#F7931A]/30"}`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-[#9CA3AF] text-xs">Equivalente em Reais (1 USD = R$ {USD_TO_BRL.toFixed(2)})</p>
-                      <p className="text-white text-2xl font-bold">R$ {cryptoAmountBrl}</p>
-                    </div>
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${cryptoType === "usdt" ? "bg-[#26A17B]/20" : "bg-[#F7931A]/20"}`}>
-                      <span className={`text-xl font-bold ${cryptoType === "usdt" ? "text-[#26A17B]" : "text-[#F7931A]"}`}>
-                        {cryptoType === "usdt" ? "₮" : "₿"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Warnings */}
-                <div className="bg-[#121826] border border-[#1F2933] rounded-xl p-4 space-y-3">
-                  <div className="flex items-start gap-2">
-                    <div className="w-5 h-5 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-yellow-500 text-xs">!</span>
-                    </div>
-                    <p className="text-[#9CA3AF] text-xs">
-                      Envie apenas {cryptoType === "usdt" ? "USDT (Tether)" : "Bitcoin (BTC)"} na rede Ethereum (ERC-20)
-                    </p>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <div className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-blue-500 text-xs">$</span>
-                    </div>
-                    <p className="text-[#9CA3AF] text-xs">Deposito minimo: <span className="text-white font-medium">${CRYPTO_MIN_USD} USD (R$ {(CRYPTO_MIN_USD * USD_TO_BRL).toFixed(2)})</span></p>
-                  </div>
-                </div>
-
-                {/* Network badge */}
-                <div className="flex justify-center">
-                  <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#1A2332] border ${cryptoType === "usdt" ? "border-[#26A17B]/30" : "border-[#F7931A]/30"}`}>
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center ${cryptoType === "usdt" ? "bg-[#26A17B]" : "bg-[#F7931A]"}`}>
-                      <span className="text-white text-xs font-bold">{cryptoType === "usdt" ? "₮" : "₿"}</span>
-                    </div>
-                    <span className={`text-sm font-medium ${cryptoType === "usdt" ? "text-[#26A17B]" : "text-[#F7931A]"}`}>Rede Ethereum (ERC-20)</span>
-                  </div>
-                </div>
-
-                {/* Pay button */}
-                <button
-                  onClick={handleShowCryptoQR}
-                  disabled={Number(cryptoAmountUsd) < CRYPTO_MIN_USD}
-                  className={`w-full py-4 rounded-xl font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 ${
-                    cryptoType === "usdt" ? "bg-[#26A17B] hover:bg-[#1f8a68]" : "bg-[#F7931A] hover:bg-[#d97f15]"
-                  }`}
-                >
-                  Pagar ${cryptoAmountUsd || "0"} USD em {cryptoType.toUpperCase()}
-                </button>
-              </>
-            ) : (
-              <>
-                <div className="bg-[#121826] border border-[#1F2933] rounded-xl p-6 space-y-4">
-                  <div className="text-center">
-                    <h3 className="text-white font-semibold text-lg mb-2">
-                      Depositar {cryptoType === "usdt" ? "USDT" : "BTC"}
-                    </h3>
-                    <p className="text-[#9CA3AF] text-sm">
-                      Envie <span className={`font-bold ${cryptoType === "usdt" ? "text-[#26A17B]" : "text-[#F7931A]"}`}>
-                        ${cryptoAmountUsd} {cryptoType.toUpperCase()}
-                      </span> para o endereco abaixo
-                    </p>
-                  </div>
-                  
-                  {/* QR Code */}
-                  <div className="flex justify-center">
-                    <div className="bg-white p-4 rounded-xl">
-                      <QRCodeSVG 
-                        value={currentCryptoWallet} 
-                        size={180}
-                        level="H"
-                        includeMargin={false}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Wallet address */}
-                  <div className="space-y-2">
-                    <p className="text-[#9CA3AF] text-xs text-center">Endereco de deposito (ERC-20)</p>
-                    <div className="flex items-center gap-2 bg-[#0B0F14] rounded-lg p-3">
-                      <code className="text-white text-xs flex-1 break-all font-mono">
-                        {currentCryptoWallet}
-                      </code>
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(currentCryptoWallet)
-                          setCryptoCopied(true)
-                          setTimeout(() => setCryptoCopied(false), 2000)
-                        }}
-                        className="p-2 rounded-lg bg-[#1A2332] hover:bg-[#2A3442] transition-colors"
-                      >
-                        {cryptoCopied ? (
-                          <Check className="w-4 h-4 text-blue-500" />
-                        ) : (
-                          <Copy className="w-4 h-4 text-[#9CA3AF]" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Warnings */}
-                  <div className="space-y-2 pt-2 border-t border-[#1F2933]">
-                    <div className="flex items-start gap-2">
-                      <div className="w-5 h-5 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span className="text-yellow-500 text-xs">!</span>
-                      </div>
-                      <p className="text-[#9CA3AF] text-xs">
-                        Envie apenas {cryptoType === "usdt" ? "USDT (Tether)" : "Bitcoin (BTC)"} para este endereco
-                      </p>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <div className="w-5 h-5 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span className="text-yellow-500 text-xs">!</span>
-                      </div>
-                      <p className="text-[#9CA3AF] text-xs">Rede Ethereum (ERC-20) apenas. Nao envie em outra rede.</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* TX Hash Form */}
-                <div className="bg-[#121826] border border-[#1F2933] rounded-xl p-4 space-y-4">
-                  <h4 className="text-white font-medium text-sm">Apos enviar, informe o hash da transacao:</h4>
-                  
-                  {/* TX Hash */}
-                  <div className="space-y-2">
-                    <label className="text-[#9CA3AF] text-xs">Hash da Transacao (TX Hash)</label>
-                    <input
-                      type="text"
-                      value={cryptoTxHash}
-                      onChange={(e) => setCryptoTxHash(e.target.value)}
-                      placeholder="0x..."
-                      className="w-full bg-[#0B0F14] border border-[#1F2933] rounded-lg py-3 px-4 text-white text-sm font-mono placeholder:text-[#4B5563] focus:outline-none focus:border-[#2190ff]"
-                    />
-                    <p className="text-[#6B7280] text-xs">Copie o hash da transacao da sua carteira ou exchange</p>
-                  </div>
-
-                  {/* Submit button */}
-                  <button
-                    onClick={handleCryptoDeposit}
-                    disabled={cryptoLoading || !cryptoTxHash.trim()}
-                    className={`w-full py-3 rounded-xl font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 ${
-                      cryptoType === "usdt" ? "bg-[#26A17B] hover:bg-[#1f8a68]" : "bg-[#F7931A] hover:bg-[#d97f15]"
-                    }`}
-                  >
-                    {cryptoLoading ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        <span>Registrando...</span>
-                      </>
-                    ) : (
-                      <span>Confirmar Deposito de ${cryptoAmountUsd} {cryptoType.toUpperCase()}</span>
-                    )}
-                  </button>
-
-                  {/* Back button */}
-                  <button
-                    onClick={() => setShowCryptoQR(false)}
-                    className="w-full py-2 text-[#9CA3AF] text-sm hover:text-white transition-colors"
-                  >
-                    Voltar e alterar valor
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
+          <CryptoDeposit
+            cryptoType={cryptoType}
+            onCryptoTypeChange={setCryptoType}
+            amountUsd={cryptoAmountUsd}
+            onAmountUsdChange={setCryptoAmountUsd}
+            amountBrl={cryptoAmountBrl}
+            txHash={cryptoTxHash}
+            onTxHashChange={setCryptoTxHash}
+            showQR={showCryptoQR}
+            onShowQR={() => setShowCryptoQR(true)}
+            onBack={() => setShowCryptoQR(false)}
+            onSubmit={handleCryptoDeposit}
+            loading={cryptoLoading}
+            success={cryptoSuccess}
+            onFinish={() => router.push("/dashboard")}
+          />
         )}
 
         {/* Terms - only for PIX and Card */}

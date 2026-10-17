@@ -17,6 +17,7 @@ interface DepositRow {
   status: string
   created_at: string
   confirmed_at: string | null
+  crypto: { currency: string; network: string; amount_usd: number; tx_hash: string } | null
 }
 
 const STATUS: Record<string, { label: string; tone: "up" | "down" | "accent" | "muted" }> = {
@@ -77,7 +78,7 @@ export function DepositsSection() {
       >
         <ErrorNote error={error} />
         <p className="border-b border-term-line px-4 py-2 text-[11px] leading-relaxed text-term-muted">
-          Confirme apenas depósitos com pagamento recebido. A confirmação credita o saldo do cliente uma única vez.
+          Depósitos em cripto são aprovados manualmente: confira o hash (clique para copiar) no explorer da rede antes de confirmar. A confirmação credita o saldo do cliente uma única vez.
         </p>
         <DataTable
           head={["Criado", "Cliente", "Conta", "Valor", "Método", "Referência", "Status", ""]}
@@ -90,9 +91,39 @@ export function DepositsSection() {
               <td className={td}>
                 <Badge tone={r.account_type === "real" ? "accent" : "muted"}>{r.account_type === "real" ? "Real" : "Demo"}</Badge>
               </td>
-              <td className={cn(td, "font-semibold")}>{brl(r.amount)}</td>
-              <td className={cn(td, "font-sans uppercase")}>{[r.method, r.provider].filter(Boolean).join(" · ") || "—"}</td>
-              <td className={cn(td, "max-w-40 truncate text-term-muted")}>{r.external_id ?? "—"}</td>
+              <td className={cn(td, "font-semibold")}>
+                {brl(r.amount)}
+                {r.crypto && <span className="block text-[11px] font-normal text-term-muted">${r.crypto.amount_usd} USD</span>}
+              </td>
+              <td className={cn(td, "font-sans uppercase")}>
+                {r.crypto ? (
+                  <span className="flex flex-col">
+                    <span>{r.crypto.currency}</span>
+                    <span className="text-[11px] normal-case text-term-muted">Rede {r.crypto.network}</span>
+                  </span>
+                ) : (
+                  [r.method, r.provider].filter(Boolean).join(" · ") || "—"
+                )}
+              </td>
+              <td className={cn(td, "max-w-40 text-term-muted")}>
+                {r.external_id ? (
+                  <button
+                    type="button"
+                    title={r.external_id}
+                    onClick={() => {
+                      navigator.clipboard.writeText(r.external_id ?? "").then(
+                        () => toast.success("Hash copiado"),
+                        () => toast.error("Não foi possível copiar"),
+                      )
+                    }}
+                    className="block max-w-40 truncate text-left hover:text-term-text"
+                  >
+                    {r.external_id}
+                  </button>
+                ) : (
+                  "—"
+                )}
+              </td>
               <td className={td}>
                 <Badge tone={STATUS[r.status]?.tone ?? "muted"}>{STATUS[r.status]?.label ?? r.status}</Badge>
               </td>
