@@ -55,7 +55,6 @@ export default function DepositPage() {
   const [processingStep, setProcessingStep] = useState(0)
 
   // Deposit methods enabled state
-  const [cardEnabled, setCardEnabled] = useState(true)
   const cryptoEnabled = true
   const [methodsLoading, setMethodsLoading] = useState(true)
   
@@ -87,10 +86,6 @@ export default function DepositPage() {
       try {
         const res = await fetch("/api/settings/deposit-methods")
         const data = await res.json()
-        setCardEnabled(data.card_enabled !== false)
-        if (data.card_enabled === false && method === "card") {
-          setMethod("crypto")
-        }
       } catch (err) {
         console.error("Error fetching deposit methods:", err)
       } finally {
@@ -738,29 +733,6 @@ export default function DepositPage() {
                 Indisponível
               </span>
             </button>
-            {cardEnabled && (
-              <button
-                type="button"
-                onClick={() => { setMethod("card"); setError(null); setCardAmountSelected(false) }}
-                aria-pressed={method === "card"}
-                className={`relative flex min-h-24 items-center gap-4 rounded-lg px-6 py-5 text-left transition-colors ${
-                  method === "card" ? "bg-[#2a3142] ring-2 ring-[#2190ff]" : "bg-[#262b3a] hover:bg-[#2d3344]"
-                }`}
-              >
-                <span aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-[#2190ff]">
-                  <CreditCard className="h-5 w-5 text-white" />
-                </span>
-                <span className="flex min-w-0 flex-col gap-1">
-                  <span className="truncate text-base font-medium text-white">Cartão</span>
-                  <span className="text-sm text-[#9CA3AF]">Crédito ou débito</span>
-                </span>
-                {method === "card" && (
-                  <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-[#2190ff]">
-                    <Check className="h-3 w-3 text-white" strokeWidth={3} />
-                  </span>
-                )}
-              </button>
-            )}
             {cryptoEnabled && (
               <button
                 type="button"
