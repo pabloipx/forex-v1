@@ -3,9 +3,9 @@ import { cn } from "@/lib/utils"
 
 export function Panel({ title, action, children, className }: { title?: string; action?: ReactNode; children: ReactNode; className?: string }) {
   return (
-    <section className={cn("rounded-lg border border-term-line bg-term-panel", className)}>
+    <section className={cn("overflow-hidden rounded-xl border border-term-line bg-term-panel", className)}>
       {(title || action) && (
-        <header className="flex items-center justify-between gap-3 border-b border-term-line px-4 py-3">
+        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-term-line px-4 py-3">
           {title && <h2 className="text-sm font-semibold text-term-text">{title}</h2>}
           {action}
         </header>
@@ -17,11 +17,11 @@ export function Panel({ title, action, children, className }: { title?: string; 
 
 export function Stat({ label, value, tone, hint }: { label: string; value: string; tone?: "up" | "down" | "accent"; hint?: string }) {
   return (
-    <div className="flex flex-col gap-1 rounded-lg border border-term-line bg-term-panel px-4 py-3">
-      <span className="text-xs text-term-muted">{label}</span>
+    <div className="flex min-w-0 flex-col gap-1 rounded-xl border border-term-line bg-term-panel px-3 py-3 md:px-4">
+      <span className="truncate text-xs text-term-muted">{label}</span>
       <span
         className={cn(
-          "font-mono text-lg font-semibold tabular-nums text-term-text",
+          "truncate font-mono text-base font-semibold tabular-nums text-term-text md:text-lg",
           tone === "up" && "text-long",
           tone === "down" && "text-short",
           tone === "accent" && "text-primary",
@@ -36,12 +36,19 @@ export function Stat({ label, value, tone, hint }: { label: string; value: strin
 
 export function DataTable({ head, children, empty }: { head: string[]; children: ReactNode; empty?: string | false }) {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-max text-left text-xs">
+    <div className="overscroll-x-contain overflow-x-auto [-webkit-overflow-scrolling:touch]">
+      <table
+        className={cn(
+          "w-full min-w-max text-left text-xs",
+          "[&_tbody_tr]:border-b [&_tbody_tr]:border-term-line/60 [&_tbody_tr:last-child]:border-0 [&_tbody_tr:hover]:bg-term-line/20",
+          "max-md:[&_tbody_td:first-child]:sticky max-md:[&_tbody_td:first-child]:left-0 max-md:[&_tbody_td:first-child]:z-[1] max-md:[&_tbody_td:first-child]:bg-term-panel",
+          "max-md:[&_th:first-child]:sticky max-md:[&_th:first-child]:left-0 max-md:[&_th:first-child]:z-[1] max-md:[&_th:first-child]:bg-term-panel",
+        )}
+      >
         <thead>
           <tr className="border-b border-term-line text-term-muted">
             {head.map((h) => (
-              <th key={h} scope="col" className="whitespace-nowrap px-4 py-2 font-normal">
+              <th key={h} scope="col" className="whitespace-nowrap px-3 py-2.5 text-[11px] font-medium uppercase tracking-wide md:px-4">
                 {h}
               </th>
             ))}
@@ -54,7 +61,7 @@ export function DataTable({ head, children, empty }: { head: string[]; children:
   )
 }
 
-export const td = "whitespace-nowrap px-4 py-2.5 font-mono tabular-nums"
+export const td = "whitespace-nowrap px-3 py-3 font-mono tabular-nums md:px-4 md:py-2.5"
 
 export function Badge({ children, tone = "muted" }: { children: ReactNode; tone?: "up" | "down" | "accent" | "muted" }) {
   return (
@@ -91,7 +98,7 @@ export function SmallButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "rounded px-2.5 py-1 font-sans text-xs font-medium transition-colors disabled:opacity-50",
+        "rounded-md px-3 py-2 font-sans text-xs font-medium transition-colors disabled:opacity-50 md:px-2.5 md:py-1",
         tone === "up" && "bg-long text-term-bg hover:bg-long/90",
         tone === "down" && "bg-short/15 text-short hover:bg-short/25",
         tone === "accent" && "bg-primary text-primary-foreground hover:bg-primary/90",
@@ -104,7 +111,7 @@ export function SmallButton({
 }
 
 export const inputCls =
-  "h-9 w-full rounded-md border border-term-line bg-term-bg px-3 font-mono text-sm text-term-text outline-none focus:border-primary"
+  "h-10 w-full rounded-md border border-term-line bg-term-bg px-3 font-mono text-base text-term-text outline-none transition-colors focus:border-primary md:h-9 md:text-sm"
 
 export function ErrorNote({ error }: { error: unknown }) {
   if (!error) return null

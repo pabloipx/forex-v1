@@ -26,21 +26,11 @@ export const PHASE_LABELS: Record<ManipulationPhase, string> = {
   done: "Encerrada",
 }
 
+// Curva monotônica com início e fim suaves (velocidade zero nas pontas): o deslocamento nunca
+// recua sozinho, então o único "ruído" visível é o do próprio mercado real por baixo.
 const smooth = (u: number) => {
   const x = Math.min(1, Math.max(0, u))
-  return x * x * (3 - 2 * x)
-}
-
-// Recuos ao longo da rampa: o preço não sobe/desce em linha reta, faz pequenas correções
-// e retoma — sempre 0 nas pontas para não criar saltos no início nem no topo.
-function rampProgress(u: number, seed: number) {
-  const base = smooth(u)
-  const wobble = 0.07 * Math.sin(u * Math.PI * (4 + (seed % 3))) * Math.sin(u * Math.PI)
-  return Math.min(1, Math.max(0, base + wobble))
-}
-
-function seedOf(m: Pick<FuturesManipulation, "start_time">) {
-  return Math.abs(Math.floor(new Date(m.start_time).getTime() / 1000)) % 997
+  return x * x * x * (x * (6 * x - 15) + 10)
 }
 
 /** Intensidade (0..1) sem o sinal da direção, no instante `t` (ms). */
@@ -50,7 +40,7 @@ function intensityPlanned(m: FuturesManipulation, t: number) {
   const holdEnd = rampEnd + m.hold_seconds * 1000
   const end = holdEnd + m.release_seconds * 1000
   if (t <= start || t >= end) return 0
-  if (t < rampEnd) return rampProgress((t - start) / (rampEnd - start), seedOf(m))
+  if (t < rampEnd) return smooth((t - start) / (rampEnd - start))
   if (t < holdEnd) return 1
   return 1 - smooth((t - holdEnd) / (end - holdEnd))
 }

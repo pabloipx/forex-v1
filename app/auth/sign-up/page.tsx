@@ -18,9 +18,17 @@ import {
   X,
 } from "lucide-react"
 import { recordDeviceSession } from "@/lib/device-session"
+import {
+  PHONE_RULES,
+  formatNationalPhone,
+  phoneMaxLength,
+  validateSignupProfile,
+  type CountryCode,
+  type SignupFieldErrors,
+} from "@/lib/signup-validation"
 import { AUTH_ACCENT, AUTH_ACCENT_TEXT, AUTH_INPUT, AUTH_LABEL, AuthLayout } from "@/components/auth/auth-layout"
 
-const COUNTRIES = [
+const COUNTRIES: { name: string; code: CountryCode; dial: string }[] = [
   { name: "Brasil", code: "BR", dial: "+55" },
   { name: "Portugal", code: "PT", dial: "+351" },
   { name: "Angola", code: "AO", dial: "+244" },
@@ -94,7 +102,18 @@ function SignUpForm() {
   const [showReferral, setShowReferral] = useState(false)
   const [referralCode, setReferralCode] = useState("")
   const [referralSubId, setReferralSubId] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<SignupFieldErrors>({})
+  const [touched, setTouched] = useState<Record<keyof SignupFieldErrors, boolean>>({
+    firstName: false,
+    lastName: false,
+    phone: false,
+  })
   const router = useRouter()
+
+  const liveErrors = validateSignupProfile({ firstName, lastName, country: country.code, phone })
+  const visibleError = (field: keyof SignupFieldErrors) =>
+    touched[field] ? (liveErrors[field] ?? fieldErrors[field]) : undefined
+  const markTouched = (field: keyof SignupFieldErrors) => setTouched((t) => ({ ...t, [field]: true }))
   const searchParams = useSearchParams()
 
   useEffect(() => {
@@ -109,7 +128,8 @@ function SignUpForm() {
   }, [searchParams])
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPhone(e.target.value.replace(/\D/g, "").slice(0, 13))
+    setPhone(e.target.value.replace(/\D/g, "").slice(0, phoneMaxLength(country.code)))
+    setFieldErrors((f) => ({ ...f, phone: undefined }))
   }
 
   const handleContinue = (e: React.FormEvent) => {
@@ -124,6 +144,11 @@ function SignUpForm() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
+    setTouched({ firstName: true, lastName: true, phone: true })
+    if (Object.keys(liveErrors).length > 0) {
+      setError("Corrija os campos destacados para continuar")
+      return
+    }
     const supabase = createClient()
     setIsLoading(true)
     setError(null)
@@ -134,8 +159,6 @@ function SignUpForm() {
       return
     }
 
-    const fullName = `${firstName} ${lastName}`.trim()
-
     try {
       const res = await fetch("/api/auth/sign-up", {
         method: "POST",
@@ -143,15 +166,20 @@ function SignUpForm() {
         body: JSON.stringify({
           email,
           password,
-          fullName,
-          phone: `${country.dial} ${phone}`.trim(),
+          firstName,
+          lastName,
+          country: country.code,
+          phone,
           referralCode,
           referralSubId,
         }),
       })
 
       const result = await res.json()
-      if (!res.ok) throw new Error(result.error || "Erro ao criar conta")
+      if (!res.ok) {
+        if (result.fieldErrors) setFieldErrors(result.fieldErrors)
+        throw new Error(result.error || "Erro ao criar conta")
+      }
 
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
       if (signInError) {
@@ -305,10 +333,15 @@ function SignUpForm() {
                       placeholder="Nome"
                       required
                       autoComplete="given-name"
+                      maxLength={60}
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
-                      className={inputClass}
+                      onBlur={() => markTouched("firstName")}
+                      aria-invalid={Boolean(visibleError("firstName"))}
+                      aria-describedby={visibleError("firstName") ? "firstName-error" : undefined}
+                      className={`${inputClass} ${visibleError("firstName") ? FIELD_INVALID : ""}`}
                     />
+                    <FieldError id="firstName-error" message={visibleError("firstName")} />
                   </div>
                   <div className="flex flex-col gap-2">
                     <label htmlFor="lastName" className={labelClass}>
@@ -320,10 +353,15 @@ function SignUpForm() {
                       placeholder="Sobrenome"
                       required
                       autoComplete="family-name"
+                      maxLength={60}
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
-                      className={inputClass}
+                      onBlur={() => markTouched("lastName")}
+                      aria-invalid={Boolean(visibleError("lastName"))}
+                      aria-describedby={visibleError("lastName") ? "lastName-error" : undefined}
+                      className={`${inputClass} ${visibleError("lastName") ? FIELD_INVALID : ""}`}
                     />
+                    <FieldError id="lastName-error" message={visibleError("lastName")} />
                   </div>
                 </div>
 
@@ -381,13 +419,19 @@ function SignUpForm() {
                     <input
                       id="phone"
                       type="tel"
-                      placeholder="Celular (sem o código do país)"
+                      inputMode="numeric"
+                      required
+                      placeholder={PHONE_RULES[country.code].example}
                       autoComplete="tel-national"
-                      value={phone}
+                      value={formatNationalPhone(country.code, phone)}
                       onChange={handlePhoneChange}
-                      className={`${inputClass} flex-1`}
+                      onBlur={() => markTouched("phone")}
+                      aria-invalid={Boolean(visibleError("phone"))}
+                      aria-describedby={visibleError("phone") ? "phone-error" : undefined}
+                      className={`${inputClass} flex-1 min-w-0 ${visibleError("phone") ? FIELD_INVALID : ""}`}
                     />
                   </div>
+                  <FieldError id="phone-error" message={visibleError("phone")} />
                 </div>
 
                 <div className="flex flex-col gap-2">
@@ -434,6 +478,17 @@ function SignUpForm() {
               </form>
             )}
     </AuthLayout>
+  )
+}
+
+const FIELD_INVALID = "ring-1 ring-red-400 bg-red-50"
+
+function FieldError({ id, message }: { id: string; message?: string }) {
+  if (!message) return null
+  return (
+    <p id={id} className="text-xs leading-snug text-red-600">
+      {message}
+    </p>
   )
 }
 
