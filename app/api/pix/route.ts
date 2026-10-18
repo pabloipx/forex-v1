@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { amplopay } from "@/lib/amplopay"
+import { createPixCharge, getTransactionStatus, isSuitpayConfigured, SUITPAY_REQUEST_PREFIX } from "@/lib/suitpay"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { approveDeposit, isPaidStatus } from "@/lib/deposits"
 import { validatePromoCode } from "@/lib/promo-codes"
@@ -74,6 +74,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Nao autenticado" }, { status: 401 })
     }
 
+    if (!isSuitpayConfigured()) {
+      return NextResponse.json({ error: "PIX indisponivel no momento" }, { status: 503 })
+    }
+
     const supabaseAdmin = createAdminClient()
 
     const body = await request.json()
@@ -102,7 +106,7 @@ export async function POST(request: NextRequest) {
       .eq("id", user.id)
       .maybeSingle()
 
-    const identifier = `DEP-${user.id.slice(0, 8)}-${Date.now()}`
+    const identifier = `${SUITPAY_REQUEST_PREFIX}${user.id.slice(0, 8)}-${Date.now()}`
 
     // Valida o codigo promocional AQUI, no servidor, antes de gravar no deposito. Nunca confiamos
     // no que a tela envia: o bonus e recalculado a partir da campanha no banco.
@@ -137,24 +141,23 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      const pixResponse = await amplopay.createPixPayment({
+      // Cobranca gerada com o CPF informado pelo lead. Nome/e-mail/telefone vem do perfil, sempre
+      // sanitizados: o gateway recusa a cobranca inteira se qualquer campo estiver malformado.
+      const charge = await createPixCharge({
+        requestNumber: identifier,
         amount: numericAmount,
-        identifier: identifier,
         client: {
-          // Cobranca gerada com o CPF informado pelo lead. Nome/e-mail/telefone vem do perfil,
-          // mas SEMPRE sanitizados: a AmploPay valida cada campo e recusa a cobranca inteira se
-          // qualquer um estiver malformado. Os sanitizadores garantem valores sempre aceitos.
           name: sanitizeName(profile?.full_name),
           email: sanitizeEmail(profile?.email, user.id),
-          phone: sanitizePhone(profile?.phone),
+          phoneNumber: sanitizePhone(profile?.phone),
           document: cleanCpf,
         },
-        metadata: { userId: user.id, depositId: deposit.id },
       })
-
-      if (!pixResponse.copyPaste) {
-        await supabaseAdmin.from("deposits").delete().eq("id", deposit.id)
-        return NextResponse.json({ error: "Erro: AmploPay nao retornou codigo PIX" }, { status: 500 })
+      const pixResponse = {
+        copyPaste: charge.paymentCode,
+        qrCode: charge.paymentCodeBase64,
+        providerTransactionId: charge.idTransaction,
+        transactionId: charge.idTransaction,
       }
 
       // Update deposit with PIX data - save AmploPay internal transaction id for active status check
@@ -170,7 +173,7 @@ export async function POST(request: NextRequest) {
           qr_code: pixResponse.copyPaste,
           qr_code_base64: pixResponse.qrCode || "",
           external_id: identifier, // Keep our identifier
-          payment_reference: pixResponse.providerTransactionId || null, // ID interno da AmploPay
+          payment_reference: pixResponse.providerTransactionId,
         })
         .eq("id", deposit.id)
 
@@ -192,7 +195,7 @@ export async function POST(request: NextRequest) {
         amount: numericAmount,
       })
     } catch (pixError: any) {
-      console.error("[v0] AmploPay error:", pixError)
+      console.error("[PIX] SuitPay error:", pixError)
       await supabaseAdmin.from("deposits").delete().eq("id", deposit.id)
       return NextResponse.json({ error: pixError.message || "Erro ao gerar PIX" }, { status: 500 })
     }
@@ -231,11 +234,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Deposito nao encontrado" }, { status: 404 })
     }
 
-    // VERIFICACAO ATIVA: se ainda esta pendente, consulta o status direto na AmploPay.
-    // Isso aprova o deposito automaticamente mesmo quando o webhook nao chega.
-    if (deposit.status === "pending" && deposit.payment_reference) {
+    // Verificacao ativa: aprova o deposito mesmo quando o webhook nao chega.
+    if (
+      deposit.status === "pending" &&
+      deposit.payment_reference &&
+      String(deposit.external_id || "").startsWith(SUITPAY_REQUEST_PREFIX)
+    ) {
       try {
-        const tx = await amplopay.getTransactionStatus(deposit.payment_reference)
+        const tx = await getTransactionStatus(deposit.payment_reference)
         if (tx && isPaidStatus(tx.status)) {
           const result = await approveDeposit(supabaseAdmin, deposit, tx.id)
           if (result.approved) {
