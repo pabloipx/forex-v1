@@ -110,6 +110,67 @@ export async function getTransactionStatus(idTransaction: string): Promise<{ id:
   return status ? { id: idTransaction, status } : null
 }
 
+export type GatewayHealth = {
+  status: "online" | "auth_error" | "offline" | "not_configured"
+  latencyMs: number | null
+  httpStatus: number | null
+  message: string
+  environment: "sandbox" | "production"
+  host: string
+  callbackUrl: string
+  checkedAt: string
+}
+
+/**
+ * Faz uma consulta de status com um id inexistente: não cria cobrança nem altera nada, mas
+ * passa pela autenticação. Qualquer resposta que não seja 401/403/5xx indica API no ar.
+ */
+export async function pingSuitpay(): Promise<GatewayHealth> {
+  const base = {
+    environment: HOST.includes("sandbox") ? ("sandbox" as const) : ("production" as const),
+    host: HOST,
+    callbackUrl: CALLBACK_URL,
+    checkedAt: new Date().toISOString(),
+  }
+  if (!isSuitpayConfigured()) {
+    return { ...base, status: "not_configured", latencyMs: null, httpStatus: null, message: "Credenciais não configuradas" }
+  }
+  const started = performance.now()
+  try {
+    const res = await fetch(`${HOST}/api/v1/gateway/consult-status-transaction`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ci: CLIENT_ID, cs: CLIENT_SECRET },
+      body: JSON.stringify({ typeTransaction: "PIX", idTransaction: "healthcheck" }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(8000),
+    })
+    await res.text().catch(() => "")
+    const latencyMs = Math.round(performance.now() - started)
+    if (res.status === 401 || res.status === 403) {
+      return { ...base, status: "auth_error", latencyMs, httpStatus: res.status, message: "API respondeu, mas recusou as credenciais" }
+    }
+    if (res.status >= 500) {
+      return { ...base, status: "offline", latencyMs, httpStatus: res.status, message: `Erro no servidor da SuitPay (${res.status})` }
+    }
+    return { ...base, status: "online", latencyMs, httpStatus: res.status, message: "API respondendo normalmente" }
+  } catch (e) {
+    const timeout = (e as Error).name === "TimeoutError"
+    const cause = String(((e as Error & { cause?: { message?: string } }).cause?.message) ?? "")
+    const refused = /other side closed|ECONNRESET|socket hang up/i.test(cause)
+    return {
+      ...base,
+      status: "offline",
+      latencyMs: timeout ? null : Math.round(performance.now() - started),
+      httpStatus: null,
+      message: timeout
+        ? "Sem resposta em 8 s"
+        : refused
+          ? "Conexão recusada pela SuitPay — libere o IP do servidor no painel da SuitPay"
+          : "Falha de conexão com a SuitPay",
+    }
+  }
+}
+
 /**
  * Valida o hash do webhook: SHA-256(cs + valores concatenados na ordem recebida, sem o hash).
  * Usa o texto bruto do corpo para preservar a forma original dos numeros (ex.: "10.50"), que o

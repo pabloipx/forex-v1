@@ -5,7 +5,7 @@ import useSWR from "swr"
 import { toast } from "sonner"
 import { Clock, Square, Trash2, TrendingDown, TrendingUp, Zap } from "lucide-react"
 import { CATEGORY_LABELS, MARKETS, formatPrice, getMarket, type MarketCategory } from "@/lib/futures/markets"
-import { PHASE_LABELS, type FuturesManipulation, type ManipulationPhase } from "@/lib/futures/manipulation-curve"
+import { PHASE_LABELS, intensityAt, type FuturesManipulation, type ManipulationPhase } from "@/lib/futures/manipulation-curve"
 import { cn } from "@/lib/utils"
 import { Badge, DataTable, ErrorNote, Panel, SmallButton, inputCls, td } from "./ui"
 
@@ -65,6 +65,57 @@ function Choice({ active, onClick, children, className }: { active: boolean; onC
   )
 }
 
+function CurvePreview({ ramp, hold, release, direction }: { ramp: number; hold: number; release: number; direction: "up" | "down" }) {
+  const total = ramp + hold + release
+  const W = 360
+  const H = 72
+  const pad = 6
+  const path = useMemo(() => {
+    if (total <= 0) return ""
+    const fake = {
+      start_time: new Date(0).toISOString(),
+      ramp_seconds: ramp,
+      hold_seconds: hold,
+      release_seconds: release,
+      stopped_at: null,
+    } as FuturesManipulation
+    const pts: string[] = []
+    for (let i = 0; i <= 80; i++) {
+      const t = (i / 80) * total * 1000
+      const v = intensityAt(fake, t)
+      const x = pad + (i / 80) * (W - pad * 2)
+      const y = direction === "up" ? H - pad - v * (H - pad * 2) : pad + v * (H - pad * 2)
+      pts.push(`${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`)
+    }
+    return pts.join(" ")
+  }, [ramp, hold, release, direction, total])
+
+  const base = direction === "up" ? H - pad : pad
+  const x1 = pad + (ramp / total) * (W - pad * 2)
+  const x2 = pad + ((ramp + hold) / total) * (W - pad * 2)
+  const color = direction === "up" ? "var(--color-long)" : "var(--color-short)"
+
+  return (
+    <div className="flex flex-col gap-1.5 rounded-md border border-term-line bg-term-bg p-2">
+      <svg viewBox={`0 0 ${W} ${H}`} className="h-16 w-full" role="img" aria-label="Prévia do deslocamento ao longo do tempo">
+        <line x1={pad} x2={W - pad} y1={base} y2={base} stroke="currentColor" className="text-term-line" strokeDasharray="3 3" />
+        {total > 0 && (
+          <>
+            <line x1={x1} x2={x1} y1={pad} y2={H - pad} stroke="currentColor" className="text-term-line" />
+            <line x1={x2} x2={x2} y1={pad} y2={H - pad} stroke="currentColor" className="text-term-line" />
+            <path d={path} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round" />
+          </>
+        )}
+      </svg>
+      <div className="grid grid-cols-3 text-center text-[10px] text-term-muted">
+        <span>Subida {fmtDuration(ramp)}</span>
+        <span>Manter {fmtDuration(hold)}</span>
+        <span>Volta {fmtDuration(release)}</span>
+      </div>
+    </div>
+  )
+}
+
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -94,6 +145,17 @@ export function ManipulationSection() {
   const price = tick?.tickers?.[symbol]?.price ?? null
   const pct = Number(movePct)
   const target = price != null && pct > 0 ? price * (1 + (direction === "up" ? 1 : -1) * (pct / 100)) : null
+  const [targetDraft, setTargetDraft] = useState<string | null>(null)
+
+  const applyTarget = (raw: string) => {
+    setTargetDraft(raw)
+    const v = Number(raw.replace(",", "."))
+    if (!price || !(v > 0)) return
+    const diff = (v / price - 1) * 100
+    if (Math.abs(diff) < 0.001) return
+    setDirection(diff > 0 ? "up" : "down")
+    setMovePct(String(Number(Math.abs(diff).toFixed(3))))
+  }
 
   const timing = useMemo(() => {
     if (profile !== "custom") {
@@ -238,12 +300,29 @@ export function ManipulationSection() {
                 className={inputCls}
                 aria-label="Movimento em porcentagem"
               />
-              <div className="flex items-center justify-between rounded-md border border-term-line bg-term-bg px-3 py-2 text-xs">
-                <span className="text-term-muted">Preço alvo</span>
-                <span className={cn("font-mono tabular-nums", direction === "up" ? "text-long" : "text-short")}>
-                  {target == null ? "—" : formatPrice(target, market.priceDecimals)}
+              <label className="flex items-center justify-between gap-3 rounded-md border border-term-line bg-term-bg px-3 py-1 text-xs focus-within:border-primary">
+                <span className="shrink-0 text-term-muted">Preço alvo</span>
+                <input
+                  inputMode="decimal"
+                  value={targetDraft ?? (target == null ? "" : target.toFixed(market.priceDecimals))}
+                  onChange={(e) => applyTarget(e.target.value)}
+                  onBlur={() => setTargetDraft(null)}
+                  placeholder="—"
+                  aria-label="Preço alvo"
+                  className={cn(
+                    "h-7 w-full min-w-0 bg-transparent text-right font-mono tabular-nums outline-none",
+                    direction === "up" ? "text-long" : "text-short",
+                  )}
+                />
+              </label>
+              <span className="text-[11px] leading-relaxed text-term-muted">
+                Digite a % ou o preço alvo direto — um calcula o outro.
+              </span>
+              {pct > 3 && (
+                <span className="text-[11px] leading-relaxed text-short">
+                  Movimentos acima de 3% chamam atenção e podem liquidar muitas posições de uma vez.
                 </span>
-              </div>
+              )}
             </Field>
 
             <Field label="Perfil de tempo" hint={profile === "custom" ? undefined : PROFILES.find((p) => p.id === profile)!.desc}>
@@ -276,6 +355,7 @@ export function ManipulationSection() {
                   ))}
                 </div>
               )}
+              <CurvePreview ramp={timing.ramp} hold={timing.hold} release={timing.release} direction={direction} />
               <span className="text-[11px] text-term-muted">Duração total: {fmtDuration(total)}</span>
             </Field>
 
@@ -300,6 +380,20 @@ export function ManipulationSection() {
             {busySymbols.has(symbol) && (
               <p className="text-[11px] leading-relaxed text-term-muted">
                 Já existe uma manipulação em andamento neste mercado. Os deslocamentos se somam.
+              </p>
+            )}
+
+            {price != null && target != null && (
+              <p className="rounded-md border border-term-line bg-term-bg px-3 py-2 text-xs leading-relaxed text-term-muted">
+                <span className="font-mono text-term-text">{symbol}</span> vai {direction === "up" ? "subir" : "cair"} de{" "}
+                <span className="font-mono text-term-text">{formatPrice(price, market.priceDecimals)}</span> para{" "}
+                <span className={cn("font-mono", direction === "up" ? "text-long" : "text-short")}>
+                  {formatPrice(target, market.priceDecimals)}
+                </span>{" "}
+                em {fmtDuration(timing.ramp)}
+                {timing.hold > 0 ? `, ficar lá por ${fmtDuration(timing.hold)}` : ""} e voltar ao preço real em{" "}
+                {fmtDuration(timing.release)}
+                {scheduled && startAt ? `, começando em ${fmtTime(new Date(startAt).toISOString())}` : ""}.
               </p>
             )}
 

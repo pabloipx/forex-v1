@@ -1,13 +1,28 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
+import { PHONE_RULES, isCountryCode, normalizeName, validateSignupProfile } from "@/lib/signup-validation"
 
 export async function POST(request: Request) {
   try {
-    const { email, password, fullName, phone, referralCode, referralSubId } = await request.json()
+    const body = await request.json()
+    const { email, password, referralCode, referralSubId } = body
+    const firstName = typeof body.firstName === "string" ? body.firstName : ""
+    const lastName = typeof body.lastName === "string" ? body.lastName : ""
+    const phoneDigits = typeof body.phone === "string" ? body.phone.replace(/\D/g, "") : ""
+    const country = body.country
 
-    if (!email || !password || !fullName) {
+    if (!email || !password || !isCountryCode(country)) {
       return NextResponse.json({ error: "Campos obrigatórios faltando" }, { status: 400 })
     }
+
+    const fieldErrors = validateSignupProfile({ firstName, lastName, country, phone: phoneDigits })
+    const firstError = fieldErrors.firstName ?? fieldErrors.lastName ?? fieldErrors.phone
+    if (firstError) {
+      return NextResponse.json({ error: firstError, fieldErrors }, { status: 400 })
+    }
+
+    const fullName = `${normalizeName(firstName)} ${normalizeName(lastName)}`
+    const phone = `${PHONE_RULES[country].dial} ${phoneDigits}`
 
     if (password.length < 6) {
       return NextResponse.json({ error: "A senha deve ter pelo menos 6 caracteres" }, { status: 400 })

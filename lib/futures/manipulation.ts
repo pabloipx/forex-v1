@@ -111,18 +111,24 @@ export async function applyToCandles(symbol: string, candles: Candle[], interval
     const t0 = c.time * 1000
     const t1 = Math.min(t0 + intervalSec * 1000, now)
     if (t1 < from) return c
-    const samples = [0, 0.25, 0.5, 0.75, 1].map((k) => factorAt(list, t0 + (t1 - t0) * k))
-    const fOpen = samples[0]
-    const fClose = samples[4]
-    if (samples.every((f) => f === 1)) return c
+    const fOpen = factorAt(list, t0)
+    const fClose = factorAt(list, t1)
+    const fMid = factorAt(list, (t0 + t1) / 2)
+    if (fOpen === 1 && fClose === 1 && fMid === 1) return c
     const open = c.open * fOpen
     const close = c.close * fClose
+    // Preserva o tamanho real dos pavios em vez de multiplicá-los pelo pico do intervalo,
+    // o que gerava sombras exageradas em todas as velas durante a manipulação.
+    const upperWick = Math.max(0, c.high - Math.max(c.open, c.close)) * fMid
+    const lowerWick = Math.max(0, Math.min(c.open, c.close) - c.low) * fMid
+    const bodyHigh = Math.max(open, close, c.close * fMid)
+    const bodyLow = Math.min(open, close, c.close * fMid)
     return {
       ...c,
       open: roundTo(open, d),
       close: roundTo(close, d),
-      high: roundTo(Math.max(c.high * Math.max(...samples), open, close), d),
-      low: roundTo(Math.min(c.low * Math.min(...samples), open, close), d),
+      high: roundTo(bodyHigh + upperWick, d),
+      low: roundTo(bodyLow - lowerWick, d),
     }
   })
 }
