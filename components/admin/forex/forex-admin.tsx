@@ -63,7 +63,7 @@ function Brand() {
 function Credit({ className }: { className?: string }) {
   return (
     <p className={cn("text-[11px] text-term-muted/70", className)}>
-      developed by <span className="font-medium text-term-muted">@nexgroupdigitalr</span>
+      developed by <span className="font-medium text-term-muted">@nexgroupdigital</span>
     </p>
   )
 }
