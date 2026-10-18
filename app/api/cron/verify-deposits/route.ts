@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { amplopay } from "@/lib/amplopay"
+import { getTransactionStatus, SUITPAY_REQUEST_PREFIX } from "@/lib/suitpay"
 import { reconcilePendingDeposits } from "@/lib/deposits"
 
 // Sempre dinamico - nunca cacheado
@@ -46,7 +46,11 @@ async function handler(request: NextRequest) {
   const supabaseAdmin = getSupabaseAdmin()
 
   try {
-    const { checked, approved } = await reconcilePendingDeposits(supabaseAdmin, amplopay, { limit: 50 })
+    const { checked, approved } = await reconcilePendingDeposits(
+      supabaseAdmin,
+      { getTransactionStatus },
+      { limit: 50, externalIdPrefix: SUITPAY_REQUEST_PREFIX },
+    )
     return NextResponse.json({ success: true, checked, approved })
   } catch (err) {
     const message = err instanceof Error ? err.message : "Erro ao reconciliar depositos"

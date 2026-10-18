@@ -56,6 +56,7 @@ export default function DepositPage() {
 
   // Deposit methods enabled state
   const cryptoEnabled = true
+  const [pixEnabled, setPixEnabled] = useState(false)
   const [methodsLoading, setMethodsLoading] = useState(true)
   
   // Crypto form state
@@ -86,6 +87,10 @@ export default function DepositPage() {
       try {
         const res = await fetch("/api/settings/deposit-methods")
         const data = await res.json()
+        if (data?.pix_enabled) {
+          setPixEnabled(true)
+          setMethod("pix")
+        }
       } catch (err) {
         console.error("Error fetching deposit methods:", err)
       } finally {
@@ -711,28 +716,58 @@ export default function DepositPage() {
         <div>
           <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-white">Métodos disponíveis</p>
           <div className="grid grid-cols-1 gap-3">
-            <button
-              type="button"
-              disabled
-              aria-disabled="true"
-              title="PIX indisponível no momento"
-              className="relative flex min-h-24 cursor-not-allowed items-center gap-4 rounded-lg bg-[#262b3a] px-6 py-5 text-left opacity-60"
-            >
-              <Image
-                src="/images/a57db68e-f6a1-44c5-bde8.jpeg"
-                alt=""
-                width={44}
-                height={44}
-                className="h-11 w-11 shrink-0 rounded-lg"
-              />
-              <span className="flex min-w-0 flex-col gap-1">
-                <span className="truncate text-base font-medium text-white">PIX (Apenas seu CPF)</span>
-                <span className="text-sm text-[#9CA3AF]">Temporariamente indisponível</span>
-              </span>
-              <span className="ml-auto shrink-0 rounded-full bg-red-500/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-red-400">
-                Indisponível
-              </span>
-            </button>
+            {pixEnabled ? (
+              <button
+                type="button"
+                onClick={() => { setMethod("pix"); setError(null) }}
+                aria-pressed={method === "pix"}
+                className={`relative flex min-h-24 items-center gap-4 rounded-lg px-6 py-5 text-left transition-colors ${
+                  method === "pix" ? "bg-[#2a3142] ring-2 ring-[#2190ff]" : "bg-[#262b3a] hover:bg-[#2d3344]"
+                }`}
+              >
+                <Image
+                  src="/images/a57db68e-f6a1-44c5-bde8.jpeg"
+                  alt=""
+                  width={44}
+                  height={44}
+                  className="h-11 w-11 shrink-0 rounded-lg"
+                />
+                <span className="flex min-w-0 flex-col gap-1">
+                  <span className="truncate text-base font-medium text-white">PIX (Apenas seu CPF)</span>
+                  <span className="text-sm text-[#9CA3AF]">Crédito automático · mín. R$ 50</span>
+                </span>
+                {method === "pix" && (
+                  <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-[#2190ff]">
+                    <Check className="h-3 w-3 text-white" strokeWidth={3} />
+                  </span>
+                )}
+              </button>
+            ) : (
+              <button
+                type="button"
+                disabled
+                aria-disabled="true"
+                title="PIX indisponível no momento"
+                className="relative flex min-h-24 cursor-not-allowed items-center gap-4 rounded-lg bg-[#262b3a] px-6 py-5 text-left opacity-60"
+              >
+                <Image
+                  src="/images/a57db68e-f6a1-44c5-bde8.jpeg"
+                  alt=""
+                  width={44}
+                  height={44}
+                  className="h-11 w-11 shrink-0 rounded-lg"
+                />
+                <span className="flex min-w-0 flex-col gap-1">
+                  <span className="truncate text-base font-medium text-white">PIX (Apenas seu CPF)</span>
+                  <span className="text-sm text-[#9CA3AF]">{methodsLoading ? "Carregando..." : "Temporariamente indisponível"}</span>
+                </span>
+                {!methodsLoading && (
+                  <span className="ml-auto shrink-0 rounded-full bg-red-500/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-red-400">
+                    Indisponível
+                  </span>
+                )}
+              </button>
+            )}
             {cryptoEnabled && (
               <button
                 type="button"

@@ -209,11 +209,18 @@ export async function approveDeposit(
   return { approved: true, newBalance }
 }
 
-/** Status da AmploPay que indicam pagamento confirmado */
+/** Status dos gateways (SuitPay e AmploPay) que indicam pagamento confirmado */
 export function isPaidStatus(status?: string): boolean {
   if (!status) return false
   const s = status.toUpperCase()
-  return s === "PAID" || s === "OK" || s === "COMPLETED" || s === "APPROVED"
+  return (
+    s === "PAID_OUT" ||
+    s === "PAYMENT_ACCEPT" ||
+    s === "PAID" ||
+    s === "OK" ||
+    s === "COMPLETED" ||
+    s === "APPROVED"
+  )
 }
 
 /**
@@ -231,7 +238,7 @@ export function isPaidStatus(status?: string): boolean {
 export async function reconcilePendingDeposits(
   supabaseAdmin: SupabaseClient,
   amplopay: { getTransactionStatus: (id: string) => Promise<{ id: string; status: string } | null> },
-  opts: { userId?: string; limit?: number } = {},
+  opts: { userId?: string; limit?: number; externalIdPrefix?: string } = {},
 ): Promise<{ checked: number; approved: number }> {
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
 
@@ -247,6 +254,9 @@ export async function reconcilePendingDeposits(
 
   if (opts.userId) {
     query = query.eq("user_id", opts.userId)
+  }
+  if (opts.externalIdPrefix) {
+    query = query.like("external_id", `${opts.externalIdPrefix}%`)
   }
 
   const { data: pending, error } = await query

@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { amplopay } from "@/lib/amplopay"
+import { getTransactionStatus, SUITPAY_REQUEST_PREFIX } from "@/lib/suitpay"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { reconcilePendingDeposits } from "@/lib/deposits"
 
@@ -33,10 +33,11 @@ export async function POST(_request: NextRequest) {
 
     const supabaseAdmin = createAdminClient()
 
-    const { checked, approved } = await reconcilePendingDeposits(supabaseAdmin, amplopay, {
-      userId: user.id,
-      limit: 10,
-    })
+    const { checked, approved } = await reconcilePendingDeposits(
+      supabaseAdmin,
+      { getTransactionStatus },
+      { userId: user.id, limit: 10, externalIdPrefix: SUITPAY_REQUEST_PREFIX },
+    )
 
     return NextResponse.json({ success: true, checked, approved })
   } catch (error) {

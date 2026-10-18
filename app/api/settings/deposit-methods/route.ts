@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { isSuitpayConfigured } from "@/lib/suitpay"
 
 const CRYPTO_WALLET = "0x4a46afb8Cd04C21FD1370ECbdC1C543352e55e60"
 const CRYPTO_MIN_USD = 20
@@ -32,12 +33,14 @@ export async function GET() {
       }
     }
 
+    result.pix_enabled = result.pix_enabled && isSuitpayConfigured()
+
     return NextResponse.json(result)
   } catch (error) {
     console.error("Error fetching deposit methods:", error)
     return NextResponse.json({
       card_enabled: true,
-      pix_enabled: true,
+      pix_enabled: false,
       crypto_enabled: false,
       crypto_wallet: CRYPTO_WALLET,
       crypto_min_usd: CRYPTO_MIN_USD,
