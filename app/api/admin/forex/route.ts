@@ -55,7 +55,12 @@ const uuid = z.string().min(1).max(64)
 const actionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("close_position"), userId: uuid, positionId: uuid }),
   z.object({ action: z.literal("cancel_order"), userId: uuid, orderId: uuid }),
-  z.object({ action: z.literal("block_user"), userId: uuid, blocked: z.boolean() }),
+  z.object({
+    action: z.literal("block_user"),
+    userId: uuid,
+    blocked: z.boolean(),
+    reason: z.string().trim().max(500).nullish(),
+  }),
   z.object({
     action: z.literal("adjust_balance"),
     userId: uuid,
@@ -97,7 +102,7 @@ export async function POST(request: NextRequest) {
       case "cancel_order":
         return NextResponse.json({ success: true, result: await forceCancelOrder(a.userId, a.orderId) })
       case "block_user":
-        await setUserBlocked(a.userId, a.blocked)
+        await setUserBlocked(a.userId, a.blocked, a.reason ?? null)
         return NextResponse.json({ success: true })
       case "adjust_balance":
         return NextResponse.json({ success: true, balance: await adjustBalance(a.userId, a.isDemo, a.amount, a.note ?? null) })

@@ -31,6 +31,7 @@ export interface AdminUser {
   country: string | null
   kyc_status: string
   is_blocked: boolean
+  blocked_reason: string | null
   balance_real: number
   balance_demo: number
   open_positions: number
@@ -62,6 +63,7 @@ export interface AdminAdjustment {
 
 const g = globalThis as unknown as {
   __fxTestBlocked?: boolean
+  __fxTestBlockedReason?: string | null
   __fxTestAdjustments?: AdminAdjustment[]
 }
 
@@ -219,6 +221,7 @@ export async function listUsers(): Promise<AdminUser[]> {
         country: "BR",
         kyc_status: "approved",
         is_blocked: !!g.__fxTestBlocked,
+        blocked_reason: g.__fxTestBlockedReason ?? null,
         balance_real: a.real.balance,
         balance_demo: a.demo.balance,
         open_positions: a.real.positions.length + a.demo.positions.length,
@@ -231,7 +234,7 @@ export async function listUsers(): Promise<AdminUser[]> {
   const client = db()
   const { data: profiles, error } = await client
     .from("profiles")
-    .select("id, email, full_name, phone, country, kyc_status, is_blocked, created_at, last_login_at")
+    .select("id, email, full_name, phone, country, kyc_status, is_blocked, blocked_reason, created_at, last_login_at")
     .order("created_at", { ascending: false })
     .limit(1000)
   if (error) throw new TradingError("Tabela profiles ausente. Rode scripts/setup_completo.sql.", 500)
@@ -253,6 +256,7 @@ export async function listUsers(): Promise<AdminUser[]> {
     country: p.country ?? null,
     kyc_status: p.kyc_status ?? "pending",
     is_blocked: !!p.is_blocked,
+    blocked_reason: p.blocked_reason ?? null,
     balance_real: Number(bal[p.id]?.balance_real ?? 0),
     balance_demo: Number(bal[p.id]?.balance_demo ?? 0),
     open_positions: openCount[p.id] ?? 0,
@@ -266,13 +270,22 @@ export function isTestUserBlocked() {
   return !!g.__fxTestBlocked
 }
 
-export async function setUserBlocked(userId: string, blocked: boolean) {
+export async function setUserBlocked(userId: string, blocked: boolean, reason: string | null) {
+  const blockedReason = blocked ? reason?.trim() || null : null
   if (testMode()) {
     g.__fxTestBlocked = blocked
+    g.__fxTestBlockedReason = blockedReason
     return
   }
-  const { error } = await db().from("profiles").update({ is_blocked: blocked }).eq("id", userId)
+  const { error } = await db()
+    .from("profiles")
+    .update({ is_blocked: blocked, blocked_reason: blockedReason })
+    .eq("id", userId)
   if (error) throw new TradingError("Não foi possível atualizar o usuário", 500)
+  if (blocked) {
+    const { error: revokeError } = await db().rpc("revoke_user_sessions", { p_user: userId })
+    if (revokeError) console.error("[admin] revoke_user_sessions failed:", revokeError.message)
+  }
 }
 
 export async function adjustBalance(userId: string, isDemo: boolean, amount: number, note: string | null) {

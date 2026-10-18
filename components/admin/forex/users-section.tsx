@@ -17,6 +17,7 @@ interface UserRow {
   country: string | null
   kyc_status: string
   is_blocked: boolean
+  blocked_reason?: string | null
   balance_real: number
   balance_demo: number
   open_positions: number
@@ -114,6 +115,93 @@ function AdjustDialog({ user, onClose }: { user: UserRow | null; onClose: () => 
   )
 }
 
+const BLOCK_REASON_PRESETS = [
+  "Violação dos termos de uso",
+  "Suspeita de fraude",
+  "Documentos falsos ou inconsistentes",
+  "Múltiplas contas",
+  "Solicitação do próprio cliente",
+]
+
+function BlockDialog({ user, onClose }: { user: UserRow | null; onClose: () => void }) {
+  const [reason, setReason] = useState("")
+  const [busy, setBusy] = useState(false)
+
+  const close = () => {
+    setReason("")
+    onClose()
+  }
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!user) return
+    const text = reason.trim()
+    if (text.length < 3) return toast.error("Informe o motivo do bloqueio")
+    setBusy(true)
+    try {
+      await adminAction({ action: "block_user", userId: user.id, blocked: true, reason: text })
+      await refreshAdmin("users", "overview")
+      toast.success("Conta bloqueada. O cliente verá o motivo ao tentar entrar.")
+      close()
+    } catch (err) {
+      toast.error((err as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Dialog open={!!user} onOpenChange={(o) => !o && close()}>
+      <DialogContent className="border-term-line bg-term-panel text-term-text">
+        <DialogHeader>
+          <DialogTitle>Bloquear conta</DialogTitle>
+          <DialogDescription className="text-term-muted">
+            {user?.full_name ? `${user.full_name} · ` : ""}
+            {user?.email}
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={submit} className="flex flex-col gap-4">
+          <div className="flex flex-wrap gap-1.5" aria-label="Motivos frequentes">
+            {BLOCK_REASON_PRESETS.map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => setReason(preset)}
+                className={cn(
+                  "rounded-full border px-2.5 py-1 text-xs transition-colors",
+                  reason === preset
+                    ? "border-short bg-short/15 text-short"
+                    : "border-term-line text-term-muted hover:text-term-text",
+                )}
+              >
+                {preset}
+              </button>
+            ))}
+          </div>
+          <label className="flex flex-col gap-1.5 text-xs text-term-muted">
+            Motivo do bloqueio (o cliente verá este texto ao tentar entrar)
+            <textarea
+              className={cn(inputCls, "min-h-24 resize-y font-sans leading-relaxed")}
+              value={reason}
+              maxLength={500}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Descreva o motivo do bloqueio"
+              required
+            />
+            <span className="self-end tabular-nums">{reason.length}/500</span>
+          </label>
+          <p className="text-xs leading-relaxed text-term-muted">
+            O cliente será desconectado de todos os dispositivos e não conseguirá entrar até ser desbloqueado.
+          </p>
+          <SmallButton type="submit" tone="down" disabled={busy}>
+            {busy ? "Bloqueando..." : "Bloquear conta"}
+          </SmallButton>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 export function UsersSection() {
   const { data, error } = useAdminView<UserRow[]>("users", 30000)
   const adjustments = useAdminView<Adjustment[]>("adjustments")
@@ -122,14 +210,16 @@ export function UsersSection() {
   const [adjusting, setAdjusting] = useState<UserRow | null>(null)
   const [viewingLogs, setViewingLogs] = useState<UserRow | null>(null)
   const [viewingDetail, setViewingDetail] = useState<UserRow | null>(null)
+  const [blocking, setBlocking] = useState<UserRow | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
 
   const toggleBlock = async (u: UserRow) => {
+    if (!u.is_blocked) return setBlocking(u)
     setBusy(u.id)
     try {
-      await adminAction({ action: "block_user", userId: u.id, blocked: !u.is_blocked })
+      await adminAction({ action: "block_user", userId: u.id, blocked: false })
       await refreshAdmin("users", "overview")
-      toast.success(u.is_blocked ? "Usuário desbloqueado" : "Usuário bloqueado para novas posições")
+      toast.success("Usuário desbloqueado")
     } catch (e) {
       toast.error((e as Error).message)
     } finally {
@@ -183,7 +273,20 @@ export function UsersSection() {
               <td className={cn(td, "text-term-muted")}>{usd(u.balance_demo)}</td>
               <td className={td}>{u.open_positions}</td>
               <td className={cn(td, "text-term-muted")}>{dateTime(u.created_at)}</td>
-              <td className={td}>{u.is_blocked ? <Badge tone="down">Bloqueado</Badge> : <Badge tone="up">Ativo</Badge>}</td>
+              <td className={td}>
+                {u.is_blocked ? (
+                  <span className="flex max-w-48 flex-col items-start gap-1">
+                    <Badge tone="down">Bloqueado</Badge>
+                    {u.blocked_reason ? (
+                      <span className="truncate font-sans text-term-muted" title={u.blocked_reason}>
+                        {u.blocked_reason}
+                      </span>
+                    ) : null}
+                  </span>
+                ) : (
+                  <Badge tone="up">Ativo</Badge>
+                )}
+              </td>
               <td className={td}>
                 <div className="flex gap-1.5">
                   <SmallButton tone="muted" onClick={() => setViewingLogs(u)}>
@@ -221,6 +324,7 @@ export function UsersSection() {
       </Panel>
 
       <AdjustDialog user={adjusting} onClose={() => setAdjusting(null)} />
+      <BlockDialog user={blocking} onClose={() => setBlocking(null)} />
       <UserLogsDialog user={viewingLogs} onClose={() => setViewingLogs(null)} />
       <UserDetailSheet user={viewingDetail} onClose={() => setViewingDetail(null)} />
     </div>
