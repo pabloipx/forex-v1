@@ -7,7 +7,7 @@ import type { GatewayHealth } from "@/lib/suitpay"
 import { cn } from "@/lib/utils"
 import { ErrorNote, Panel } from "./ui"
 
-type Resp = { health: GatewayHealth; serverTime: string }
+type Resp = { health: GatewayHealth; lastPixAt: string | null; serverTime: string }
 
 const fetcher = async (url: string): Promise<Resp> => {
   const res = await fetch(url, { cache: "no-store" })
@@ -125,7 +125,14 @@ export function GatewaySection() {
           <Row label="Latência" value={h?.latencyMs != null ? `${h.latencyMs} ms` : "—"} />
           <Row label="Latência média" value={avgLatency != null ? `${avgLatency} ms` : "—"} />
           <Row label="Disponibilidade (sessão)" value={history.length ? `${okCount}/${history.length} verificações` : "—"} />
-          <Row label="Resposta HTTP" value={h?.httpStatus ?? "—"} />
+          <Row
+            label="Último PIX gerado"
+            value={
+              data?.lastPixAt
+                ? new Date(data.lastPixAt).toLocaleString("pt-BR", { timeZone: TZ, hour12: false, dateStyle: "short", timeStyle: "medium" })
+                : "—"
+            }
+          />
           <Row label="Host" value={h?.host ?? "—"} />
           <Row label="Webhook" value={h?.callbackUrl ?? "—"} />
           <Row

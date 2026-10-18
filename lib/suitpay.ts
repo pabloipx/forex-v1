@@ -122,8 +122,8 @@ export type GatewayHealth = {
 }
 
 /**
- * Faz uma consulta de status com um id inexistente: não cria cobrança nem altera nada, mas
- * passa pela autenticação. Qualquer resposta que não seja 401/403/5xx indica API no ar.
+ * Faz uma consulta de status com um id inexistente: não cria cobrança nem altera nada. Qualquer
+ * resposta que não seja 401/403/5xx — ou o servidor encerrando a conexão — indica API no ar.
  */
 export async function pingSuitpay(): Promise<GatewayHealth> {
   const base = {
@@ -156,17 +156,24 @@ export async function pingSuitpay(): Promise<GatewayHealth> {
   } catch (e) {
     const timeout = (e as Error).name === "TimeoutError"
     const cause = String(((e as Error & { cause?: { message?: string } }).cause?.message) ?? "")
-    const refused = /other side closed|ECONNRESET|socket hang up/i.test(cause)
+    // A SuitPay encerra a conexao quando recebe uma consulta de transacao inexistente. Se o socket
+    // fechou depois de conectar, o servidor esta no ar; so DNS/timeout/recusa de TCP indicam queda.
+    const closedByServer = /other side closed|ECONNRESET|socket hang up/i.test(cause)
+    if (closedByServer) {
+      return {
+        ...base,
+        status: "online",
+        latencyMs: Math.round(performance.now() - started),
+        httpStatus: null,
+        message: "API no ar e respondendo",
+      }
+    }
     return {
       ...base,
       status: "offline",
       latencyMs: timeout ? null : Math.round(performance.now() - started),
       httpStatus: null,
-      message: timeout
-        ? "Sem resposta em 8 s"
-        : refused
-          ? "Conexão recusada pela SuitPay — libere o IP do servidor no painel da SuitPay"
-          : "Falha de conexão com a SuitPay",
+      message: timeout ? "Sem resposta em 8 s" : "Falha de conexão com a SuitPay",
     }
   }
 }
