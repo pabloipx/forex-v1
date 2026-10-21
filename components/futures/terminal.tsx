@@ -29,7 +29,7 @@ function ChartViewToggle({ value, onChange }: { value: ChartView; onChange: (v: 
     ["depth", "Profundidade"],
   ]
   return (
-    <div role="tablist" aria-label="Visualização" className="flex gap-0.5 rounded-md bg-term-bg p-0.5">
+    <div role="tablist" aria-label="Visualização" className="flex h-10 items-stretch gap-4">
       {options.map(([k, label]) => (
         <button
           key={k}
@@ -37,8 +37,10 @@ function ChartViewToggle({ value, onChange }: { value: ChartView; onChange: (v: 
           aria-selected={value === k}
           onClick={() => onChange(k)}
           className={cn(
-            "rounded px-2 py-0.5 text-[11px] font-medium",
-            value === k ? "bg-term-line text-term-text" : "text-term-muted hover:text-term-text",
+            "relative shrink-0 text-sm transition-colors",
+            value === k
+              ? "font-semibold text-term-text after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded-full after:bg-term-accent"
+              : "text-term-muted hover:text-term-text",
           )}
         >
           {label}

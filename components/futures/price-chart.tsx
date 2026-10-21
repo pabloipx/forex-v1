@@ -9,6 +9,7 @@ import {
   HistogramSeries,
   LineSeries,
   LineStyle,
+  PriceScaleMode,
   createChart,
   createTextWatermark,
   type IChartApi,
@@ -17,6 +18,19 @@ import {
   type UTCTimestamp,
   type Time,
 } from "lightweight-charts"
+import {
+  ArrowRightToLine,
+  Camera,
+  ChartCandlestick,
+  ChartColumn,
+  ChartLine,
+  Code,
+  Layers,
+  Maximize2,
+  Minimize2,
+  Scan,
+  Square,
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 import { formatPrice, type FuturesMarket } from "@/lib/futures/markets"
 import { INTERVALS, INTERVAL_SECONDS, type Candle, type ChartInterval } from "@/lib/futures/chart-intervals"
@@ -48,6 +62,16 @@ const COLORS = {
 }
 
 const INTERVAL_LABEL: Record<ChartInterval, string> = { "1m": "1m", "5m": "5m", "15m": "15m", "1h": "1h", "4h": "4h", "1d": "1D" }
+
+const DAY = 86_400
+const RANGES: [string, number][] = [
+  ["1D", DAY],
+  ["5D", 5 * DAY],
+  ["1M", 30 * DAY],
+  ["3M", 90 * DAY],
+  ["6M", 180 * DAY],
+  ["1Y", 365 * DAY],
+]
 
 type ChartStyle = "candles" | "line"
 
@@ -155,10 +179,10 @@ function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag
     const change = c.open ? ((c.close - c.open) / c.open) * 100 : 0
     const delta = c.close - c.open
     const parts: [string, string][] = [
-      ["A", formatPrice(c.open, d)],
-      ["M", formatPrice(c.high, d)],
-      ["m", formatPrice(c.low, d)],
-      ["F", formatPrice(c.close, d)],
+      ["Abr", formatPrice(c.open, d)],
+      ["Máx.", formatPrice(c.high, d)],
+      ["Mín.", formatPrice(c.low, d)],
+      ["Fch", formatPrice(c.close, d)],
     ]
     el.replaceChildren(
       ...parts.flatMap(([label, value]) => {
@@ -459,66 +483,181 @@ function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag
     }
   }, [chartApi])
 
-  const toolBtn = (active: boolean) =>
+  const textBtn = (active: boolean) =>
     cn(
-      "shrink-0 rounded px-1.5 py-1 text-xs font-medium transition-colors",
-      active ? "bg-primary/15 text-primary" : "text-term-muted hover:bg-term-line hover:text-term-text",
+      "shrink-0 rounded px-1.5 py-0.5 text-xs transition-colors",
+      active ? "font-semibold text-term-accent" : "text-term-muted hover:text-term-text",
+    )
+  const iconBtn = (active: boolean) =>
+    cn(
+      "relative flex size-7 shrink-0 items-center justify-center rounded transition-colors",
+      active ? "text-term-accent" : "text-term-muted hover:bg-term-line/60 hover:text-term-text",
     )
 
+  const sectionRef = useRef<HTMLElement>(null)
+  const clockRef = useRef<HTMLSpanElement>(null)
+  const [nativeFull, setNativeFull] = useState(false)
+  const [pseudoFull, setPseudoFull] = useState(false)
+  const isFull = nativeFull || pseudoFull
+  const [scaleMode, setScaleMode] = useState<PriceScaleMode>(PriceScaleMode.Normal)
+  const [autoScale, setAutoScale] = useState(true)
+
+  useEffect(() => {
+    const onChange = () => setNativeFull(document.fullscreenElement === sectionRef.current)
+    document.addEventListener("fullscreenchange", onChange)
+    return () => document.removeEventListener("fullscreenchange", onChange)
+  }, [])
+
+  useEffect(() => {
+    if (!pseudoFull) return
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setPseudoFull(false)
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [pseudoFull])
+
+  const toggleFullscreen = async () => {
+    if (pseudoFull) return setPseudoFull(false)
+    if (document.fullscreenElement) return void document.exitFullscreen().catch(() => {})
+    const el = sectionRef.current
+    try {
+      if (!el?.requestFullscreen || !document.fullscreenEnabled) throw new Error("unsupported")
+      await el.requestFullscreen()
+    } catch {
+      // Navegadores/iframes sem permissão de fullscreen: expande o gráfico para a janela inteira.
+      setPseudoFull(true)
+    }
+  }
+
+  const openEditor = () => {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
+    setPseudoFull(false)
+    setEditorOpen(true)
+  }
+
+  useEffect(() => {
+    const tick = () => {
+      if (clockRef.current) clockRef.current.textContent = `${new Date().toISOString().slice(11, 19)} UTC`
+    }
+    tick()
+    const id = window.setInterval(tick, 1000)
+    return () => window.clearInterval(id)
+  }, [])
+
+  useEffect(() => {
+    chartRef.current?.priceScale("right").applyOptions({ mode: scaleMode, autoScale })
+  }, [scaleMode, autoScale, chartApi])
+
+  const showRange = (seconds: number) => {
+    const total = barsRef.current.length
+    if (!total) return
+    const count = Math.max(10, Math.round(seconds / INTERVAL_SECONDS[interval]))
+    chartRef.current?.timeScale().setVisibleLogicalRange({ from: Math.max(0, total - count), to: total + 4 })
+  }
+
+  const takeScreenshot = () => {
+    const canvas = chartRef.current?.takeScreenshot()
+    if (!canvas) return
+    canvas.toBlob((blob) => {
+      if (!blob) return
+      const url = URL.createObjectURL(blob)
+      const a = Object.assign(document.createElement("a"), {
+        href: url,
+        download: `${market.symbol}-${interval}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.png`,
+      })
+      a.click()
+      URL.revokeObjectURL(url)
+    })
+  }
+
+  const FullIcon = isFull ? Minimize2 : Maximize2
+
   return (
-    <section aria-label="Gráfico" className="flex h-full flex-col bg-term-panel">
-      <div className="flex items-center gap-3 overflow-x-auto border-b border-term-line px-3 py-1.5 [scrollbar-width:none]">
-        {toolbarExtra && (
-          <>
-            <div className="shrink-0">{toolbarExtra}</div>
-            <span className="h-4 w-px shrink-0 bg-term-line" aria-hidden="true" />
-          </>
-        )}
-        <div role="radiogroup" aria-label="Intervalo" className="flex shrink-0 items-center gap-0.5">
-          {INTERVALS.map((i) => (
-            <button key={i} role="radio" aria-checked={interval === i} onClick={() => setIntervalValue(i)} className={toolBtn(interval === i)}>
-              {INTERVAL_LABEL[i]}
+    <section
+      ref={sectionRef}
+      aria-label="Gráfico"
+      className={cn("flex h-full flex-col bg-term-panel", pseudoFull && "fixed inset-0 z-[100] h-dvh")}
+    >
+      <div className="flex h-10 shrink-0 items-center justify-between gap-3 border-b border-term-line px-3">
+        <div className="min-w-0 overflow-x-auto [scrollbar-width:none]">{toolbarExtra}</div>
+        <div className="flex shrink-0 items-center gap-1">
+          <button type="button" title="Ajustar gráfico" aria-label="Ajustar gráfico" onClick={() => chartRef.current?.timeScale().fitContent()} className={iconBtn(false)}>
+            <Square className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            title={isFull ? "Sair da tela cheia" : "Tela cheia"}
+            aria-label={isFull ? "Sair da tela cheia" : "Tela cheia"}
+            aria-pressed={isFull}
+            onClick={toggleFullscreen}
+            className={iconBtn(false)}
+          >
+            <FullIcon className="size-4" strokeWidth={1.5} aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+
+      <div className="flex h-9 shrink-0 items-center justify-between gap-2 border-b border-term-line px-2">
+        <div className="flex min-w-0 items-center gap-1 overflow-x-auto [scrollbar-width:none]">
+          <div role="radiogroup" aria-label="Intervalo" className="flex shrink-0 items-center gap-0.5">
+            {INTERVALS.map((i) => (
+              <button key={i} role="radio" aria-checked={interval === i} onClick={() => setIntervalValue(i)} className={textBtn(interval === i)}>
+                {INTERVAL_LABEL[i]}
+              </button>
+            ))}
+          </div>
+          <span className="mx-1 h-4 w-px shrink-0 bg-term-line" aria-hidden="true" />
+          <div role="radiogroup" aria-label="Tipo de gráfico" className="flex shrink-0 items-center gap-0.5">
+            <button role="radio" title="Velas" aria-label="Velas" aria-checked={style === "candles"} onClick={() => setStyle("candles")} className={iconBtn(style === "candles")}>
+              <ChartCandlestick className="size-4" strokeWidth={1.5} aria-hidden="true" />
             </button>
-          ))}
+            <button role="radio" title="Linha" aria-label="Linha" aria-checked={style === "line"} onClick={() => setStyle("line")} className={iconBtn(style === "line")}>
+              <ChartLine className="size-4" strokeWidth={1.5} aria-hidden="true" />
+            </button>
+          </div>
+          {market.source === "binance" && (
+            <button title="Volume" aria-label="Volume" aria-pressed={showVolume} onClick={() => setShowVolume((v) => !v)} className={iconBtn(showVolume)}>
+              <ChartColumn className="size-4" strokeWidth={1.5} aria-hidden="true" />
+            </button>
+          )}
+          <button title="Linhas de posições e ordens" aria-label="Linhas de posições e ordens" aria-pressed={showLines} onClick={() => setShowLines((v) => !v)} className={iconBtn(showLines)}>
+            <Layers className="size-4" strokeWidth={1.5} aria-hidden="true" />
+          </button>
+          <button
+            title={`Scripts${activeScripts.length ? ` (${activeScripts.length})` : ""}`}
+            aria-label="Scripts"
+            aria-haspopup="dialog"
+            onClick={openEditor}
+            className={iconBtn(activeScripts.length > 0)}
+          >
+            <Code className="size-4" strokeWidth={1.5} aria-hidden="true" />
+            {activeScripts.length > 0 && <span className="absolute right-1 top-1 size-1.5 rounded-full bg-term-down" aria-hidden="true" />}
+          </button>
         </div>
-        <span className="h-4 w-px shrink-0 bg-term-line" aria-hidden="true" />
-        <div role="radiogroup" aria-label="Tipo de gráfico" className="flex shrink-0 items-center gap-0.5">
-          <button role="radio" aria-checked={style === "candles"} onClick={() => setStyle("candles")} className={toolBtn(style === "candles")}>
-            Velas
+        <div className="flex shrink-0 items-center gap-0.5">
+          <button type="button" title="Capturar imagem" aria-label="Capturar imagem do gráfico" onClick={takeScreenshot} className={iconBtn(false)}>
+            <Camera className="size-4" strokeWidth={1.5} aria-hidden="true" />
           </button>
-          <button role="radio" aria-checked={style === "line"} onClick={() => setStyle("line")} className={toolBtn(style === "line")}>
-            Linha
+          <button
+            type="button"
+            title={isFull ? "Sair da tela cheia" : "Tela cheia"}
+            aria-label={isFull ? "Sair da tela cheia" : "Tela cheia"}
+            onClick={toggleFullscreen}
+            className={iconBtn(isFull)}
+          >
+            <Scan className="size-4" strokeWidth={1.5} aria-hidden="true" />
           </button>
         </div>
-        <span className="h-4 w-px shrink-0 bg-term-line" aria-hidden="true" />
-        {market.source === "binance" && (
-          <button aria-pressed={showVolume} onClick={() => setShowVolume((v) => !v)} className={toolBtn(showVolume)}>
-            Volume
-          </button>
-        )}
-        <button aria-pressed={showLines} onClick={() => setShowLines((v) => !v)} className={toolBtn(showLines)}>
-          Posições
-        </button>
-        <button onClick={() => chartRef.current?.timeScale().fitContent()} className={toolBtn(false)}>
-          Ajustar
-        </button>
-        <button onClick={() => chartRef.current?.timeScale().scrollToRealTime()} className={toolBtn(false)}>
-          Tempo real
-        </button>
-        <span className="h-4 w-px shrink-0 bg-term-line" aria-hidden="true" />
-        <button
-          onClick={() => setEditorOpen(true)}
-          aria-haspopup="dialog"
-          className={cn(toolBtn(activeScripts.length > 0), "flex items-center gap-1 font-mono")}
-        >
-          {"</>"}
-          <span className="font-sans">Scripts{activeScripts.length ? ` (${activeScripts.length})` : ""}</span>
-        </button>
       </div>
       <ScriptEditor open={editorOpen} onOpenChange={setEditorOpen} store={scriptStore} errors={scriptErrors} />
 
       <div className="flex min-h-0 flex-1">
-      <DrawingToolbar state={drawing} />
+      <DrawingToolbar
+        state={drawing}
+        onZoomIn={() => {
+          const ts = chartRef.current?.timeScale()
+          if (ts) ts.applyOptions({ barSpacing: Math.min(50, ts.options().barSpacing * 1.4) })
+        }}
+      />
       <div className="relative min-h-0 min-w-0 flex-1">
         {chartApi && (
           <DrawingLayer
@@ -596,6 +735,48 @@ function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag
         )}
         <div ref={containerRef} className="h-full w-full touch-pan-y" />
       </div>
+      </div>
+
+      <div className="flex h-8 shrink-0 items-center justify-between gap-2 border-t border-term-line px-2">
+        <div className="flex min-w-0 items-center gap-0.5 overflow-x-auto [scrollbar-width:none]">
+          {RANGES.map(([label, seconds]) => (
+            <button key={label} type="button" onClick={() => showRange(seconds)} className={textBtn(false)}>
+              {label}
+            </button>
+          ))}
+          <span className="mx-1 h-4 w-px shrink-0 bg-term-line" aria-hidden="true" />
+          <button
+            type="button"
+            title="Ir para tempo real"
+            aria-label="Ir para tempo real"
+            onClick={() => chartRef.current?.timeScale().scrollToRealTime()}
+            className={iconBtn(false)}
+          >
+            <ArrowRightToLine className="size-4" strokeWidth={1.5} aria-hidden="true" />
+          </button>
+        </div>
+        <div className="flex shrink-0 items-center gap-1">
+          <span ref={clockRef} className="hidden pr-2 font-mono text-xs text-term-text sm:inline" />
+          <button
+            type="button"
+            aria-pressed={scaleMode === PriceScaleMode.Percentage}
+            onClick={() => setScaleMode((m) => (m === PriceScaleMode.Percentage ? PriceScaleMode.Normal : PriceScaleMode.Percentage))}
+            className={textBtn(scaleMode === PriceScaleMode.Percentage)}
+          >
+            %
+          </button>
+          <button
+            type="button"
+            aria-pressed={scaleMode === PriceScaleMode.Logarithmic}
+            onClick={() => setScaleMode((m) => (m === PriceScaleMode.Logarithmic ? PriceScaleMode.Normal : PriceScaleMode.Logarithmic))}
+            className={textBtn(scaleMode === PriceScaleMode.Logarithmic)}
+          >
+            log
+          </button>
+          <button type="button" aria-pressed={autoScale} onClick={() => setAutoScale((v) => !v)} className={textBtn(autoScale)}>
+            auto
+          </button>
+        </div>
       </div>
     </section>
   )

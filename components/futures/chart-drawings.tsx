@@ -3,14 +3,15 @@
 import { useCallback, useEffect, useRef, useState, type MutableRefObject, type PointerEvent as ReactPointerEvent } from "react"
 import type { IChartApi, ISeriesApi, Logical, SeriesType } from "lightweight-charts"
 import {
+  AlignJustify,
+  Crosshair,
+  ZoomIn,
   ChartNoAxesGantt,
   Eye,
   EyeOff,
   Lock,
   LockOpen,
   Magnet,
-  Minus,
-  MousePointer2,
   MoveUpRight,
   Ruler,
   SeparatorVertical,
@@ -46,10 +47,10 @@ const SWATCHES = ["#2190ff", "#089981", "#f23645", "#9598a1"]
 const STORAGE_PREFIX = "fx-drawings:"
 
 export const TOOLS: { id: DrawTool; label: string; icon: LucideIcon }[] = [
-  { id: "cursor", label: "Cursor", icon: MousePointer2 },
+  { id: "cursor", label: "Cruz", icon: Crosshair },
   { id: "trend", label: "Linha de tendência", icon: Slash },
   { id: "ray", label: "Raio", icon: MoveUpRight },
-  { id: "hline", label: "Linha horizontal", icon: Minus },
+  { id: "hline", label: "Linha horizontal", icon: AlignJustify },
   { id: "vline", label: "Linha vertical", icon: SeparatorVertical },
   { id: "rect", label: "Retângulo", icon: Square },
   { id: "fib", label: "Retração de Fibonacci", icon: ChartNoAxesGantt },
@@ -161,16 +162,20 @@ function SideButton({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "flex size-7 shrink-0 items-center justify-center rounded transition-colors",
-        active ? "bg-term-line text-primary" : danger ? "text-term-muted hover:text-short" : "text-term-muted hover:bg-term-line/60 hover:text-term-text",
+        "flex size-9 shrink-0 items-center justify-center rounded transition-colors",
+        active
+          ? "text-term-accent"
+          : danger
+            ? "text-term-text/80 hover:bg-term-line/60 hover:text-short"
+            : "text-term-text/80 hover:bg-term-line/60 hover:text-term-text",
       )}
     >
-      <Icon className="size-4" aria-hidden="true" />
+      <Icon className="size-5" strokeWidth={1.25} aria-hidden="true" />
     </button>
   )
 }
 
-export function DrawingToolbar({ state }: { state: DrawingState }) {
+export function DrawingToolbar({ state, onZoomIn }: { state: DrawingState; onZoomIn?: () => void }) {
   const { tool, setTool, magnet, setMagnet, locked, setLocked, hidden, setHidden, drawings, setDrawings, setSelected } = state
   const [confirmClear, setConfirmClear] = useState(false)
   useEffect(() => {
@@ -183,12 +188,13 @@ export function DrawingToolbar({ state }: { state: DrawingState }) {
       role="toolbar"
       aria-label="Ferramentas de desenho"
       aria-orientation="vertical"
-      className="flex w-9 shrink-0 flex-col items-center gap-0.5 overflow-y-auto border-r border-term-line py-1.5 [scrollbar-width:none]"
+      className="flex w-12 shrink-0 flex-col items-center gap-0.5 overflow-y-auto border-r border-term-line py-2 [scrollbar-width:none]"
     >
       {TOOLS.map((t) => (
         <SideButton key={t.id} label={t.label} icon={t.icon} active={tool === t.id} onClick={() => setTool(tool === t.id ? "cursor" : t.id)} />
       ))}
-      <span className="my-1 h-px w-5 shrink-0 bg-term-line" aria-hidden="true" />
+      {onZoomIn && <SideButton label="Aproximar" icon={ZoomIn} onClick={onZoomIn} />}
+      <span className="my-1.5 h-px w-7 shrink-0 bg-term-line" aria-hidden="true" />
       <SideButton label="Modo ímã (prende no OHLC)" icon={Magnet} active={magnet} onClick={() => setMagnet(!magnet)} />
       <SideButton label={locked ? "Destravar desenhos" : "Travar desenhos"} icon={locked ? Lock : LockOpen} active={locked} onClick={() => setLocked(!locked)} />
       <SideButton label={hidden ? "Mostrar desenhos" : "Ocultar desenhos"} icon={hidden ? EyeOff : Eye} active={hidden} onClick={() => setHidden(!hidden)} />
