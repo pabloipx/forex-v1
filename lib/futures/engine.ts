@@ -496,8 +496,8 @@ export async function transferFunds(userId: string, direction: "spot_to_futures"
       const pnl = p.qty * p.contract_size * (mark - p.entry_price) * (p.side === "long" ? 1 : -1) * quoteToUsd(market, mark)
       if (pnl < 0) loss += -pnl
     }
-    const { data: bal } = await admin.from("user_balances").select("balance").eq("user_id", userId).maybeSingle()
-    const available = Number(bal?.balance ?? 0) - loss
+    const { data: bal } = await admin.from("user_balances").select("balance_real").eq("user_id", userId).maybeSingle()
+    const available = Number(bal?.balance_real ?? 0) - loss
     if (value > available) {
       throw new TradingError(`Disponível para transferir: ${Math.max(available, 0).toFixed(2)} USD`)
     }
@@ -666,7 +666,7 @@ export async function loadState(userId: string, isDemo: boolean) {
   if (isTestUser(userId)) return testEngine.loadState(isDemo)
   const admin = createAdminClient()
   const [bal, positions, openOrders, orderHistory, fills, closed, funding] = await Promise.all([
-    admin.from("user_balances").select("balance, balance_demo, balance_spot").eq("user_id", userId).maybeSingle(),
+    admin.from("user_balances").select("balance_real, balance_demo, balance_spot").eq("user_id", userId).maybeSingle(),
     admin
       .from("futures_positions")
       .select("*")
@@ -721,7 +721,7 @@ export async function loadState(userId: string, isDemo: boolean) {
     )
   }
 
-  const real = Number(bal.data?.balance ?? 0)
+  const real = Number(bal.data?.balance_real ?? 0)
   const demo = Number(bal.data?.balance_demo ?? 10000)
   return {
     balance: isDemo ? demo : real,
