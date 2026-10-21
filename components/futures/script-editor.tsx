@@ -5,7 +5,7 @@ import { Plus, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Switch } from "@/components/ui/switch"
-import { SCRIPT_TEMPLATES } from "@/lib/futures/script-runtime"
+import { PINE_ERROR, SCRIPT_TEMPLATES, looksLikePine } from "@/lib/futures/script-runtime"
 import type { ChartScript, useChartScripts } from "@/hooks/use-chart-scripts"
 
 interface ScriptEditorProps {
@@ -67,7 +67,7 @@ export function ScriptEditor({ open, onOpenChange, store, errors }: ScriptEditor
       setSelectedId(row.id)
     })
 
-  const isPine = /^\s*\/\/\s*@version|^\s*(indicator|strategy|study)\s*\(/m.test(code)
+  const isPine = looksLikePine(code)
   const sniperTemplate = SCRIPT_TEMPLATES.find((t) => t.name === "Sniper Pro V8")
   const isSniperPine = isPine && /SNIPER/i.test(code)
 
@@ -221,7 +221,7 @@ export function ScriptEditor({ open, onOpenChange, store, errors }: ScriptEditor
                       <span className="text-term-down">
                         {isSniperPine
                           ? "Este é o Pine Script do Sniper. O gráfico usa JavaScript — converta com um clique."
-                          : "Pine Script (TradingView) não é suportado. Use JavaScript com ta, plot, hline e signal."}
+                          : PINE_ERROR}
                       </span>
                       {isSniperPine && sniperTemplate && (
                         <button

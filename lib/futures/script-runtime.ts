@@ -116,32 +116,46 @@ function getWorkerUrl() {
   return workerUrl
 }
 
-const PINE_PATTERN = /^\s*\/\/\s*@version|^\s*(indicator|strategy|study)\s*\(/m
+const PINE_DECLARATION = /^\s*\/\/\s*@version|^\s*(indicator|strategy|study)\s*\(/m
+const PINE_MARKERS = [
+  /\binput(\.(int|float|bool|string|source|color|timeframe|session|price|symbol))?\s*\(/,
+  /^\s*[A-Za-z_]\w*\s*:=/m,
+  /\bcolor\.(rgb|new)\s*\(/,
+  /\b(plotshape|plotchar|plotcandle|bgcolor|barcolor|alertcondition|fill)\s*\(/,
+  /^\s*(var|varip)\s+(int|float|bool|string|line|label|box|table\s+)?[A-Za-z_]\w*\s*=/m,
+  /\bstrategy\.(entry|exit|close|long|short)\b/,
+  /\b(label|line|box|table)\.new\s*\(/,
+  /\bta\.(crossover|crossunder)\s*\([^)]*\)\s*$/m,
+  /\bnz\s*\(|\bna\b(?!\w)/,
+  /^\s*(if|for|while)\s+[^({\n]+$/m,
+]
+
+export function looksLikePine(code: string): boolean {
+  if (PINE_DECLARATION.test(code)) return true
+  return PINE_MARKERS.filter((re) => re.test(code)).length >= 2
+}
+
+export const PINE_ERROR =
+  "Isto é Pine Script (TradingView) e não roda aqui. Este gráfico usa JavaScript com ta, plot, hline e signal — envie o script para conversão ou use um modelo."
 
 export function runScript(code: string, bars: Candle[]): Promise<ScriptResult> {
-  if (PINE_PATTERN.test(code)) {
-    return Promise.resolve({
-      ok: false,
-      error:
-        "Pine Script (TradingView) não é suportado. Este gráfico usa JavaScript com ta, plot, hline e signal. Veja o modelo Sniper Pro V8.",
-    })
-  }
+  if (looksLikePine(code)) return Promise.resolve({ ok: false, error: PINE_ERROR })
   return new Promise((resolve) => {
     const worker = new Worker(getWorkerUrl())
     const timer = setTimeout(() => {
       worker.terminate()
       resolve({ ok: false, error: `Tempo limite de ${TIMEOUT_MS}ms excedido (loop infinito?)` })
     }, TIMEOUT_MS)
-    worker.onmessage = (e: MessageEvent<ScriptResult>) => {
+    const finish = (result: ScriptResult) => {
       clearTimeout(timer)
       worker.terminate()
-      resolve(e.data)
+      const syntaxError = !result.ok && /unexpected|missing|is not defined/i.test(result.error ?? "")
+      resolve(syntaxError && PINE_MARKERS.some((re) => re.test(code)) ? { ok: false, error: PINE_ERROR } : result)
     }
+    worker.onmessage = (e: MessageEvent<ScriptResult>) => finish(e.data)
     worker.onerror = (e) => {
       e.preventDefault()
-      clearTimeout(timer)
-      worker.terminate()
-      resolve({ ok: false, error: e.message || "Erro de sintaxe no script" })
+      finish({ ok: false, error: e.message || "Erro de sintaxe no script" })
     }
     worker.postMessage({ code, bars })
   })
