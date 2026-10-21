@@ -9,6 +9,7 @@ import {
   liquidationPrice,
   quoteToUsd,
   roundToStep,
+  tpSlError,
   type FuturesMarket,
 } from "./markets"
 import type { AccountMode, Fill, Order, PlaceOrderInput, Position } from "./types"
@@ -40,15 +41,16 @@ function store(): Store {
 const acc = (isDemo: boolean) => store()[isDemo ? "demo" : "real"]
 const now = () => new Date().toISOString()
 
-function validateTpSl(side: "buy" | "sell", ref: number, tp?: number | null, sl?: number | null) {
-  if (tp != null) {
-    if (side === "buy" && tp <= ref) throw new TradingError("Take Profit deve ser maior que o preço de entrada")
-    if (side === "sell" && tp >= ref) throw new TradingError("Take Profit deve ser menor que o preço de entrada")
-  }
-  if (sl != null) {
-    if (side === "buy" && sl >= ref) throw new TradingError("Stop Loss deve ser menor que o preço de entrada")
-    if (side === "sell" && sl <= ref) throw new TradingError("Stop Loss deve ser maior que o preço de entrada")
-  }
+function validateTpSl(
+  side: "buy" | "sell",
+  ref: number,
+  tp: number | null | undefined,
+  sl: number | null | undefined,
+  decimals: number,
+  refLabel?: string,
+) {
+  const message = tpSlError(side, ref, tp, sl, decimals, refLabel)
+  if (message) throw new TradingError(message)
 }
 
 interface FillArgs {
@@ -241,7 +243,7 @@ export async function placeOrder(input: PlaceOrderInput) {
   const base = { isDemo, market, side: input.side, leverage, marginMode, reduceOnly: input.reduceOnly }
 
   if (input.orderType === "market") {
-    validateTpSl(input.side, execPrice, input.takeProfit, input.stopLoss)
+    validateTpSl(input.side, execPrice, input.takeProfit, input.stopLoss, market.priceDecimals)
     return fill({ ...base, qty: fillQty, price: execPrice, feeRate: paramsFor(market.symbol).takerFee, takeProfit: input.takeProfit, stopLoss: input.stopLoss })
   }
 
@@ -253,7 +255,7 @@ export async function placeOrder(input: PlaceOrderInput) {
   if (input.orderType === "limit") {
     price = Number(input.price)
     if (!Number.isFinite(price) || price <= 0) throw new TradingError("Informe um preço válido")
-    validateTpSl(input.side, price, input.takeProfit, input.stopLoss)
+    validateTpSl(input.side, price, input.takeProfit, input.stopLoss, market.priceDecimals)
     tif = input.postOnly ? "PostOnly" : input.timeInForce ?? "GTC"
     const marketable = input.side === "buy" ? price >= execPrice : price <= execPrice
     if (marketable) {
@@ -275,8 +277,10 @@ export async function placeOrder(input: PlaceOrderInput) {
     trigger = Number(input.triggerPrice)
     if (!Number.isFinite(trigger) || trigger <= 0) throw new TradingError("Informe um preço de disparo válido")
     if (Math.abs(trigger - ticker.price) / ticker.price < 1e-6) throw new TradingError("Preço de disparo igual ao preço atual")
-    validateTpSl(input.side, trigger, input.takeProfit, input.stopLoss)
+    validateTpSl(input.side, trigger, input.takeProfit, input.stopLoss, market.priceDecimals)
     direction = trigger > ticker.price ? "rise" : "fall"
+    const limitAfterTrigger = Number(input.price)
+    if (Number.isFinite(limitAfterTrigger) && limitAfterTrigger > 0) price = limitAfterTrigger
   }
 
   const refPrice = (price ?? trigger) as number
@@ -395,7 +399,7 @@ export async function setTpSl(positionId: string, tp: number | null, sl: number 
   const pos = findPosition(positionId)
   if (!pos) throw new TradingError("Posição não encontrada", 404)
   const ticker = await getExecutionTicker(pos.symbol)
-  validateTpSl(pos.side === "long" ? "buy" : "sell", ticker?.price ?? pos.entry_price, tp, sl)
+  validateTpSl(pos.side === "long" ? "buy" : "sell", ticker?.price ?? pos.entry_price, tp, sl, getMarket(pos.symbol)?.priceDecimals ?? 2, "preço atual")
   pos.take_profit = tp
   pos.stop_loss = sl
   return { ok: true }
@@ -427,7 +431,15 @@ export async function sweep() {
         }
       } else if (o.order_type === "conditional" && o.trigger_price != null) {
         if (o.trigger_direction === "rise" ? last >= o.trigger_price : last <= o.trigger_price) {
-          fillPrice = o.side === "buy" ? t.ask || last : t.bid || last
+          const marketPx = o.side === "buy" ? t.ask || last : t.bid || last
+          if (o.price == null || (o.side === "buy" ? marketPx <= o.price : marketPx >= o.price)) {
+            fillPrice = marketPx
+          } else {
+            o.order_type = "limit"
+            o.trigger_price = null
+            o.trigger_direction = null
+            continue
+          }
         }
       }
       if (fillPrice == null) continue

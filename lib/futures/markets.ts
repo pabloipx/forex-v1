@@ -183,6 +183,78 @@ export function formatPrice(value: number | null | undefined, decimals: number):
   return value.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
 }
 
+export function sanitizeDecimalInput(raw: string): string {
+  return raw.replace(/[^0-9.,]/g, "")
+}
+
+/**
+ * Lê números digitados em formato brasileiro (84.206,5), americano (84,206.5) ou sem separador.
+ * Quando um único separador é ambíguo ("84,206" ou "84.206"), escolhe a leitura mais próxima de `ref`
+ * (o preço atual), para que copiar o preço do gráfico não vire 84,206 em vez de 84206.
+ */
+export function parseDecimalInput(raw: string, ref?: number | null): number {
+  const s = sanitizeDecimalInput(raw.trim())
+  if (!s) return NaN
+  const commas = (s.match(/,/g) ?? []).length
+  const dots = (s.match(/\./g) ?? []).length
+  if (commas + dots === 0) return Number(s)
+
+  const lastSep = Math.max(s.lastIndexOf(","), s.lastIndexOf("."))
+  const asDecimal = Number(`${s.slice(0, lastSep).replace(/[.,]/g, "")}.${s.slice(lastSep + 1)}`)
+  const asThousands = Number(s.replace(/[.,]/g, ""))
+
+  if (commas > 0 && dots > 0) return asDecimal
+  if (commas + dots > 1) return asThousands
+  if (s.length - lastSep - 1 !== 3) return asDecimal
+  if (ref != null && ref > 0 && asDecimal > 0 && asThousands > 0) {
+    return Math.abs(Math.log(asThousands / ref)) < Math.abs(Math.log(asDecimal / ref)) ? asThousands : asDecimal
+  }
+  return asDecimal
+}
+
+/** Mensagem de erro de TP/SL, ou null se estiverem corretos em relação ao preço de referência. */
+export function tpSlError(
+  side: "buy" | "sell",
+  ref: number,
+  tp: number | null | undefined,
+  sl: number | null | undefined,
+  decimals: number,
+  refLabel = "preço de entrada",
+): string | null {
+  const refText = `${refLabel} (${formatPrice(ref, decimals)})`
+  const dir = side === "buy" ? "Long" : "Short"
+  if (tp != null) {
+    if (side === "buy" && tp <= ref) return `Em ${dir}, o Take Profit (${formatPrice(tp, decimals)}) deve ser maior que o ${refText}`
+    if (side === "sell" && tp >= ref) return `Em ${dir}, o Take Profit (${formatPrice(tp, decimals)}) deve ser menor que o ${refText}`
+  }
+  if (sl != null) {
+    if (side === "buy" && sl >= ref) return `Em ${dir}, o Stop Loss (${formatPrice(sl, decimals)}) deve ser menor que o ${refText}`
+    if (side === "sell" && sl <= ref) return `Em ${dir}, o Stop Loss (${formatPrice(sl, decimals)}) deve ser maior que o ${refText}`
+  }
+  return null
+}
+
+/**
+ * Resultado estimado se a posição fechar no preço alvo (TP ou SL): PnL bruto menos a taxa de abertura
+ * e a taxa de fechamento (taker). O ROI é sobre a margem inicial, como nas corretoras.
+ */
+export function estimateClosePnl(
+  market: FuturesMarket,
+  side: "long" | "short",
+  qty: number,
+  entry: number,
+  target: number,
+  leverage: number,
+  openFeeRate = TAKER_FEE,
+): { pnl: number; roi: number } {
+  if (!(qty > 0 && entry > 0 && target > 0 && leverage > 0)) return { pnl: 0, roi: 0 }
+  const entryNotional = notionalUsd(market, qty, entry)
+  const fees = entryNotional * openFeeRate + notionalUsd(market, qty, target) * TAKER_FEE
+  const pnl = unrealizedPnl(market, side, qty, entry, target) - fees
+  const margin = entryNotional / leverage
+  return { pnl, roi: margin > 0 ? (pnl / margin) * 100 : 0 }
+}
+
 export function formatUsd(value: number | null | undefined, decimals = 2): string {
   if (value == null || !Number.isFinite(value)) return "--"
   return value.toLocaleString("pt-BR", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })

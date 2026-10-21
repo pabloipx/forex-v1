@@ -1050,7 +1050,8 @@ function ChartCore({
         }
       }
 
-      ro = new ResizeObserver(() => refit())
+      // Defer to the next frame to avoid "ResizeObserver loop" errors.
+      ro = new ResizeObserver(() => requestAnimationFrame(refit))
       ro.observe(containerRef.current)
 
       // iOS Safari often doesn't fire ResizeObserver when the URL bar collapses/expands

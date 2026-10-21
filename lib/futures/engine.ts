@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { isSupabaseAdminConfigured } from "@/lib/supabase/env"
 import { getAllTickers, getExecutionTicker, type Ticker } from "./prices"
-import { getMarket, quoteToUsd, roundToStep, type FuturesMarket } from "./markets"
+import { getMarket, quoteToUsd, roundToStep, tpSlError, type FuturesMarket } from "./markets"
 import type { Fill, Order, PlaceOrderInput, Position } from "./types"
 
 import { TradingError } from "./errors"
@@ -127,15 +127,16 @@ async function getOpenPosition(admin: SupabaseClient, userId: string, symbol: st
   return data ? normalizePosition(data) : null
 }
 
-function validateTpSl(side: "buy" | "sell", ref: number, tp?: number | null, sl?: number | null) {
-  if (tp != null) {
-    if (side === "buy" && tp <= ref) throw new TradingError("Take Profit deve ser maior que o preço de entrada")
-    if (side === "sell" && tp >= ref) throw new TradingError("Take Profit deve ser menor que o preço de entrada")
-  }
-  if (sl != null) {
-    if (side === "buy" && sl >= ref) throw new TradingError("Stop Loss deve ser menor que o preço de entrada")
-    if (side === "sell" && sl <= ref) throw new TradingError("Stop Loss deve ser maior que o preço de entrada")
-  }
+function validateTpSl(
+  side: "buy" | "sell",
+  ref: number,
+  tp: number | null | undefined,
+  sl: number | null | undefined,
+  decimals: number,
+  refLabel?: string,
+) {
+  const message = tpSlError(side, ref, tp, sl, decimals, refLabel)
+  if (message) throw new TradingError(message)
 }
 
 export async function placeOrder(userId: string, input: PlaceOrderInput) {
@@ -172,7 +173,7 @@ export async function placeOrder(userId: string, input: PlaceOrderInput) {
   const execPrice = input.side === "buy" ? ticker.ask || ticker.price : ticker.bid || ticker.price
 
   if (input.orderType === "market") {
-    validateTpSl(input.side, execPrice, input.takeProfit, input.stopLoss)
+    validateTpSl(input.side, execPrice, input.takeProfit, input.stopLoss, market.priceDecimals)
     const qtyToFill = input.reduceOnly && existing ? Math.min(qty, existing.qty) : qty
     return rpcFill(admin, {
       userId,
@@ -193,7 +194,7 @@ export async function placeOrder(userId: string, input: PlaceOrderInput) {
   if (input.orderType === "limit") {
     const price = Number(input.price)
     if (!Number.isFinite(price) || price <= 0) throw new TradingError("Informe um preço válido")
-    validateTpSl(input.side, price, input.takeProfit, input.stopLoss)
+    validateTpSl(input.side, price, input.takeProfit, input.stopLoss, market.priceDecimals)
 
     const marketable = input.side === "buy" ? price >= execPrice : price <= execPrice
     const tif = input.postOnly ? "PostOnly" : input.timeInForce ?? "GTC"
@@ -250,8 +251,9 @@ export async function placeOrder(userId: string, input: PlaceOrderInput) {
   if (Math.abs(trigger - ticker.price) / ticker.price < 1e-6) {
     throw new TradingError("Preço de disparo igual ao preço atual")
   }
-  validateTpSl(input.side, trigger, input.takeProfit, input.stopLoss)
+  validateTpSl(input.side, trigger, input.takeProfit, input.stopLoss, market.priceDecimals)
   const direction = trigger > ticker.price ? "rise" : "fall"
+  const limitAfterTrigger = Number(input.price)
 
   const { data, error } = await admin.rpc("futures_place_order", {
     p_user: userId,
@@ -259,7 +261,7 @@ export async function placeOrder(userId: string, input: PlaceOrderInput) {
     p_symbol: market.symbol,
     p_side: input.side,
     p_order_type: "conditional",
-    p_price: null,
+    p_price: Number.isFinite(limitAfterTrigger) && limitAfterTrigger > 0 ? limitAfterTrigger : null,
     p_trigger_price: trigger,
     p_trigger_direction: direction,
     p_qty: qty,
@@ -369,7 +371,7 @@ export async function setTpSl(userId: string, positionId: string, tp: number | n
   const pos = normalizePosition(data)
   const ticker = await getExecutionTicker(pos.symbol)
   const ref = ticker?.price ?? pos.entry_price
-  validateTpSl(pos.side === "long" ? "buy" : "sell", ref, tp, sl)
+  validateTpSl(pos.side === "long" ? "buy" : "sell", ref, tp, sl, getMarket(pos.symbol)?.priceDecimals ?? 2, "preço atual")
 
   const { error } = await admin.rpc("futures_set_tpsl", {
     p_user: userId,
@@ -551,7 +553,20 @@ export async function sweep(userId?: string) {
       }
     } else if (o.order_type === "conditional" && o.trigger_price != null) {
       const hit = o.trigger_direction === "rise" ? last >= o.trigger_price : last <= o.trigger_price
-      if (hit) fillPrice = o.side === "buy" ? t.ask || last : t.bid || last
+      if (hit) {
+        const marketPx = o.side === "buy" ? t.ask || last : t.bid || last
+        if (o.price == null || (o.side === "buy" ? marketPx <= o.price : marketPx >= o.price)) {
+          fillPrice = marketPx
+        } else {
+          // Acionada com preço limite fora do mercado: vira uma ordem limitada aguardando o preço.
+          await admin
+            .from("futures_orders")
+            .update({ order_type: "limit", trigger_price: null, trigger_direction: null })
+            .eq("id", o.id)
+            .eq("status", "open")
+          continue
+        }
+      }
     }
     if (fillPrice == null) continue
 

@@ -118,6 +118,8 @@
   --color-term-line: var(--term-line);
   --color-term-text: var(--term-text);
   --color-term-muted: var(--term-muted);
+  --color-term-field: var(--term-field);
+  --color-term-accent: #f7a600;
   --color-term-up: #089981;
   --color-term-down: #f23645;
   --color-support: #2190ff;
@@ -134,6 +136,7 @@
   --term-line: #232836;
   --term-text: #e6e9f0;
   --term-muted: #7d8496;
+  --term-field: #1e222d;
 }
 
 .term-light {
@@ -142,6 +145,7 @@
   --term-line: #e3e7ee;
   --term-text: #131722;
   --term-muted: #6a7180;
+  --term-field: #f3f5f8;
   color-scheme: light;
 }
 
