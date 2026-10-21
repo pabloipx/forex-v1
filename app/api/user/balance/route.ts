@@ -16,15 +16,15 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from("user_balances")
-      .select("balance, currency")
+      .select("balance_real, currency")
       .eq("user_id", user.id)
-      .single()
+      .maybeSingle()
 
     if (error || !data) {
       return NextResponse.json({ balance: 0, currency: "USD" })
     }
 
-    return NextResponse.json({ balance: data.balance, currency: data.currency })
+    return NextResponse.json({ balance: Number(data.balance_real ?? 0), currency: data.currency ?? "USD" })
   } catch {
     return NextResponse.json({ balance: 0, currency: "USD" })
   }
