@@ -23,7 +23,7 @@ export async function approveDeposit(
   providerTransactionId?: string,
 ): Promise<{ approved: boolean; alreadyProcessed?: boolean; newBalance?: number }> {
   // Idempotencia: se ja foi aprovado, nao credita de novo
-  if (deposit.status === "approved") {
+  if (isCreditedStatus(deposit.status)) {
     return { approved: false, alreadyProcessed: true }
   }
 
@@ -207,6 +207,13 @@ export async function approveDeposit(
   }
 
   return { approved: true, newBalance }
+}
+
+/** Depósito que já creditou saldo — aprovado pelo gateway ("approved") ou pelo admin ("confirmed"). */
+export const CREDITED_DEPOSIT_STATUSES = ["approved", "confirmed", "paid", "completed"] as const
+
+export function isCreditedStatus(status?: string | null): boolean {
+  return CREDITED_DEPOSIT_STATUSES.includes(String(status ?? "").toLowerCase() as (typeof CREDITED_DEPOSIT_STATUSES)[number])
 }
 
 /** Status dos gateways (SuitPay e AmploPay) que indicam pagamento confirmado */

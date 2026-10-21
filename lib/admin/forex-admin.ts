@@ -8,6 +8,7 @@ import { ensureMarketSettings, saveMarketParams, type MarketParams } from "@/lib
 import * as demo from "@/lib/futures/demo-engine"
 import * as engine from "@/lib/futures/engine"
 import type { Order, Position } from "@/lib/futures/types"
+import { CREDITED_DEPOSIT_STATUSES } from "@/lib/deposits"
 
 export interface AdminPosition extends Position {
   user_id: string
@@ -309,6 +310,57 @@ export async function adjustBalance(userId: string, isDemo: boolean, amount: num
   return Number(data)
 }
 
+/** Define o saldo exato: calcula a diferença e registra como ajuste auditado. */
+export async function setBalance(userId: string, isDemo: boolean, target: number, note: string | null) {
+  if (!Number.isFinite(target) || target < 0) throw new TradingError("Saldo deve ser zero ou positivo")
+  if (target > 10_000_000) throw new TradingError("Valor acima do limite permitido")
+  let current = 0
+  if (testMode()) {
+    const a = demo.getTestAccounts()
+    current = isDemo ? a.demo.balance : a.real.balance
+  } else {
+    const { data } = await db().from("user_balances").select("balance_real, balance_demo").eq("user_id", userId).maybeSingle()
+    current = Number((isDemo ? data?.balance_demo : data?.balance_real) ?? 0)
+  }
+  const delta = Math.round((target - current) * 100) / 100
+  if (delta === 0) return current
+  return adjustBalance(userId, isDemo, delta, note?.trim() || `Saldo definido para ${target.toFixed(2)}`)
+}
+
+export const EDITABLE_PROFILE_FIELDS = [
+  "full_name",
+  "nickname",
+  "phone",
+  "document_number",
+  "birth_date",
+  "occupation",
+  "address_line",
+  "city",
+  "state",
+  "postal_code",
+  "country",
+] as const
+
+export type ProfilePatch = Partial<Record<(typeof EDITABLE_PROFILE_FIELDS)[number], string | null>> & { email?: string }
+
+export async function updateUserProfile(userId: string, patch: ProfilePatch) {
+  if (testMode()) throw new TradingError("Edição de perfil exige o banco de dados configurado")
+  const client = db()
+  const update: Record<string, string | null> = {}
+  for (const k of EDITABLE_PROFILE_FIELDS) {
+    if (k in patch) update[k] = patch[k]?.trim() || null
+  }
+  if (patch.email) {
+    const email = patch.email.trim().toLowerCase()
+    const { error } = await client.auth.admin.updateUserById(userId, { email, email_confirm: true })
+    if (error) throw new TradingError(error.message.includes("already") ? "Este e-mail já está em uso" : "Não foi possível alterar o e-mail", 400)
+    update.email = email
+  }
+  if (!Object.keys(update).length) return
+  const { error } = await client.from("profiles").update(update).eq("id", userId)
+  if (error) throw new TradingError("Não foi possível salvar os dados do usuário", 500)
+}
+
 export async function listAdjustments(): Promise<AdminAdjustment[]> {
   if (testMode()) return g.__fxTestAdjustments ?? []
   const { data } = await db().from("balance_adjustments").select("*").order("created_at", { ascending: false }).limit(100)
@@ -501,7 +553,12 @@ export async function getCashflow() {
   const [{ data: pw }, { count: pd }, { data: d24 }, { data: w24 }] = await Promise.all([
     client.from("withdrawals").select("amount").in("status", ["pending", "approved"]),
     client.from("deposits").select("id", { count: "exact", head: true }).eq("status", "pending"),
-    client.from("deposits").select("amount").eq("status", "confirmed").eq("account_type", "real").gte("confirmed_at", since),
+    client
+      .from("deposits")
+      .select("amount")
+      .in("status", [...CREDITED_DEPOSIT_STATUSES])
+      .eq("account_type", "real")
+      .or(`confirmed_at.gte.${since},paid_at.gte.${since}`),
     client.from("withdrawals").select("amount").eq("status", "paid").gte("reviewed_at", since),
   ])
   const total = (rows: { amount: unknown }[] | null) => (rows ?? []).reduce((s, r) => s + Number(r.amount ?? 0), 0)
