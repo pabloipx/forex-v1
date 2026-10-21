@@ -25,7 +25,6 @@ import {
   ChartColumn,
   ChartLine,
   Code,
-  Layers,
   Square,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -50,6 +49,7 @@ import { DrawingLayer, DrawingToolbar, useDrawingState } from "./chart-drawings"
 import { useChartScripts } from "@/hooks/use-chart-scripts"
 import { ScriptEditor } from "./script-editor"
 import { useScriptOverlay } from "./use-script-overlay"
+import { ChartDisplayMenu, DEFAULT_DISPLAY_SETTINGS, type ChartDisplaySettings } from "./chart-display-menu"
 
 const COLORS = {
   up: "#089981",
@@ -108,6 +108,7 @@ function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag
   const [style, setStyle] = useState<ChartStyle>("candles")
   const [showVolume, setShowVolume] = useState(true)
   const [showLines, setShowLines] = useState(true)
+  const [displaySettings, setDisplaySettings] = useState<ChartDisplaySettings>(DEFAULT_DISPLAY_SETTINGS)
 
   const containerRef = useRef<HTMLDivElement>(null)
   const legendRef = useRef<HTMLSpanElement>(null)
@@ -585,9 +586,14 @@ function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag
               <ChartColumn className="size-4" strokeWidth={1.5} aria-hidden="true" />
             </button>
           )}
-          <button title="Linhas de posições e ordens" aria-label="Linhas de posições e ordens" aria-pressed={showLines} onClick={() => setShowLines((v) => !v)} className={iconBtn(showLines)}>
-            <Layers className="size-4" strokeWidth={1.5} aria-hidden="true" />
-          </button>
+          <ChartDisplayMenu
+            value={{ ...displaySettings, currentOrders: showLines }}
+            onChange={(next) => {
+              setDisplaySettings(next)
+              setShowLines(next.currentOrders)
+            }}
+            className={iconBtn(false)}
+          />
           <button
             title={`Scripts${activeScripts.length ? ` (${activeScripts.length})` : ""}`}
             aria-label="Scripts"

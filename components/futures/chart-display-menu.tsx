@@ -114,7 +114,7 @@ export function ChartDisplayMenu({ value, onChange, className }: ChartDisplayMen
                 >
                   <span
                     className={cn(
-                      "flex size-4 shrink-0 items-center justify-center rounded-sm border",
+                      "flex size-4 shrink-0 items-center justify-center rounded-[3px] border",
                       checked ? "border-term-accent bg-term-accent text-term-panel" : "border-term-muted",
                     )}
                     aria-hidden="true"
