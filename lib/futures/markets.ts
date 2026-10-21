@@ -185,7 +185,7 @@ export function formatPrice(value: number | null | undefined, decimals: number):
 
 export function formatUsd(value: number | null | undefined, decimals = 2): string {
   if (value == null || !Number.isFinite(value)) return "--"
-  return value.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
+  return value.toLocaleString("pt-BR", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
 }
 
 export function formatCompact(value: number | null | undefined): string {

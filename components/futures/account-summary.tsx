@@ -60,7 +60,7 @@ function TransferDialog({
     setBusy(true)
     try {
       await futuresApi.transfer(direction, value)
-      toast.success(`Transferência de ${formatUsd(value)} USD concluída`)
+      toast.success(`Transferência de ${formatUsd(value)} BRL concluída`)
       setAmount("")
       onDone()
       onOpenChange(false)
@@ -74,7 +74,7 @@ function TransferDialog({
   const wallet = (label: string, balance: number) => (
     <div className="flex flex-1 flex-col gap-0.5 rounded-md bg-term-bg px-3 py-2">
       <span className="text-[11px] text-term-muted">{label}</span>
-      <span className="font-mono text-sm text-term-text">{formatUsd(balance)} USD</span>
+      <span className="font-mono text-sm text-term-text">{formatUsd(balance)} BRL</span>
     </div>
   )
 
@@ -169,12 +169,12 @@ export function AccountSummary({
         </div>
       </div>
       <dl className="flex flex-col gap-1 text-xs">
-        {row("Patrimônio", `${formatUsd(m.equity)} USD`)}
-        {row("PnL não realizado", `${m.upnl >= 0 ? "+" : ""}${formatUsd(m.upnl)} USD`, m.upnl >= 0 ? "text-long" : "text-short")}
-        {row("Margem usada", `${formatUsd(m.usedMargin + m.orderMargin)} USD`)}
-        {row("Margem de manutenção", `${formatUsd(m.maintenance)} USD`)}
-        {row("Margem disponível", `${formatUsd(m.available)} USD`)}
-        {account === "real" && row("Carteira Spot", `${formatUsd(state.spotBalance ?? 0)} USD`)}
+        {row("Patrimônio", `${formatUsd(m.equity)} BRL`)}
+        {row("PnL não realizado", `${m.upnl >= 0 ? "+" : ""}${formatUsd(m.upnl)} BRL`, m.upnl >= 0 ? "text-long" : "text-short")}
+        {row("Margem usada", `${formatUsd(m.usedMargin + m.orderMargin)} BRL`)}
+        {row("Margem de manutenção", `${formatUsd(m.maintenance)} BRL`)}
+        {row("Margem disponível", `${formatUsd(m.available)} BRL`)}
+        {account === "real" && row("Carteira Spot", `${formatUsd(state.spotBalance ?? 0)} BRL`)}
       </dl>
       <TransferDialog
         open={transferOpen}
