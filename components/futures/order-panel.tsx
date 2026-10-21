@@ -313,7 +313,7 @@ export function OrderPanel({
       ? "Saldo zerado. Deposite para abrir posições."
       : "Saldo demo zerado."
     : insufficientLong || insufficientShort
-      ? `Saldo insuficiente: custo ${formatUsd(insufficientLong ? costLong : costShort)} USD, disponível ${formatUsd(balance)} USD.`
+      ? `Saldo insuficiente: custo ${formatUsd(insufficientLong ? costLong : costShort)} BRL, disponível ${formatUsd(balance)} BRL.`
       : null
 
   return (
@@ -374,7 +374,7 @@ export function OrderPanel({
       <div className="flex items-center justify-between text-xs">
         <span className="text-term-muted">Disponível</span>
         <span className="font-mono text-term-text">
-          {authenticated ? formatUsd(balance) : "--"} USD
+          {authenticated ? formatUsd(balance) : "--"} BRL
           {authenticated && account === "real" && (
             <Link href="/deposit" className="ml-1.5 text-primary hover:underline">
               Depositar
@@ -458,15 +458,15 @@ export function OrderPanel({
       <dl className="flex flex-col gap-1 text-xs">
         <div className="flex justify-between">
           <dt className="text-term-muted">Valor da ordem</dt>
-          <dd className="font-mono text-term-text">{formatUsd(notional)} USD</dd>
+          <dd className="font-mono text-term-text">{formatUsd(notional)} BRL</dd>
         </div>
         <div className="flex justify-between">
           <dt className="text-term-muted">Custo Long</dt>
-          <dd className="font-mono text-long">{formatUsd(costLong)} USD</dd>
+          <dd className="font-mono text-long">{formatUsd(costLong)} BRL</dd>
         </div>
         <div className="flex justify-between">
           <dt className="text-term-muted">Custo Short</dt>
-          <dd className="font-mono text-short">{formatUsd(costShort)} USD</dd>
+          <dd className="font-mono text-short">{formatUsd(costShort)} BRL</dd>
         </div>
         <div className="flex justify-between">
           <dt className="text-term-muted">Qtd máx.</dt>

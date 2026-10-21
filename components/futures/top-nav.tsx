@@ -106,7 +106,7 @@ export function TopNav({ theme, onToggleTheme, account, onAccountChange, authent
                 </span>
                 <span className="mt-0.5 font-mono text-sm font-semibold tabular-nums text-term-text">
                   {formatUsd(account === "real" ? balances.real : balances.demo)}
-                  <span className="ml-1 text-[10px] font-medium text-term-muted">USD</span>
+                  <span className="ml-1 text-[10px] font-medium text-term-muted">BRL</span>
                 </span>
               </div>
               <Link
