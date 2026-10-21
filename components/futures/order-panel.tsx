@@ -23,6 +23,7 @@ import {
 } from "@/lib/futures/markets"
 import type { AccountMode, MarginMode, OrderSide, OrderType, TimeInForce } from "@/lib/futures/types"
 import { futuresApi, type ClientTradingPrefs } from "@/hooks/use-futures"
+import { TpSlAdvancedDialog } from "@/components/futures/tpsl-advanced-dialog"
 
 interface OrderPanelProps {
   market: FuturesMarket
@@ -242,6 +243,8 @@ export function OrderPanel({
   const [tpslEnabled, setTpslEnabled] = useState(false)
   const [tp, setTp] = useState("")
   const [sl, setSl] = useState("")
+  const [tpslSide, setTpslSide] = useState<"long" | "short" | null>(null)
+  const [advancedOpen, setAdvancedOpen] = useState(false)
   const [reduceOnly, setReduceOnly] = useState(false)
   const [postOnly, setPostOnly] = useState(false)
   const [tif, setTif] = useState<TimeInForce>("GTC")
@@ -279,7 +282,7 @@ export function OrderPanel({
   const hasQty = qtyNum > 0
 
   // TP acima da referência (ou SL abaixo) indica Long; o contrário indica Short.
-  const tpSlSide: "long" | "short" | null =
+  const inferredSide: "long" | "short" | null =
     tpSlRef > 0 && tpNum > 0
       ? tpNum > tpSlRef
         ? "long"
@@ -289,6 +292,7 @@ export function OrderPanel({
           ? "long"
           : "short"
         : null
+  const tpSlSide = tpNum > 0 || slNum > 0 ? (tpslSide ?? inferredSide) : null
   const tpEstimate =
     tpSlSide && hasQty && tpNum > 0 ? estimateClosePnl(market, tpSlSide, qtyNum, tpSlRef, tpNum, leverage, feeRate) : null
   const slEstimate =
@@ -360,6 +364,7 @@ export function OrderPanel({
       setPercent(0)
       setTp("")
       setSl("")
+      setTpslSide(null)
       onSubmitted()
     } catch (e) {
       toast.error((e as Error).message)
@@ -575,21 +580,79 @@ export function OrderPanel({
       </dl>
 
       <div className="flex flex-col gap-2.5 text-xs font-medium text-term-text">
-        <label className="flex items-center gap-2">
-          <Checkbox className="border-term-muted" checked={tpslEnabled} onCheckedChange={(v) => setTpslEnabled(v === true)} />
-          TP/SL
-        </label>
+        <div className="flex items-center justify-between gap-2">
+          <label className="flex items-center gap-2">
+            <Checkbox className="border-term-muted" checked={tpslEnabled} onCheckedChange={(v) => setTpslEnabled(v === true)} />
+            TP/SL
+          </label>
+          {tpslEnabled && (
+            <button
+              type="button"
+              onClick={() => setAdvancedOpen(true)}
+              disabled={!(tpSlRef > 0)}
+              className="text-xs font-semibold text-primary hover:opacity-80 disabled:opacity-40"
+            >
+              Avançado
+            </button>
+          )}
+        </div>
         {tpslEnabled && (
           <div className="flex flex-col gap-1.5">
-            <Field label="Take Profit" unit={market.quote} value={tp} onChange={setTp} />
+            <button
+              type="button"
+              onClick={() => setAdvancedOpen(true)}
+              disabled={!(tpSlRef > 0)}
+              className="flex items-center justify-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 py-2.5 text-xs font-semibold text-primary hover:bg-primary/15 disabled:opacity-40"
+            >
+              <span aria-hidden className="flex size-4 items-center justify-center rounded-full border border-current text-[11px] leading-none">
+                +
+              </span>
+              TP/SL Avançado
+            </button>
+            <Field
+              label="Take Profit"
+              unit={market.quote}
+              value={tp}
+              onChange={(v) => {
+                setTp(v)
+                setTpslSide(null)
+              }}
+            />
             {tpEstimate && tpSlSide && <PnlHint kind="tp" side={tpSlSide} {...tpEstimate} />}
-            <Field label="Stop Loss" unit={market.quote} value={sl} onChange={setSl} />
+            <Field
+              label="Stop Loss"
+              unit={market.quote}
+              value={sl}
+              onChange={(v) => {
+                setSl(v)
+                setTpslSide(null)
+              }}
+            />
             {slEstimate && tpSlSide && <PnlHint kind="sl" side={tpSlSide} {...slEstimate} />}
             {!hasQty && (tpNum > 0 || slNum > 0) && (
               <p className="px-1 text-[11px] text-term-muted">Informe a quantidade para ver o lucro e a perda estimados.</p>
             )}
           </div>
         )}
+        <TpSlAdvancedDialog
+          open={advancedOpen}
+          onOpenChange={setAdvancedOpen}
+          market={market}
+          refPrice={tpSlRef}
+          refLabel={orderType === "market" ? "Preço de mercado" : orderType === "conditional" ? "Preço de disparo" : "Preço da ordem"}
+          lastPrice={lastPrice}
+          qty={qtyNum}
+          leverage={leverage}
+          feeRate={feeRate}
+          initialSide={tpSlSide ?? "long"}
+          initialTp={tp}
+          initialSl={sl}
+          onConfirm={({ side, tp: nextTp, sl: nextSl }) => {
+            setTp(nextTp)
+            setSl(nextSl)
+            setTpslSide(side)
+          }}
+        />
         <div className="flex items-center justify-between gap-2">
           <label className="flex items-center gap-2">
             <Checkbox className="border-term-muted" checked={reduceOnly} onCheckedChange={(v) => setReduceOnly(v === true)} />
