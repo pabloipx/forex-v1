@@ -5,7 +5,7 @@ import { Plus, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Switch } from "@/components/ui/switch"
-import { PINE_ERROR, SCRIPT_TEMPLATES, looksLikePine } from "@/lib/futures/script-runtime"
+import { PINE_ERROR, SCRIPT_TEMPLATES, convertPine, looksLikePine } from "@/lib/futures/script-runtime"
 import type { ChartScript, useChartScripts } from "@/hooks/use-chart-scripts"
 
 interface ScriptEditorProps {
@@ -17,7 +17,8 @@ interface ScriptEditorProps {
 
 const BLANK = `// Variáveis: open, high, low, close, volume, time, hl2, hlc3 (arrays)
 // Funções: plot(serie, { title, color, width, pane: "price" | "separate", type: "line" | "histogram" })
-//          hline(preco, { title, color, pane }) · signal(condicoes, { side: "buy" | "sell", text })
+//          hline(preco, { title, color, pane }) · signal(condicoes, { side: "buy" | "sell", text, price })
+//          panel([["Rótulo", "valor", "#cor"], ...], { title })
 // Indicadores: ta.sma, ta.ema, ta.rma, ta.rsi, ta.atr, ta.bb, ta.macd, ta.vwap,
 //              ta.stdev, ta.highest, ta.lowest, ta.change, ta.crossover, ta.crossunder
 
@@ -68,14 +69,14 @@ export function ScriptEditor({ open, onOpenChange, store, errors }: ScriptEditor
     })
 
   const isPine = looksLikePine(code)
-  const sniperTemplate = SCRIPT_TEMPLATES.find((t) => t.name === "Sniper Pro V8")
-  const isSniperPine = isPine && /SNIPER/i.test(code)
+  const sniperTemplate = isPine ? convertPine(code) : null
+  const isSniperPine = !!sniperTemplate
 
   const replaceWithConverted = () => {
     if (!selected || !sniperTemplate) return
     setCode(sniperTemplate.code)
-    run(() => update(selected.id, { name: "Sniper Pro V8", code: sniperTemplate.code }), "Convertido e aplicado no gráfico")
-    setName("Sniper Pro V8")
+    run(() => update(selected.id, { name: sniperTemplate.name, code: sniperTemplate.code }), "Convertido e aplicado no gráfico")
+    setName(sniperTemplate.name)
   }
 
   const dirty = !!selected && (selected.name !== name || selected.code !== code)
@@ -218,9 +219,9 @@ export function ScriptEditor({ open, onOpenChange, store, errors }: ScriptEditor
                   <div className="flex min-h-9 items-center gap-2 border-t border-term-line px-3 py-2 font-mono text-[11px]">
                   {isPine ? (
                     <>
-                      <span className="text-term-down">
+                      <span className={isSniperPine ? "text-term-up" : "text-term-down"}>
                         {isSniperPine
-                          ? "Este é o Pine Script do Sniper. O gráfico usa JavaScript — converta com um clique."
+                          ? `Pine Script reconhecido: roda no gráfico como ${sniperTemplate!.name}. Converta para editar em JavaScript.`
                           : PINE_ERROR}
                       </span>
                       {isSniperPine && sniperTemplate && (
