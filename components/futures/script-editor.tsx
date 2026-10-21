@@ -67,6 +67,17 @@ export function ScriptEditor({ open, onOpenChange, store, errors }: ScriptEditor
       setSelectedId(row.id)
     })
 
+  const isPine = /^\s*\/\/\s*@version|^\s*(indicator|strategy|study)\s*\(/m.test(code)
+  const sniperTemplate = SCRIPT_TEMPLATES.find((t) => t.name === "Sniper Pro V8")
+  const isSniperPine = isPine && /SNIPER/i.test(code)
+
+  const replaceWithConverted = () => {
+    if (!selected || !sniperTemplate) return
+    setCode(sniperTemplate.code)
+    run(() => update(selected.id, { name: "Sniper Pro V8", code: sniperTemplate.code }), "Convertido e aplicado no gráfico")
+    setName("Sniper Pro V8")
+  }
+
   const dirty = !!selected && (selected.name !== name || selected.code !== code)
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -205,9 +216,26 @@ export function ScriptEditor({ open, onOpenChange, store, errors }: ScriptEditor
                     className="min-h-0 flex-1 resize-none bg-term-bg p-3 font-mono text-[13px] leading-relaxed text-term-text outline-none"
                   />
                   <div className="flex min-h-9 items-center gap-2 border-t border-term-line px-3 py-2 font-mono text-[11px]">
-                    {errors[selected.id] ? (
-                      <span className="text-term-down">Erro: {errors[selected.id]}</span>
-                    ) : message ? (
+                  {isPine ? (
+                    <>
+                      <span className="text-term-down">
+                        {isSniperPine
+                          ? "Este é o Pine Script do Sniper. O gráfico usa JavaScript — converta com um clique."
+                          : "Pine Script (TradingView) não é suportado. Use JavaScript com ta, plot, hline e signal."}
+                      </span>
+                      {isSniperPine && sniperTemplate && (
+                        <button
+                          onClick={replaceWithConverted}
+                          disabled={busy}
+                          className="ml-auto shrink-0 rounded bg-primary px-2.5 py-1 font-sans text-xs font-semibold text-primary-foreground disabled:opacity-50"
+                        >
+                          Converter e aplicar
+                        </button>
+                      )}
+                    </>
+                  ) : errors[selected.id] ? (
+                    <span className="text-term-down">Erro: {errors[selected.id]}</span>
+                  ) : message ? (
                       <span className="text-term-muted">{message}</span>
                     ) : (
                       <span className="text-term-muted">
