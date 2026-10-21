@@ -26,9 +26,6 @@ import {
   ChartLine,
   Code,
   Layers,
-  Maximize2,
-  Minimize2,
-  Scan,
   Square,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -83,6 +80,7 @@ interface PriceChartProps {
   openOrders: Order[]
   onLineDrag?: (positionId: string, kind: "tp" | "sl", price: number) => void
   toolbarExtra?: React.ReactNode
+  toolbarEnd?: React.ReactNode
 }
 
 interface LineSpec {
@@ -102,7 +100,7 @@ const fetcher = async (url: string) => {
   return json.candles as Candle[]
 }
 
-function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag, toolbarExtra }: PriceChartProps) {
+function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag, toolbarExtra, toolbarEnd }: PriceChartProps) {
   const palette = CHART_THEMES[theme]
   const paletteRef = useRef(palette)
   paletteRef.current = palette
@@ -494,45 +492,11 @@ function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag
       active ? "text-term-accent" : "text-term-muted hover:bg-term-line/60 hover:text-term-text",
     )
 
-  const sectionRef = useRef<HTMLElement>(null)
   const clockRef = useRef<HTMLSpanElement>(null)
-  const [nativeFull, setNativeFull] = useState(false)
-  const [pseudoFull, setPseudoFull] = useState(false)
-  const isFull = nativeFull || pseudoFull
   const [scaleMode, setScaleMode] = useState<PriceScaleMode>(PriceScaleMode.Normal)
   const [autoScale, setAutoScale] = useState(true)
 
-  useEffect(() => {
-    const onChange = () => setNativeFull(document.fullscreenElement === sectionRef.current)
-    document.addEventListener("fullscreenchange", onChange)
-    return () => document.removeEventListener("fullscreenchange", onChange)
-  }, [])
-
-  useEffect(() => {
-    if (!pseudoFull) return
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setPseudoFull(false)
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [pseudoFull])
-
-  const toggleFullscreen = async () => {
-    if (pseudoFull) return setPseudoFull(false)
-    if (document.fullscreenElement) return void document.exitFullscreen().catch(() => {})
-    const el = sectionRef.current
-    try {
-      if (!el?.requestFullscreen || !document.fullscreenEnabled) throw new Error("unsupported")
-      await el.requestFullscreen()
-    } catch {
-      // Navegadores/iframes sem permissão de fullscreen: expande o gráfico para a janela inteira.
-      setPseudoFull(true)
-    }
-  }
-
-  const openEditor = () => {
-    if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
-    setPseudoFull(false)
-    setEditorOpen(true)
-  }
+  const openEditor = () => setEditorOpen(true)
 
   useEffect(() => {
     const tick = () => {
@@ -569,30 +533,15 @@ function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag
     })
   }
 
-  const FullIcon = isFull ? Minimize2 : Maximize2
-
   return (
-    <section
-      ref={sectionRef}
-      aria-label="Gráfico"
-      className={cn("flex h-full flex-col bg-term-panel", pseudoFull && "fixed inset-0 z-[100] h-dvh")}
-    >
+    <section aria-label="Gráfico" className="flex h-full flex-col bg-term-panel">
       <div className="flex h-10 shrink-0 items-center justify-between gap-3 border-b border-term-line px-3">
         <div className="min-w-0 overflow-x-auto [scrollbar-width:none]">{toolbarExtra}</div>
         <div className="flex shrink-0 items-center gap-1">
           <button type="button" title="Ajustar gráfico" aria-label="Ajustar gráfico" onClick={() => chartRef.current?.timeScale().fitContent()} className={iconBtn(false)}>
             <Square className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
           </button>
-          <button
-            type="button"
-            title={isFull ? "Sair da tela cheia" : "Tela cheia"}
-            aria-label={isFull ? "Sair da tela cheia" : "Tela cheia"}
-            aria-pressed={isFull}
-            onClick={toggleFullscreen}
-            className={iconBtn(false)}
-          >
-            <FullIcon className="size-4" strokeWidth={1.5} aria-hidden="true" />
-          </button>
+          {toolbarEnd}
         </div>
       </div>
 
@@ -636,15 +585,6 @@ function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag
         <div className="flex shrink-0 items-center gap-0.5">
           <button type="button" title="Capturar imagem" aria-label="Capturar imagem do gráfico" onClick={takeScreenshot} className={iconBtn(false)}>
             <Camera className="size-4" strokeWidth={1.5} aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            title={isFull ? "Sair da tela cheia" : "Tela cheia"}
-            aria-label={isFull ? "Sair da tela cheia" : "Tela cheia"}
-            onClick={toggleFullscreen}
-            className={iconBtn(isFull)}
-          >
-            <Scan className="size-4" strokeWidth={1.5} aria-hidden="true" />
           </button>
         </div>
       </div>

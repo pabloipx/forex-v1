@@ -1,6 +1,7 @@
 "use client"
 
-import { useCallback, useLayoutEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
+import { Maximize2, Minimize2 } from "lucide-react"
 import { flushSync } from "react-dom"
 import { TERM_THEME_COOKIE, type TermTheme } from "@/lib/futures/term-theme"
 import { useRouter } from "next/navigation"
@@ -11,7 +12,6 @@ import { futuresApi, useDerivatives, useFuturesState, useTickers, useTradingPref
 import { useMarketFeed } from "@/hooks/use-market-feed"
 import { useTradeNotifications } from "@/hooks/use-trade-notifications"
 import { cn } from "@/lib/utils"
-import { AccountSummary } from "./account-summary"
 import { DepthChart } from "./depth-chart"
 import { TopNav } from "./top-nav"
 import { TickerBar } from "./ticker-bar"
@@ -89,6 +89,31 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
   const [limitPrice, setLimitPrice] = useState("")
 
   const [chartView, setChartView] = useState<ChartView>("candles")
+  const [expanded, setExpanded] = useState(false)
+
+  useEffect(() => {
+    if (!expanded) return
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setExpanded(false)
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [expanded])
+
+  const ExpandIcon = expanded ? Minimize2 : Maximize2
+  const expandButton = (
+    <button
+      type="button"
+      title={expanded ? "Restaurar layout" : "Expandir gráfico"}
+      aria-label={expanded ? "Restaurar layout" : "Expandir gráfico"}
+      aria-pressed={expanded}
+      onClick={() => setExpanded((v) => !v)}
+      className={cn(
+        "flex size-7 shrink-0 items-center justify-center rounded transition-colors hover:bg-term-line/60",
+        expanded ? "text-term-accent" : "text-term-muted hover:text-term-text",
+      )}
+    >
+      <ExpandIcon className="size-4" strokeWidth={1.5} aria-hidden="true" />
+    </button>
+  )
   const tickers = useTickers()
   const derivs = useDerivatives()
   const { state, refresh } = useFuturesState(account)
@@ -146,7 +171,12 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
           <div className="flex min-h-0 flex-1 flex-col gap-px phone:h-[calc(100dvh-3rem)] phone:flex-none">
             <TickerBar market={market} ticker={ticker} last={last} tickers={tickers} deriv={derivs[symbol]} onSelect={selectMarket} />
             <div className="flex min-h-0 flex-1 flex-col gap-px md:flex-row phone:flex-row">
-              <div className="flex h-[420px] min-w-0 flex-1 flex-col bg-term-panel md:h-auto phone:h-auto">
+              <div
+                className={cn(
+                  "flex min-w-0 flex-1 flex-col bg-term-panel md:h-auto phone:h-auto",
+                  expanded ? "h-[calc(100dvh-7rem)]" : "h-[420px]",
+                )}
+              >
                 {chartView === "candles" ? (
                   <PriceChart
                     market={market}
@@ -156,11 +186,13 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
                     openOrders={state?.openOrders ?? []}
                     onLineDrag={dragLine}
                     toolbarExtra={<ChartViewToggle value={chartView} onChange={setChartView} />}
+                    toolbarEnd={expandButton}
                   />
                 ) : (
                   <>
-                    <div className="flex h-10 shrink-0 items-center border-b border-term-line px-3">
+                    <div className="flex h-10 shrink-0 items-center justify-between border-b border-term-line px-3">
                       <ChartViewToggle value={chartView} onChange={setChartView} />
+                      {expandButton}
                     </div>
                     <div className="min-h-0 flex-1">
                       <DepthChart market={market} feed={feed} />
@@ -168,12 +200,12 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
                   </>
                 )}
               </div>
-              <div className="h-[560px] shrink-0 md:h-auto md:w-72 phone:h-auto phone:w-52">
+              <div className={cn("h-[560px] shrink-0 md:h-auto md:w-72 phone:h-auto phone:w-52", expanded && "hidden")}>
                 <OrderBookPanel market={market} feed={feed} onPriceClick={(p) => setLimitPrice(p.toFixed(market.priceDecimals))} />
               </div>
             </div>
           </div>
-          <div className="h-72 shrink-0">
+          <div className={cn("h-72 shrink-0", expanded && "hidden")}>
             <AccountTables
               state={state}
               account={account}
@@ -186,7 +218,6 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
           </div>
         </div>
         <aside className="flex shrink-0 flex-col gap-px lg:w-80 lg:overflow-y-auto phone:w-64 phone:overflow-y-auto">
-          <AccountSummary state={state} account={account} derivs={derivs} onChanged={() => refresh()} />
           <OrderPanel
             key={`${symbol}-${account}-${prefs?.defaultLeverage ?? 0}-${prefs?.defaultMarginMode ?? ""}`}
             prefs={prefs}
