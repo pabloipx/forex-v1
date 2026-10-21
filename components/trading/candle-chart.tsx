@@ -26,18 +26,25 @@ export function CandleChart({ candles, currentPrice, activeTrades, symbol }: Can
     const container = containerRef.current
     if (!container) return
 
+    let frame = 0
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0]
-      if (entry) {
-        setDimensions({
-          width: entry.contentRect.width,
-          height: entry.contentRect.height,
-        })
-      }
+      if (!entry) return
+      const { width, height } = entry.contentRect
+      // Defer state updates to the next frame to avoid "ResizeObserver loop" errors.
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => {
+        setDimensions((prev) =>
+          prev.width === width && prev.height === height ? prev : { width, height },
+        )
+      })
     })
 
     observer.observe(container)
-    return () => observer.disconnect()
+    return () => {
+      cancelAnimationFrame(frame)
+      observer.disconnect()
+    }
   }, [])
 
   // Draw chart
