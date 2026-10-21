@@ -26,6 +26,9 @@ import type { AccountMode, MarginMode, OrderSide, OrderType, TimeInForce } from 
 import { futuresApi, type ClientTradingPrefs } from "@/hooks/use-futures"
 import { TpSlAdvancedDialog } from "@/components/futures/tpsl-advanced-dialog"
 import { HintPopover } from "@/components/futures/hint-popover"
+import { MenuSelect } from "@/components/futures/menu-select"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { CircleHelp } from "lucide-react"
 
 interface OrderPanelProps {
   market: FuturesMarket
@@ -49,7 +52,7 @@ function Field({
   suffix,
 }: {
   label: string
-  unit: string
+  unit: React.ReactNode
   value: string
   onChange: (v: string) => void
   disabled?: boolean
@@ -270,9 +273,13 @@ export function OrderPanel({
   const [sl, setSl] = useState("")
   const [tpslSide, setTpslSide] = useState<"long" | "short" | null>(null)
   const [advancedOpen, setAdvancedOpen] = useState(false)
+  const [tpslMode, setTpslMode] = useState<"advanced" | "basic">("advanced")
   const [reduceOnly, setReduceOnly] = useState(false)
   const [postOnly, setPostOnly] = useState(false)
   const [tif, setTif] = useState<TimeInForce>("GTC")
+  const [condExec, setCondExec] = useState<"limit" | "market">("limit")
+  const [slippageOn, setSlippageOn] = useState(false)
+  const [slippage, setSlippage] = useState("0.5")
   const [submitting, setSubmitting] = useState<OrderSide | null>(null)
 
   const toPrice = (v: string) => {
@@ -288,8 +295,10 @@ export function OrderPanel({
     orderType === "market"
       ? (lastPrice ?? 0)
       : orderType === "conditional"
-        ? priceNum || triggerNum || (lastPrice ?? 0)
+        ? (condExec === "limit" ? priceNum : 0) || triggerNum || (lastPrice ?? 0)
         : priceNum || (lastPrice ?? 0)
+  const slippagePct = parseDecimalInput(slippage) || 0
+  const useSlippage = orderType === "market" && slippageOn && slippagePct > 0 && (lastPrice ?? 0) > 0
   const tpSlRef =
     orderType === "market" ? execPrice : orderType === "conditional" ? triggerNum || execPrice : priceNum || execPrice
 
@@ -359,21 +368,34 @@ export function OrderPanel({
     ) {
       return
     }
+    if (orderType === "conditional" && !triggerNum) {
+      toast.error("Informe o preço de acionamento")
+      return
+    }
+    if (orderType === "conditional" && condExec === "limit" && !priceNum) {
+      toast.error("Informe o preço da ordem limitada")
+      return
+    }
+    const slippageLimit = useSlippage
+      ? Number(((lastPrice as number) * (1 + ((side === "buy" ? 1 : -1) * slippagePct) / 100)).toFixed(market.priceDecimals))
+      : null
     setSubmitting(side)
     try {
       await futuresApi.placeOrder({
         account,
         symbol: market.symbol,
         side,
-        orderType,
+        orderType: slippageLimit ? "limit" : orderType,
         qty: qtyNum,
-        price: orderType === "market" ? null : priceNum || null,
+        price:
+          slippageLimit ??
+          (orderType === "market" || (orderType === "conditional" && condExec === "market") ? null : priceNum || null),
         triggerPrice: orderType === "conditional" ? triggerNum || null : null,
         leverage,
         marginMode,
         reduceOnly,
         postOnly: orderType === "limit" && postOnly,
-        timeInForce: orderType === "limit" && postOnly ? "PostOnly" : tif,
+        timeInForce: slippageLimit ? "IOC" : orderType === "limit" && postOnly ? "PostOnly" : orderType === "limit" ? tif : "GTC",
         takeProfit: tpNum || null,
         stopLoss: slNum || null,
       })
@@ -487,7 +509,7 @@ export function OrderPanel({
             [
               ["limit", "Limitada"],
               ["market", "A mercado"],
-              ["conditional", "Condicional"],
+              ["conditional", "TP/SL"],
             ] as const
           ).map(([k, label]) => (
             <button
@@ -503,6 +525,39 @@ export function OrderPanel({
               {label}
             </button>
           ))}
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                aria-label="Sobre os tipos de ordem"
+                className="ml-auto text-term-muted hover:text-term-text"
+              >
+                <CircleHelp className="size-4" aria-hidden />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent
+              align="end"
+              className="w-72 border-term-line bg-term-field p-3 text-xs leading-relaxed text-term-text"
+            >
+              <dl className="flex flex-col gap-2">
+                <div>
+                  <dt className="font-semibold">Limitada</dt>
+                  <dd className="text-term-muted">Executa no preço definido por você ou melhor.</dd>
+                </div>
+                <div>
+                  <dt className="font-semibold">A mercado</dt>
+                  <dd className="text-term-muted">Executa na hora pelo melhor preço disponível.</dd>
+                </div>
+                <div>
+                  <dt className="font-semibold">TP/SL</dt>
+                  <dd className="text-term-muted">
+                    Fica aguardando até o preço de acionamento ser atingido e então envia a ordem limitada ou a
+                    mercado.
+                  </dd>
+                </div>
+              </dl>
+            </PopoverContent>
+          </Popover>
         </div>
 
         <div className="flex items-center justify-between gap-2 text-[13px]">
@@ -524,26 +579,49 @@ export function OrderPanel({
         </div>
 
         {orderType === "conditional" && (
-          <Field
-            label="Preço de disparo"
-            unit={market.quote}
-            value={triggerPrice}
-            onChange={setTriggerPrice}
-            placeholder={formatPrice(lastPrice, market.priceDecimals).replace(/,/g, "")}
-          />
+          <>
+            <Field
+              label="Preço de acionamento"
+              unit={market.quote}
+              value={triggerPrice}
+              onChange={setTriggerPrice}
+              placeholder={formatPrice(lastPrice, market.priceDecimals).replace(/,/g, "")}
+            />
+            <div className="flex gap-2">
+              <div className="min-w-0 flex-1">
+                {condExec === "limit" ? (
+                  <Field
+                    label="Preço"
+                    unit={market.quote}
+                    value={price}
+                    onChange={onPriceChange}
+                  />
+                ) : (
+                  <div className="flex min-h-14 items-center rounded-md bg-term-field px-3 text-sm text-term-muted">
+                    Melhor preço de mercado
+                  </div>
+                )}
+              </div>
+              <div className="flex min-h-14 items-center rounded-md bg-term-field px-3">
+                <MenuSelect
+                  label="Tipo de execução"
+                  value={condExec}
+                  onChange={setCondExec}
+                  options={[
+                    ["limit", "Limite"],
+                    ["market", "Mercado"],
+                  ]}
+                />
+              </div>
+            </div>
+          </>
         )}
-        {orderType === "market" ? (
-          <div className="flex min-h-14 items-center gap-3 rounded-md bg-term-field px-3">
-            <span className="flex-1 text-sm text-term-muted">Melhor preço de mercado</span>
-            <span className="text-sm font-semibold text-term-text">{market.quote}</span>
-          </div>
-        ) : (
+        {orderType === "limit" && (
           <Field
             label="Preço"
             unit={market.quote}
             value={price}
             onChange={onPriceChange}
-            placeholder={orderType === "conditional" ? "A mercado" : undefined}
             suffix={
               <button
                 type="button"
@@ -556,16 +634,51 @@ export function OrderPanel({
           />
         )}
 
-        <Field
-          label="Quantidade"
-          unit={market.qtyUnit}
-          value={baseFieldValue}
-          onChange={(v) => {
-            setQtyMode("base")
-            setQty(v)
-            setPercent(0)
-          }}
-        />
+        {orderType === "market" ? (
+          <Field
+            label={qtyMode === "usdt" ? "Valor" : "Quantidade"}
+            unit={
+              <MenuSelect
+                label="Unidade da ordem"
+                value={qtyMode}
+                onChange={(next) => {
+                  if (next === qtyMode) return
+                  setQty(
+                    next === "usdt"
+                      ? notional > 0
+                        ? notional.toFixed(2)
+                        : ""
+                      : qtyNum > 0
+                        ? qtyNum.toFixed(market.qtyDecimals)
+                        : "",
+                  )
+                  setQtyMode(next)
+                }}
+                options={[
+                  ["usdt", "BRL"],
+                  ["base", market.qtyUnit],
+                ]}
+                className="text-sm"
+              />
+            }
+            value={qty}
+            onChange={(v) => {
+              setQty(v)
+              setPercent(0)
+            }}
+          />
+        ) : (
+          <Field
+            label="Quantidade"
+            unit={market.qtyUnit}
+            value={baseFieldValue}
+            onChange={(v) => {
+              setQtyMode("base")
+              setQty(v)
+              setPercent(0)
+            }}
+          />
+        )}
 
         <div className="px-2 pt-1">
           <div className="relative">
@@ -603,6 +716,15 @@ export function OrderPanel({
           </div>
         </div>
 
+        {orderType === "market" ? (
+          <p className="-mt-2 text-right text-xs tabular-nums text-term-muted">
+            {hasQty
+              ? qtyMode === "usdt"
+                ? `≈ ${qtyNum.toFixed(market.qtyDecimals)} ${market.qtyUnit}`
+                : `≈ ${formatUsd(notional)} BRL`
+              : "-- BRL"}
+          </p>
+        ) : (
         <div className="flex flex-col gap-1">
           <Field
             label="Valor da ordem"
@@ -618,6 +740,7 @@ export function OrderPanel({
             {hasQty ? `≈ ${qtyNum.toFixed(market.qtyDecimals)} ${market.qtyUnit}` : "-- BRL"}
           </p>
         </div>
+        )}
 
         <dl className="flex flex-col gap-2 rounded-md border border-term-line px-3 py-3">
           <Row label={isBuy ? "Quant. máxima de compra" : "Quant. máxima de venda"}>
@@ -651,26 +774,46 @@ export function OrderPanel({
             {tpslEnabled && (
               <button
                 type="button"
-                onClick={() => setAdvancedOpen(true)}
-                disabled={!(tpSlRef > 0)}
-                className="flex items-center gap-1 text-[13px] font-medium text-term-text hover:text-term-accent disabled:opacity-40"
+                onClick={() => setTpslMode((m) => (m === "advanced" ? "basic" : "advanced"))}
+                aria-label={tpslMode === "advanced" ? "Modo avançado — trocar para básico" : "Modo básico — trocar para avançado"}
+                className="flex items-center gap-1.5 text-[13px] font-medium text-term-text hover:text-term-accent"
               >
-                Avançado
+                {tpslMode === "advanced" ? "Avançado" : "Básico"}
                 <ArrowLeftRight className="size-3.5 text-term-muted" aria-hidden />
               </button>
             )}
           </div>
-          {tpslEnabled && (
+          {tpslEnabled && tpslMode === "advanced" && (
             <div className="flex flex-col gap-2">
               <button
                 type="button"
                 onClick={() => setAdvancedOpen(true)}
                 disabled={!(tpSlRef > 0)}
-                className="flex items-center justify-center gap-1.5 rounded-full border border-term-line py-2 text-[13px] font-medium text-term-text transition-colors hover:border-term-accent hover:text-term-accent disabled:opacity-40"
+                className="flex h-9 items-center justify-center gap-1.5 rounded-full bg-term-field text-[13px] font-medium text-term-text transition-colors hover:bg-term-line disabled:opacity-40"
               >
-                <CirclePlus className="size-4" aria-hidden />
+                <CirclePlus className="size-4 text-term-muted" aria-hidden />
                 TP/SL avançado
               </button>
+              {(tpNum > 0 || slNum > 0) && (
+                <dl className="flex flex-col gap-1 px-1 text-xs">
+                  {tpNum > 0 && (
+                    <div className="flex justify-between gap-2">
+                      <dt className="text-term-muted">Take Profit</dt>
+                      <dd className="font-semibold tabular-nums text-long">{formatPrice(tpNum, market.priceDecimals)}</dd>
+                    </div>
+                  )}
+                  {slNum > 0 && (
+                    <div className="flex justify-between gap-2">
+                      <dt className="text-term-muted">Stop Loss</dt>
+                      <dd className="font-semibold tabular-nums text-short">{formatPrice(slNum, market.priceDecimals)}</dd>
+                    </div>
+                  )}
+                </dl>
+              )}
+            </div>
+          )}
+          {tpslEnabled && tpslMode === "basic" && (
+            <div className="flex flex-col gap-2">
               <Field
                 label="Take Profit"
                 unit={market.quote}
@@ -724,16 +867,70 @@ export function OrderPanel({
                 <span className="underline decoration-term-muted/60 decoration-dashed underline-offset-4">Transação passiva</span>
               </label>
               {!postOnly && (
-                <select
-                  aria-label="Validade da ordem"
-                  value={tif}
-                  onChange={(e) => setTif(e.target.value as TimeInForce)}
-                  className="bg-transparent text-right text-[13px] font-medium text-term-text outline-none"
-                >
-                  <option value="GTC" className="bg-term-panel">Good-Till-Canceled (GTC)</option>
-                  <option value="IOC" className="bg-term-panel">Immediate-Or-Cancel (IOC)</option>
-                  <option value="FOK" className="bg-term-panel">Fill-Or-Kill (FOK)</option>
-                </select>
+                <MenuSelect
+                  label="Validade da ordem"
+                  value={tif as "GTC" | "IOC" | "FOK"}
+                  onChange={setTif}
+                  className="font-medium"
+                  options={[
+                    ["GTC", "Good-Till-Canceled (GTC)"],
+                    ["IOC", "Immediate-Or-Cancel (IOC)"],
+                    ["FOK", "Fill-Or-Kill (FOK)"],
+                  ]}
+                />
+              )}
+            </div>
+          )}
+          {orderType === "market" && (
+            <div className="flex flex-col gap-2">
+              <label className="flex items-center gap-2">
+                <Checkbox
+                  className={ACCENT_CHECKBOX}
+                  checked={slippageOn}
+                  onCheckedChange={(v) => setSlippageOn(v === true)}
+                />
+                <span className="underline decoration-term-muted/60 decoration-dashed underline-offset-4">
+                  Slippage máximo
+                </span>
+              </label>
+              {slippageOn && (
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center gap-2">
+                    {["0.1", "0.5", "1"].map((v) => (
+                      <button
+                        key={v}
+                        type="button"
+                        onClick={() => setSlippage(v)}
+                        className={cn(
+                          "flex-1 rounded-md border py-1.5 text-xs font-semibold tabular-nums",
+                          slippage === v
+                            ? "border-term-accent text-term-accent"
+                            : "border-term-line text-term-muted hover:text-term-text",
+                        )}
+                      >
+                        {v}%
+                      </button>
+                    ))}
+                    <label className="flex flex-1 items-center rounded-md border border-term-line px-2 focus-within:border-term-accent">
+                      <span className="sr-only">Slippage personalizado</span>
+                      <input
+                        inputMode="decimal"
+                        value={slippage}
+                        onChange={(e) => setSlippage(sanitizeDecimalInput(e.target.value))}
+                        className="h-7 w-full min-w-0 bg-transparent text-right text-xs font-semibold tabular-nums text-term-text outline-none"
+                      />
+                      <span className="text-xs text-term-muted">%</span>
+                    </label>
+                  </div>
+                  <p className="text-[11px] leading-relaxed text-term-muted">
+                    {lastPrice
+                      ? `A ordem só executa até ${formatPrice(
+                          lastPrice * (1 + ((isBuy ? 1 : -1) * slippagePct) / 100),
+                          market.priceDecimals,
+                        )} ${market.quote}; acima disso é cancelada.`
+                      : "Aguardando preço de mercado."}
+                  </p>
+                </div>
               )}
             </div>
           )}

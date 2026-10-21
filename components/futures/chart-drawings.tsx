@@ -169,6 +169,16 @@ function ToolGroupButton({
       <PopoverTrigger asChild>
         <button
           type="button"
+          onClick={(e) => {
+            e.preventDefault()
+            if (activeInGroup) {
+              setTool("cursor")
+              setOpen(false)
+            } else {
+              setTool(shown.id)
+              setOpen(true)
+            }
+          }}
           title={shown.label}
           aria-label={activeInGroup ? `${shown.label} (ativo) — abrir opções` : `${shown.label} — abrir opções`}
           aria-haspopup="menu"
@@ -413,6 +423,8 @@ export function DrawingLayer({ state, chart, getSeries, barsRef, step, decimals 
   const [drag, setDrag] = useState<Drag | null>(null)
   const [textEdit, setTextEdit] = useState<{ id?: string; pt: Pt; value: string } | null>(null)
   const lastFreehandRef = useRef<{ x: number; y: number } | null>(null)
+  // O traço vive num ref para não depender do re-render entre pointerdown/move/up (traços rápidos e toque).
+  const strokeRef = useRef<Drawing | null>(null)
 
   const commitText = () => {
     if (!textEdit) return
@@ -530,7 +542,10 @@ export function DrawingLayer({ state, chart, getSeries, barsRef, step, decimals 
   }, [selected, setDrawings, setSelected, setTool])
 
   useEffect(() => {
-    if (tool === "cursor") setDraft(null)
+    if (tool === "cursor") {
+      strokeRef.current = null
+      setDraft(null)
+    }
   }, [tool])
 
   const color = SWATCHES[0]
@@ -544,7 +559,9 @@ export function DrawingLayer({ state, chart, getSeries, barsRef, step, decimals 
       e.preventDefault()
       svgRef.current?.setPointerCapture(e.pointerId)
       lastFreehandRef.current = { x: e.clientX, y: e.clientY }
-      setDraft({ id: crypto.randomUUID(), type, pts: [pt], color, width: DEFAULT_WIDTH[type] })
+      const stroke: Drawing = { id: crypto.randomUUID(), type, pts: [pt], color, width: DEFAULT_WIDTH[type] }
+      strokeRef.current = stroke
+      setDraft(stroke)
       return
     }
     if (SINGLE_CLICK.includes(type)) {
@@ -572,13 +589,16 @@ export function DrawingLayer({ state, chart, getSeries, barsRef, step, decimals 
   }
 
   const onSvgPointerMove = (e: ReactPointerEvent<SVGSVGElement>) => {
-    if (draft && FREEHAND.includes(draft.type)) {
+    const stroke = strokeRef.current
+    if (stroke) {
       const last = lastFreehandRef.current
       if (last && Math.hypot(e.clientX - last.x, e.clientY - last.y) < 2) return
       const pt = eventPoint(e, false)
       if (!pt) return
       lastFreehandRef.current = { x: e.clientX, y: e.clientY }
-      setDraft((d) => (d ? { ...d, pts: [...d.pts, pt] } : d))
+      const next = { ...stroke, pts: [...stroke.pts, pt] }
+      strokeRef.current = next
+      setDraft(next)
       return
     }
     if (draft) {
@@ -605,12 +625,15 @@ export function DrawingLayer({ state, chart, getSeries, barsRef, step, decimals 
   }
 
   const endDrag = (e: ReactPointerEvent<SVGSVGElement>) => {
-    if (draft && FREEHAND.includes(draft.type)) {
-      svgRef.current?.releasePointerCapture(e.pointerId)
+    const stroke = strokeRef.current
+    if (stroke) {
+      if (svgRef.current?.hasPointerCapture(e.pointerId)) svgRef.current.releasePointerCapture(e.pointerId)
+      strokeRef.current = null
       lastFreehandRef.current = null
-      const stroke = draft
       setDraft(null)
-      if (stroke.pts.length > 1) setDrawings((all) => [...all, stroke])
+      const pt = eventPoint(e, false)
+      const pts = stroke.pts.length === 1 && pt ? [...stroke.pts, pt] : stroke.pts
+      if (pts.length > 1) setDrawings((all) => [...all, { ...stroke, pts }])
       return
     }
     if (!drag) return

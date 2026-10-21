@@ -253,6 +253,7 @@ export async function placeOrder(userId: string, input: PlaceOrderInput) {
   }
   validateTpSl(input.side, trigger, input.takeProfit, input.stopLoss, market.priceDecimals)
   const direction = trigger > ticker.price ? "rise" : "fall"
+  const limitAfterTrigger = Number(input.price)
 
   const { data, error } = await admin.rpc("futures_place_order", {
     p_user: userId,
@@ -260,7 +261,7 @@ export async function placeOrder(userId: string, input: PlaceOrderInput) {
     p_symbol: market.symbol,
     p_side: input.side,
     p_order_type: "conditional",
-    p_price: null,
+    p_price: Number.isFinite(limitAfterTrigger) && limitAfterTrigger > 0 ? limitAfterTrigger : null,
     p_trigger_price: trigger,
     p_trigger_direction: direction,
     p_qty: qty,
@@ -552,7 +553,20 @@ export async function sweep(userId?: string) {
       }
     } else if (o.order_type === "conditional" && o.trigger_price != null) {
       const hit = o.trigger_direction === "rise" ? last >= o.trigger_price : last <= o.trigger_price
-      if (hit) fillPrice = o.side === "buy" ? t.ask || last : t.bid || last
+      if (hit) {
+        const marketPx = o.side === "buy" ? t.ask || last : t.bid || last
+        if (o.price == null || (o.side === "buy" ? marketPx <= o.price : marketPx >= o.price)) {
+          fillPrice = marketPx
+        } else {
+          // Acionada com preço limite fora do mercado: vira uma ordem limitada aguardando o preço.
+          await admin
+            .from("futures_orders")
+            .update({ order_type: "limit", trigger_price: null, trigger_direction: null })
+            .eq("id", o.id)
+            .eq("status", "open")
+          continue
+        }
+      }
     }
     if (fillPrice == null) continue
 

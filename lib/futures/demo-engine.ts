@@ -279,6 +279,8 @@ export async function placeOrder(input: PlaceOrderInput) {
     if (Math.abs(trigger - ticker.price) / ticker.price < 1e-6) throw new TradingError("Preço de disparo igual ao preço atual")
     validateTpSl(input.side, trigger, input.takeProfit, input.stopLoss, market.priceDecimals)
     direction = trigger > ticker.price ? "rise" : "fall"
+    const limitAfterTrigger = Number(input.price)
+    if (Number.isFinite(limitAfterTrigger) && limitAfterTrigger > 0) price = limitAfterTrigger
   }
 
   const refPrice = (price ?? trigger) as number
@@ -429,7 +431,15 @@ export async function sweep() {
         }
       } else if (o.order_type === "conditional" && o.trigger_price != null) {
         if (o.trigger_direction === "rise" ? last >= o.trigger_price : last <= o.trigger_price) {
-          fillPrice = o.side === "buy" ? t.ask || last : t.bid || last
+          const marketPx = o.side === "buy" ? t.ask || last : t.bid || last
+          if (o.price == null || (o.side === "buy" ? marketPx <= o.price : marketPx >= o.price)) {
+            fillPrice = marketPx
+          } else {
+            o.order_type = "limit"
+            o.trigger_price = null
+            o.trigger_direction = null
+            continue
+          }
         }
       }
       if (fillPrice == null) continue
