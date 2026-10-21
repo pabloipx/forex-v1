@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { approveDeposit, isPaidStatus } from "@/lib/deposits"
+import { approveDeposit, isCreditedStatus, isPaidStatus } from "@/lib/deposits"
 import { getTransactionStatus, verifyWebhookHash } from "@/lib/suitpay"
 
 export const dynamic = "force-dynamic"
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (status === "CHARGEBACK") {
-    if (deposit.status !== "approved") {
+    if (!isCreditedStatus(deposit.status)) {
       await supabaseAdmin.from("deposits").update({ status: "refunded" }).eq("id", deposit.id)
     } else {
       console.warn("[SUITPAY WEBHOOK] Estorno de deposito ja creditado - revisar manualmente:", deposit.id)
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, message: "Chargeback received" })
   }
 
-  if (deposit.status === "approved") {
+  if (isCreditedStatus(deposit.status)) {
     return NextResponse.json({ success: true, message: "Already processed" })
   }
 

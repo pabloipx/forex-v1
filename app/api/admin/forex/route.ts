@@ -19,8 +19,10 @@ import {
   reviewWithdrawal,
   reviewDeposit,
   reviewKyc,
+  setBalance,
   setUserBlocked,
   signKycFile,
+  updateUserProfile,
   updateMarket,
 } from "@/lib/admin/forex-admin"
 
@@ -68,6 +70,42 @@ const actionSchema = z.discriminatedUnion("action", [
     amount: z.number().finite(),
     note: z.string().max(200).nullish(),
   }),
+  z.object({
+    action: z.literal("set_balance"),
+    userId: uuid,
+    isDemo: z.boolean(),
+    balance: z.number().finite().min(0).max(10_000_000),
+    note: z.string().max(200).nullish(),
+  }),
+  z.object({
+    action: z.literal("update_profile"),
+    userId: uuid,
+    profile: z
+      .object({
+        email: z.string().trim().email("E-mail inválido").max(254).optional(),
+        full_name: z.string().trim().max(120).nullish(),
+        nickname: z.string().trim().max(60).nullish(),
+        phone: z
+          .string()
+          .trim()
+          .max(30)
+          .refine((v) => !v || /^\+?[\d\s()-]{10,}$/.test(v), "Telefone incompleto")
+          .nullish(),
+        document_number: z.string().trim().max(30).nullish(),
+        birth_date: z
+          .string()
+          .trim()
+          .refine((v) => !v || /^\d{4}-\d{2}-\d{2}$/.test(v), "Data no formato AAAA-MM-DD")
+          .nullish(),
+        occupation: z.string().trim().max(80).nullish(),
+        address_line: z.string().trim().max(200).nullish(),
+        city: z.string().trim().max(80).nullish(),
+        state: z.string().trim().max(40).nullish(),
+        postal_code: z.string().trim().max(20).nullish(),
+        country: z.string().trim().max(40).nullish(),
+      })
+      .strict(),
+  }),
   z.object({ action: z.literal("review_kyc"), id: uuid, approve: z.boolean(), reason: z.string().max(300).nullish() }),
   z.object({ action: z.literal("kyc_file"), path: z.string().min(1).max(500) }),
   z.object({
@@ -106,6 +144,11 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true })
       case "adjust_balance":
         return NextResponse.json({ success: true, balance: await adjustBalance(a.userId, a.isDemo, a.amount, a.note ?? null) })
+      case "set_balance":
+        return NextResponse.json({ success: true, balance: await setBalance(a.userId, a.isDemo, a.balance, a.note ?? null) })
+      case "update_profile":
+        await updateUserProfile(a.userId, a.profile)
+        return NextResponse.json({ success: true })
       case "review_kyc":
         await reviewKyc(a.id, a.approve, a.reason ?? null)
         return NextResponse.json({ success: true })

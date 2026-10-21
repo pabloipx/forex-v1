@@ -132,7 +132,8 @@ function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag
   const [editorOpen, setEditorOpen] = useState(false)
   const scriptStore = useChartScripts()
   const getMain = useCallback(() => candleRef.current, [])
-  const scriptErrors = useScriptOverlay({
+  const [panelOpen, setPanelOpen] = useState(true)
+  const { errors: scriptErrors, panels: scriptPanels } = useScriptOverlay({
     chart: chartApi,
     getMain,
     barsRef,
@@ -553,6 +554,41 @@ function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag
             </span>
           )}
         </div>
+        {scriptPanels.length > 0 && (
+          <div className="absolute right-16 top-2 z-10 flex max-w-44 flex-col gap-1">
+            {scriptPanels.map((p, idx) => (
+              <section
+                key={idx}
+                aria-label={p.title || p.rows[0]?.label || "Painel do script"}
+                className="overflow-hidden rounded border border-term-line bg-term-bg/90 font-mono text-[10px] leading-tight"
+              >
+                <button
+                  type="button"
+                  onClick={() => setPanelOpen((v) => !v)}
+                  aria-expanded={panelOpen}
+                  className="flex min-h-6 w-full items-center justify-between gap-3 px-2 py-1 text-left"
+                >
+                  <span className="truncate font-semibold" style={{ color: p.rows[0]?.color }}>
+                    {p.title || p.rows[0]?.label}
+                  </span>
+                  <span style={{ color: p.rows[0]?.color }}>{p.title ? (panelOpen ? "−" : "+") : p.rows[0]?.value}</span>
+                </button>
+                {panelOpen && (
+                  <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 border-t border-term-line px-2 py-1">
+                    {(p.title ? p.rows : p.rows.slice(1)).map((r, i) => (
+                      <div key={i} className="contents">
+                        <dt className="text-term-muted">{r.label}</dt>
+                        <dd className="text-right font-semibold" style={{ color: r.color }}>
+                          {r.value}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
+              </section>
+            ))}
+          </div>
+        )}
         {(isLoading || error) && !candles && (
           <p className="absolute inset-0 z-10 flex items-center justify-center text-xs text-term-muted">
             {error ? (error as Error).message : "Carregando gráfico..."}

@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge, ErrorNote, SmallButton } from "./ui"
 import { dateTime, usd, signedUsd } from "./use-admin"
 import { UserActivityFeed } from "./user-logs-dialog"
+import { UserEditPanel } from "./user-edit-panel"
 import { cn } from "@/lib/utils"
 
 interface Device {
@@ -128,6 +129,7 @@ export function UserDetailSheet({ user, onClose }: { user: { id: string; email: 
                 <TabsList className="bg-term-bg">
                   <TabsTrigger value="overview">Visão geral</TabsTrigger>
                   <TabsTrigger value="access">Acessos ({data.stats.logins})</TabsTrigger>
+                  <TabsTrigger value="edit">Editar</TabsTrigger>
                   <TabsTrigger value="activity">Atividade</TabsTrigger>
                 </TabsList>
                 <SmallButton tone="muted" onClick={() => mutate()} disabled={isValidating}>
@@ -206,6 +208,10 @@ export function UserDetailSheet({ user, onClose }: { user: { id: string; email: 
                     </ol>
                   )}
                 </section>
+              </TabsContent>
+
+              <TabsContent value="edit">
+                <UserEditPanel userId={user.id} profile={p} balances={data.balances} onSaved={() => mutate()} />
               </TabsContent>
 
               <TabsContent value="activity" className="flex min-h-[60vh] flex-col">

@@ -23,6 +23,9 @@ interface DepositRow {
 const STATUS: Record<string, { label: string; tone: "up" | "down" | "accent" | "muted" }> = {
   pending: { label: "Pendente", tone: "accent" },
   confirmed: { label: "Confirmado", tone: "up" },
+  approved: { label: "Pago (automático)", tone: "up" },
+  cancelled: { label: "Cancelado", tone: "muted" },
+  refunded: { label: "Estornado", tone: "down" },
   failed: { label: "Recusado", tone: "down" },
   expired: { label: "Expirado", tone: "muted" },
 }
@@ -50,7 +53,7 @@ export function DepositsSection() {
   const all = data ?? []
   const rows = onlyPending ? all.filter((r) => r.status === "pending") : all
   const dayAgo = Date.now() - 86400_000
-  const confirmed = all.filter((r) => r.status === "confirmed" && r.account_type === "real")
+  const confirmed = all.filter((r) => (r.status === "confirmed" || r.status === "approved") && r.account_type === "real")
   const sum = (arr: DepositRow[]) => arr.reduce((s, r) => s + r.amount, 0)
   const pending = all.filter((r) => r.status === "pending")
 

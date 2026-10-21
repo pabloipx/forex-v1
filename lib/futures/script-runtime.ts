@@ -20,16 +20,23 @@ export interface ScriptHLine {
 
 export interface ScriptMarker {
   index: number
-  position: "above" | "below"
+  position: "above" | "below" | "price"
+  price?: number
   color: string
-  shape: "arrowUp" | "arrowDown" | "circle"
+  shape: "arrowUp" | "arrowDown" | "circle" | "square"
   text: string
+}
+
+export interface ScriptPanel {
+  title: string
+  rows: { label: string; value: string; color: string }[]
 }
 
 export interface ScriptOutput {
   plots: ScriptPlot[]
   hlines: ScriptHLine[]
   markers: ScriptMarker[]
+  panels: ScriptPanel[]
 }
 
 export type ScriptResult = { ok: true; output: ScriptOutput } | { ok: false; error: string }
@@ -79,11 +86,11 @@ const ta = {
 };
 let open, high, low, close, volume, time, hl2, hlc3;
 self.onmessage = (e) => {
-  const { code, bars } = e.data;
+  const { id, code, bars } = e.data;
   open = bars.map((b) => b.open); high = bars.map((b) => b.high); low = bars.map((b) => b.low);
   close = bars.map((b) => b.close); volume = bars.map((b) => b.volume); time = bars.map((b) => b.time);
   hl2 = bars.map((b) => (b.high + b.low) / 2); hlc3 = bars.map((b) => (b.high + b.low + b.close) / 3);
-  const out = { plots: [], hlines: [], markers: [] };
+  const out = { plots: [], hlines: [], markers: [], panels: [] };
   const toSeries = (v) => Array.isArray(v) ? v.map(num) : new Array(bars.length).fill(num(v));
   const plot = (series, o = {}) => { if (out.plots.length >= MAX_PLOTS) throw new Error("Limite de " + MAX_PLOTS + " plots por script");
     out.plots.push({ title: String(o.title ?? "Plot " + (out.plots.length + 1)).slice(0, 40), color: String(o.color ?? "#2962ff"),
@@ -93,14 +100,25 @@ self.onmessage = (e) => {
     out.hlines.push({ price: p, title: String(o.title ?? "").slice(0, 40), color: String(o.color ?? "#848e9c"), pane: o.pane === "separate" ? "separate" : "price" }); };
   const signal = (cond, o = {}) => { const arr = Array.isArray(cond) ? cond : [];
     const buy = (o.side ?? "buy") === "buy";
-    arr.forEach((c, i) => { if (c && out.markers.length < MAX_MARKERS) out.markers.push({ index: i, position: buy ? "below" : "above",
-      color: String(o.color ?? (buy ? "#20b26c" : "#ef454a")), shape: buy ? "arrowUp" : "arrowDown", text: String(o.text ?? "").slice(0, 12) }); }); };
+    const position = o.position === "above" || o.position === "below" ? o.position : buy ? "below" : "above";
+    const shape = ["arrowUp", "arrowDown", "circle", "square"].includes(o.shape) ? o.shape : buy ? "arrowUp" : "arrowDown";
+    const prices = o.price == null ? null : Array.isArray(o.price) ? o.price : null;
+    const fixed = num(o.price);
+    arr.forEach((c, i) => { if (!c || out.markers.length >= MAX_MARKERS) return;
+      const p = prices ? num(prices[i]) : fixed;
+      out.markers.push({ index: i, position: o.price != null && p != null ? "price" : position, price: p ?? undefined,
+        color: String(o.color ?? (buy ? "#20b26c" : "#ef454a")), shape, text: String(o.text ?? "").slice(0, 12) }); }); };
+  const panel = (rows, o = {}) => { if (!Array.isArray(rows) || out.panels.length >= 2) return;
+    out.panels.push({ title: String(o.title ?? "").slice(0, 30), rows: rows.slice(0, 12).map((r) => ({
+      label: String((Array.isArray(r) ? r[0] : r?.label) ?? "").slice(0, 20),
+      value: String((Array.isArray(r) ? r[1] : r?.value) ?? "").slice(0, 24),
+      color: String((Array.isArray(r) ? r[2] : r?.color) ?? "#eaecef") })) }); };
   try {
-    const fn = new Function("open", "high", "low", "close", "volume", "time", "hl2", "hlc3", "bars", "ta", "plot", "hline", "signal", "Math", code);
-    fn(open, high, low, close, volume, time, hl2, hlc3, bars, ta, plot, hline, signal, Math);
-    self.postMessage({ ok: true, output: out });
+    const fn = new Function("open", "high", "low", "close", "volume", "time", "hl2", "hlc3", "bars", "ta", "plot", "hline", "signal", "panel", "Math", code);
+    fn(open, high, low, close, volume, time, hl2, hlc3, bars, ta, plot, hline, signal, panel, Math);
+    self.postMessage({ id, ok: true, output: out });
   } catch (err) {
-    self.postMessage({ ok: false, error: err && err.message ? String(err.message) : String(err) });
+    self.postMessage({ id, ok: false, error: err && err.message ? String(err.message) : String(err) });
   }
 };
 for (const k of ["fetch", "XMLHttpRequest", "WebSocket", "EventSource", "importScripts", "indexedDB", "caches", "BroadcastChannel"]) {
@@ -114,25 +132,86 @@ function getWorkerUrl() {
   return workerUrl
 }
 
+const PINE_DECLARATION = /^\s*\/\/\s*@version|^\s*(indicator|strategy|study)\s*\(/m
+const PINE_MARKERS = [
+  /\binput(\.(int|float|bool|string|source|color|timeframe|session|price|symbol))?\s*\(/,
+  /^\s*[A-Za-z_]\w*\s*:=/m,
+  /\bcolor\.(rgb|new)\s*\(/,
+  /\b(plotshape|plotchar|plotcandle|bgcolor|barcolor|alertcondition|fill)\s*\(/,
+  /^\s*(var|varip)\s+(int|float|bool|string|line|label|box|table\s+)?[A-Za-z_]\w*\s*=/m,
+  /\bstrategy\.(entry|exit|close|long|short)\b/,
+  /\b(label|line|box|table)\.new\s*\(/,
+  /\bta\.(crossover|crossunder)\s*\([^)]*\)\s*$/m,
+  /\bnz\s*\(|\bna\b(?!\w)/,
+  /^\s*(if|for|while)\s+[^({\n]+$/m,
+]
+
+export function looksLikePine(code: string): boolean {
+  if (PINE_DECLARATION.test(code)) return true
+  return PINE_MARKERS.filter((re) => re.test(code)).length >= 2
+}
+
+export const PINE_ERROR =
+  "Isto é Pine Script (TradingView) e não roda aqui. Este gráfico usa JavaScript com ta, plot, hline e signal — envie o script para conversão ou use um modelo."
+
+export function convertPine(code: string): { name: string; code: string } | null {
+  if (!looksLikePine(code)) return null
+  const title = code.match(/\b(?:indicator|strategy|study)\s*\(\s*["']([^"']*)/)?.[1] ?? code.slice(0, 400)
+  if (!/SNIPER/i.test(title)) return null
+  const name = /\bV\s*7\b/i.test(title) ? "Sniper Pro V7" : "Sniper Pro V8"
+  const template = SCRIPT_TEMPLATES.find((t) => t.name === name)
+  return template ? { name, code: template.code } : null
+}
+
+// Um único worker reutilizado: criar um Worker por execução custava dezenas de ms a cada 2s.
+let worker: Worker | null = null
+let seq = 0
+const pending = new Map<number, (r: ScriptResult) => void>()
+const timedOut = new Set<string>()
+
+function failAll(error: string) {
+  for (const cb of pending.values()) cb({ ok: false, error })
+  pending.clear()
+}
+
+function getWorker() {
+  if (worker) return worker
+  worker = new Worker(getWorkerUrl())
+  worker.onmessage = (e: MessageEvent<ScriptResult & { id: number }>) => {
+    const { id, ...result } = e.data
+    const cb = pending.get(id)
+    pending.delete(id)
+    cb?.(result as ScriptResult)
+  }
+  worker.onerror = (e) => {
+    e.preventDefault()
+    failAll(e.message || "Erro de sintaxe no script")
+  }
+  return worker
+}
+
 export function runScript(code: string, bars: Candle[]): Promise<ScriptResult> {
+  const source = looksLikePine(code) ? convertPine(code)?.code : code
+  if (!source) return Promise.resolve({ ok: false, error: PINE_ERROR })
+  if (timedOut.has(source)) {
+    return Promise.resolve({ ok: false, error: `Tempo limite de ${TIMEOUT_MS}ms excedido (loop infinito?)` })
+  }
   return new Promise((resolve) => {
-    const worker = new Worker(getWorkerUrl())
+    const id = ++seq
     const timer = setTimeout(() => {
-      worker.terminate()
+      timedOut.add(source)
+      pending.delete(id)
+      worker?.terminate()
+      worker = null
+      failAll("Execução interrompida por outro script travado")
       resolve({ ok: false, error: `Tempo limite de ${TIMEOUT_MS}ms excedido (loop infinito?)` })
     }, TIMEOUT_MS)
-    worker.onmessage = (e: MessageEvent<ScriptResult>) => {
+    pending.set(id, (result) => {
       clearTimeout(timer)
-      worker.terminate()
-      resolve(e.data)
-    }
-    worker.onerror = (e) => {
-      e.preventDefault()
-      clearTimeout(timer)
-      worker.terminate()
-      resolve({ ok: false, error: e.message || "Erro de sintaxe no script" })
-    }
-    worker.postMessage({ code, bars })
+      const syntaxError = !result.ok && /unexpected|missing|is not defined/i.test(result.error ?? "")
+      resolve(syntaxError && PINE_MARKERS.some((re) => re.test(code)) ? { ok: false, error: PINE_ERROR } : result)
+    })
+    getWorker().postMessage({ id, code: source, bars })
   })
 }
 
@@ -176,6 +255,150 @@ plot(lower, { title: "BB inf", color: "#2190ff", width: 1 })
 plot(hist, { title: "Hist", color: "#848e9c", type: "histogram", pane: "separate" })
 plot(macd, { title: "MACD", color: "#2962ff", pane: "separate" })
 plot(sinal, { title: "Sinal", color: "#f7a600", pane: "separate" })
+`,
+  },
+  {
+    name: "Sniper Pro V7",
+    code: `// SNIPER EDITION TRADER PRO V7 — convertido do Pine Script
+const cfg = { emaRapida: 9, emaLenta: 21, rsiPeriodo: 14, atrPeriodo: 14 }
+const verde = "#00ff8c", vermelho = "#ff2828", azul = "#00b4ff"
+
+const emaFast = ta.ema(close, cfg.emaRapida)
+const emaSlow = ta.ema(close, cfg.emaLenta)
+const rsi = ta.rsi(close, cfg.rsiPeriodo)
+const atr = ta.atr(cfg.atrPeriodo)
+
+const n = close.length
+const serie = (v) => new Array(n).fill(v)
+const compra = serie(false), venda = serie(false)
+const buyTP = serie(null), buySL = serie(null), sellTP = serie(null), sellSL = serie(null)
+
+for (let i = 1; i < n; i++) {
+  if (emaFast[i] == null || emaSlow[i] == null || rsi[i] == null || atr[i] == null) continue
+  compra[i] = emaFast[i] > emaSlow[i] && close[i] > open[i] && close[i] > high[i - 1] &&
+    rsi[i] > 50 && close[i] > emaFast[i]
+  venda[i] = emaFast[i] < emaSlow[i] && close[i] < open[i] && close[i] < low[i - 1] &&
+    rsi[i] < 50 && close[i] < emaFast[i]
+  buyTP[i] = close[i] + atr[i] * 2
+  buySL[i] = close[i] - atr[i]
+  sellTP[i] = close[i] - atr[i] * 2
+  sellSL[i] = close[i] + atr[i]
+}
+
+plot(emaFast, { title: "EMA Rápida", color: verde, width: 3 })
+plot(emaSlow, { title: "EMA Lenta", color: vermelho, width: 2 })
+
+signal(compra, { side: "buy", text: "COMPRA", color: verde })
+signal(venda, { side: "sell", text: "VENDA", color: vermelho })
+signal(compra, { price: buyTP, shape: "circle", text: "TP", color: verde })
+signal(compra, { price: buySL, shape: "circle", text: "SL", color: vermelho })
+signal(venda, { price: sellTP, shape: "circle", text: "TP", color: verde })
+signal(venda, { price: sellSL, shape: "circle", text: "SL", color: vermelho })
+
+const u = n - 1
+if (u > 0 && emaFast[u] != null && rsi[u] != null && atr[u] != null) {
+  const hora = new Date(time[u] * 1000).getUTCHours()
+  const sessao = hora >= 9 && hora <= 12 ? "LONDRES" : hora >= 13 && hora <= 17 ? "NOVA YORK" : "ÁSIA"
+  const alta = emaFast[u] > emaSlow[u]
+  const forte = Math.abs(emaFast[u] - emaSlow[u]) > atr[u] * 0.2
+  const status = compra[u] ? "COMPRA" : venda[u] ? "VENDA" : "AGUARDANDO"
+  panel([
+    ["SNIPER PRO", "ONLINE", verde],
+    ["TENDÊNCIA", alta ? "ALTA" : "BAIXA", alta ? verde : vermelho],
+    ["RSI", rsi[u].toFixed(1), azul],
+    ["SESSÃO", sessao, azul],
+    ["MERCADO", forte ? "FORTE" : "FRACO", forte ? verde : vermelho],
+    ["ATR", atr[u].toFixed(atr[u] < 1 ? 4 : 1), azul],
+    ["STATUS", status, compra[u] ? verde : venda[u] ? vermelho : azul],
+  ])
+}
+`,
+  },
+  {
+    name: "Sniper Pro V8",
+    code: `// SNIPER EDITION TRADER PRO V8 — convertido do Pine Script
+const cfg = {
+  emaRapida: 9, emaLenta: 21, rsiPeriodo: 14, atrPeriodo: 14,
+  candleMinATR: 0.3,   // candle mínimo (x ATR)
+  forcaMinima: 0.2,    // distância mínima entre EMAs (x ATR)
+  usarFiltroHorario: true,
+  janelas: [[9, 11], [14, 16]], // adicione [4, 6] para ativar a Janela 3
+  fusoHorario: -3,     // horário de Brasília
+  cooldownBarras: 5,
+  tp1ATR: 1, tp2ATR: 2, slATR: 1,
+}
+
+const emaFast = ta.ema(close, cfg.emaRapida)
+const emaSlow = ta.ema(close, cfg.emaLenta)
+const rsi = ta.rsi(close, cfg.rsiPeriodo)
+const atr = ta.atr(cfg.atrPeriodo)
+
+const n = close.length
+const serie = (v) => new Array(n).fill(v)
+const compra = serie(false), venda = serie(false)
+const tp1 = serie(false), tp2 = serie(false), stop = serie(false)
+const lEntrada = serie(null), lTP1 = serie(null), lTP2 = serie(null), lSL = serie(null)
+
+let desdeSinal = 1e9
+let pos = null
+
+for (let i = 1; i < n; i++) {
+  desdeSinal++
+  if (emaFast[i] == null || emaSlow[i] == null || rsi[i] == null || atr[i] == null) continue
+
+  const hora = new Date((time[i] + cfg.fusoHorario * 3600) * 1000).getUTCHours()
+  const horarioOk = !cfg.usarFiltroHorario || cfg.janelas.some(([a, b]) => hora >= a && hora < b)
+  const candleForte = high[i] - low[i] >= atr[i] * cfg.candleMinATR
+  const mercadoForte = Math.abs(emaFast[i] - emaSlow[i]) > atr[i] * cfg.forcaMinima
+  const filtros = horarioOk && mercadoForte && desdeSinal >= cfg.cooldownBarras && candleForte
+
+  const c = filtros && emaFast[i] > emaSlow[i] && rsi[i] > 50 &&
+    close[i] > open[i] && close[i] > high[i - 1] && close[i] > emaFast[i]
+  const v = filtros && emaFast[i] < emaSlow[i] && rsi[i] < 50 &&
+    close[i] < open[i] && close[i] < low[i - 1] && close[i] < emaFast[i]
+
+  compra[i] = c
+  venda[i] = v
+  if (c || v) desdeSinal = 0
+
+  if (!pos && (c || v)) {
+    const d = c ? 1 : -1
+    pos = {
+      d, entrada: close[i], tp1Hit: false,
+      sl: close[i] - d * atr[i] * cfg.slATR,
+      tp1: close[i] + d * atr[i] * cfg.tp1ATR,
+      tp2: close[i] + d * atr[i] * cfg.tp2ATR,
+    }
+  }
+
+  if (pos) {
+    const atingiu = (p) => (pos.d === 1 ? high[i] >= p : low[i] <= p)
+    const parou = pos.d === 1 ? low[i] <= pos.sl : high[i] >= pos.sl
+    if (!pos.tp1Hit && atingiu(pos.tp1)) { pos.tp1Hit = true; tp1[i] = true }
+    if (atingiu(pos.tp2)) { tp2[i] = true; pos = null }
+    else if (parou) { stop[i] = true; pos = null }
+  }
+
+  if (pos) {
+    lEntrada[i] = pos.entrada
+    lTP1[i] = pos.tp1
+    lTP2[i] = pos.tp2
+    lSL[i] = pos.sl
+  }
+}
+
+plot(emaFast, { title: "EMA Rápida", color: "#00ff8c", width: 3 })
+plot(emaSlow, { title: "EMA Lenta", color: "#ff2828", width: 2 })
+plot(lEntrada, { title: "Entrada", color: "#00b4ff", width: 1 })
+plot(lTP1, { title: "TP1", color: "#33ffa3", width: 2 })
+plot(lTP2, { title: "TP2", color: "#00ff8c", width: 2 })
+plot(lSL, { title: "Stop", color: "#ff2828", width: 1 })
+
+signal(compra, { side: "buy", text: "COMPRA", color: "#00ff8c" })
+signal(venda, { side: "sell", text: "VENDA", color: "#ff2828" })
+signal(tp1, { position: "above", shape: "circle", text: "TP1", color: "#ffd200" })
+signal(tp2, { position: "above", shape: "circle", text: "TP2", color: "#00ff8c" })
+signal(stop, { position: "below", shape: "circle", text: "STOP", color: "#ff2828" })
 `,
   },
 ]

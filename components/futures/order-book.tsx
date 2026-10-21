@@ -326,7 +326,7 @@ export function OrderBookPanel(props: OrderBookProps) {
   const [tab, setTab] = useState<"book" | "trades">("book")
   return (
     <section aria-label="Livro de ofertas" className="flex h-full flex-col bg-term-panel">
-      <div role="tablist" className="flex gap-5 border-b border-term-line px-3">
+      <div role="tablist" className="flex gap-5 border-b border-term-line px-3 phone:gap-3 phone:px-2">
         {(
           [
             ["book", "Livro de ofertas"],
@@ -339,7 +339,7 @@ export function OrderBookPanel(props: OrderBookProps) {
             aria-selected={tab === key}
             onClick={() => setTab(key)}
             className={cn(
-              "border-b-2 py-2.5 text-sm font-semibold",
+              "border-b-2 py-2.5 text-sm font-semibold phone:text-xs",
               tab === key ? "border-primary text-term-text" : "border-transparent text-term-muted hover:text-term-text",
             )}
           >

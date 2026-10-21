@@ -16,7 +16,7 @@ import {
 } from "lightweight-charts"
 import type { Candle } from "@/lib/futures/chart-intervals"
 import type { ChartScript } from "@/hooks/use-chart-scripts"
-import { runScript, type ScriptOutput } from "@/lib/futures/script-runtime"
+import { runScript, type ScriptOutput, type ScriptPanel } from "@/lib/futures/script-runtime"
 
 type AnySeries = ISeriesApi<"Line"> | ISeriesApi<"Histogram">
 
@@ -33,6 +33,10 @@ const REFRESH_MS = 2000
 
 export function useScriptOverlay({ chart, getMain, barsRef, scripts, dataVersion, decimals }: Options) {
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [panels, setPanels] = useState<ScriptPanel[]>([])
+  const hlineSigRef = useRef("")
+  const markerSigRef = useRef("")
+  const plotSigRef = useRef<string[]>([])
   const seriesRef = useRef<{ key: string; series: AnySeries }[]>([])
   const layoutRef = useRef("")
   const linesRef = useRef<{ series: AnySeries | ISeriesApi<"Candlestick">; line: IPriceLine }[]>([])
@@ -66,6 +70,9 @@ export function useScriptOverlay({ chart, getMain, barsRef, scripts, dataVersion
       linesRef.current = []
       seriesRef.current = []
       layoutRef.current = ""
+      hlineSigRef.current = ""
+      markerSigRef.current = ""
+      plotSigRef.current = []
       markersRef.current = null
     }
   }, [chart, getMain])
@@ -94,15 +101,16 @@ export function useScriptOverlay({ chart, getMain, barsRef, scripts, dataVersion
         })
       }
 
-      for (const { series, line } of linesRef.current) {
-        try {
-          series.removePriceLine(line)
-        } catch {}
-      }
-      linesRef.current = []
-
       const layout = keys.map((k) => k.key).join("|")
       if (layout !== layoutRef.current) {
+        for (const { series, line } of linesRef.current) {
+          try {
+            series.removePriceLine(line)
+          } catch {}
+        }
+        linesRef.current = []
+        hlineSigRef.current = ""
+        plotSigRef.current = []
         for (const { series } of seriesRef.current) chart.removeSeries(series)
         seriesRef.current = []
         layoutRef.current = layout
@@ -121,22 +129,50 @@ export function useScriptOverlay({ chart, getMain, barsRef, scripts, dataVersion
         }
       }
 
+      const firstTime = bars[0]?.time ?? 0
       keys.forEach((k, i) => {
         const plot = results.find((r) => r.id === k.scriptId)!.output.plots[k.idx]
         const target = seriesRef.current[i]?.series
         if (!target) return
+        // Só o miolo muda raramente; comparar o início + os 3 últimos valores evita setData completo a cada tick.
+        const head = `${plot.color}|${plot.title}|${firstTime}|${bars.length}`
+        const tail = plot.data.slice(-3).join(",")
+        const prev = plotSigRef.current[i]
+        if (prev === `${head}|${tail}`) return
+        if (prev && prev.startsWith(head + "|") && bars.length > 0) {
+          const j = bars.length - 1
+          const v = plot.data[j]
+          const t = bars[j].time as UTCTimestamp
+          target.update(v != null ? { time: t, value: v } : { time: t })
+          plotSigRef.current[i] = `${head}|${tail}`
+          return
+        }
         target.applyOptions({ color: plot.color, title: plot.title })
         const data = []
         for (let j = 0; j < bars.length; j++) {
           const v = plot.data[j]
-          if (v != null) data.push({ time: bars[j].time as UTCTimestamp, value: v })
+          const t = bars[j].time as UTCTimestamp
+          data.push(v != null ? { time: t, value: v } : { time: t })
         }
         target.setData(data)
+        plotSigRef.current[i] = `${head}|${tail}`
       })
+
+      const hlineSig = JSON.stringify(results.map((r) => [r.id, r.output.hlines]))
+      const rebuildLines = hlineSig !== hlineSigRef.current
+      if (rebuildLines) {
+        for (const { series, line } of linesRef.current) {
+          try {
+            series.removePriceLine(line)
+          } catch {}
+        }
+        linesRef.current = []
+        hlineSigRef.current = hlineSig
+      }
 
       const markers: SeriesMarker<Time>[] = []
       for (const { id, output } of results) {
-        for (const h of output.hlines) {
+        for (const h of rebuildLines ? output.hlines : []) {
           let host: AnySeries | ISeriesApi<"Candlestick"> = main
           if (h.pane === "separate") {
             const pane = paneOf.get(id)
@@ -156,17 +192,29 @@ export function useScriptOverlay({ chart, getMain, barsRef, scripts, dataVersion
         for (const m of output.markers) {
           const bar = bars[m.index]
           if (!bar) continue
-          markers.push({
-            time: bar.time as UTCTimestamp,
-            position: m.position === "above" ? "aboveBar" : "belowBar",
-            color: m.color,
-            shape: m.shape,
-            text: m.text,
-          })
+          const time = bar.time as UTCTimestamp
+          if (m.position === "price" && m.price != null) {
+            markers.push({ time, position: "atPriceMiddle", price: m.price, color: m.color, shape: m.shape, text: m.text, size: 0.6 })
+          } else {
+            markers.push({
+              time,
+              position: m.position === "above" ? "aboveBar" : "belowBar",
+              color: m.color,
+              shape: m.shape,
+              text: m.text,
+            })
+          }
         }
       }
       markers.sort((a, b) => (a.time as number) - (b.time as number))
-      markersRef.current?.setMarkers(markers)
+      const markerSig = `${markers.length}:${markers.at(-1)?.time}:${markers.at(-1)?.text}:${firstTime}`
+      if (markerSig !== markerSigRef.current) {
+        markerSigRef.current = markerSig
+        markersRef.current?.setMarkers(markers)
+      }
+
+      const nextPanels = results.flatMap((r) => r.output.panels ?? [])
+      setPanels((prev) => (JSON.stringify(prev) === JSON.stringify(nextPanels) ? prev : nextPanels))
     }
 
     const tick = async () => {
@@ -176,7 +224,7 @@ export function useScriptOverlay({ chart, getMain, barsRef, scripts, dataVersion
       if (sig === lastSigRef.current) return
       lastSigRef.current = sig
       const runId = ++runIdRef.current
-      const snapshot = bars.map((b) => ({ ...b }))
+      const snapshot = bars.map((b) => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close, volume: b.volume }))
       const results = snapshot.length
         ? await Promise.all(list.map(async (s) => ({ id: s.id, res: await runScript(s.code, snapshot) })))
         : []
@@ -200,5 +248,9 @@ export function useScriptOverlay({ chart, getMain, barsRef, scripts, dataVersion
     }
   }, [chart, getMain, barsRef, scriptsSig, dataVersion, decimals])
 
-  return errors
+  useEffect(() => {
+    if (scriptsSig === "[]") setPanels([])
+  }, [scriptsSig])
+
+  return { errors, panels }
 }

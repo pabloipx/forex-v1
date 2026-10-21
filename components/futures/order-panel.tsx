@@ -351,7 +351,7 @@ export function OrderPanel({
         }}
       />
 
-      <div role="tablist" aria-label="Tipo de ordem" className="flex gap-4 text-sm">
+      <div role="tablist" aria-label="Tipo de ordem" className="flex gap-4 text-sm phone:gap-3 phone:text-xs">
         {(
           [
             ["limit", "Limitada"],

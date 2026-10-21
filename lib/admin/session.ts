@@ -166,7 +166,8 @@ export function adminCookieOptions(maxAge: number = SESSION_TTL_SECONDS) {
   return {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax" as const,
+    // Strict em producao: o cookie nunca acompanha requisicoes vindas de outro site (CSRF).
+    sameSite: process.env.NODE_ENV === "production" ? ("strict" as const) : ("lax" as const),
     path: "/",
     maxAge,
   }

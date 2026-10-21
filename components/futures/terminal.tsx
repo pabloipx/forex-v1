@@ -125,7 +125,7 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
     <div
       ref={rootRef}
       className={cn(
-        "flex min-h-dvh flex-col bg-term-bg text-term-text lg:h-dvh phone:h-dvh phone:min-h-0 phone:overflow-hidden",
+        "term-root flex min-h-dvh flex-col bg-term-bg text-term-text lg:h-dvh phone:h-dvh phone:min-h-0 phone:overflow-hidden",
         theme === "light" ? "term-light" : "term-dark",
       )}
     >

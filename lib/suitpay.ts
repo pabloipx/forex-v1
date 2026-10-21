@@ -206,6 +206,8 @@ export function verifyWebhookHash(rawBody: string): boolean {
 
   if (!/^[a-f0-9]{64}$/i.test(received)) return false
 
-  const expected = createHash("sha256").update(CLIENT_SECRET + values.join("")).digest("hex")
+  // Ordem da SuitPay: valores concatenados e, no FINAL, o Client Secret. Com o secret na frente
+  // nenhum webhook era aceito e o credito dependia so da reconfirmacao (bloqueada pelo IP).
+  const expected = createHash("sha256").update(values.join("") + CLIENT_SECRET).digest("hex")
   return timingSafeEqual(Buffer.from(expected, "hex"), Buffer.from(received.toLowerCase(), "hex"))
 }
