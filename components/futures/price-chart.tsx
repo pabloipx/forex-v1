@@ -205,7 +205,8 @@ function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag
     if (!el) return
     const t = paletteRef.current
     const chart = createChart(el, {
-      autoSize: true,
+      width: el.clientWidth,
+      height: el.clientHeight,
       layout: {
         background: { type: ColorType.Solid, color: t.bg },
         textColor: t.text,
@@ -257,7 +258,23 @@ function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag
     chartRef.current = chart
     setChartApi(chart)
 
+    // Resizing inside the observer callback mutates layout synchronously and triggers
+    // "ResizeObserver loop completed"; defer to the next frame instead of using autoSize.
+    let resizeFrame: number | null = null
+    const resizeObserver = new ResizeObserver(() => {
+      if (resizeFrame != null) return
+      resizeFrame = requestAnimationFrame(() => {
+        resizeFrame = null
+        const w = Math.floor(el.clientWidth)
+        const h = Math.floor(el.clientHeight)
+        if (w > 0 && h > 0) chart.resize(w, h)
+      })
+    })
+    resizeObserver.observe(el)
+
     return () => {
+      resizeObserver.disconnect()
+      if (resizeFrame != null) cancelAnimationFrame(resizeFrame)
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current)
       setChartApi(null)
       chart.remove()
@@ -673,7 +690,7 @@ function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag
             {error ? (error as Error).message : "Carregando gráfico..."}
           </p>
         )}
-        <div ref={containerRef} className="h-full w-full touch-pan-y" />
+        <div ref={containerRef} className="absolute inset-0 touch-pan-y overflow-hidden" />
       </div>
       </div>
 
