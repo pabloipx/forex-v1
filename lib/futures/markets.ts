@@ -234,6 +234,27 @@ export function tpSlError(
   return null
 }
 
+/**
+ * Resultado estimado se a posição fechar no preço alvo (TP ou SL): PnL bruto menos a taxa de abertura
+ * e a taxa de fechamento (taker). O ROI é sobre a margem inicial, como nas corretoras.
+ */
+export function estimateClosePnl(
+  market: FuturesMarket,
+  side: "long" | "short",
+  qty: number,
+  entry: number,
+  target: number,
+  leverage: number,
+  openFeeRate = TAKER_FEE,
+): { pnl: number; roi: number } {
+  if (!(qty > 0 && entry > 0 && target > 0 && leverage > 0)) return { pnl: 0, roi: 0 }
+  const entryNotional = notionalUsd(market, qty, entry)
+  const fees = entryNotional * openFeeRate + notionalUsd(market, qty, target) * TAKER_FEE
+  const pnl = unrealizedPnl(market, side, qty, entry, target) - fees
+  const margin = entryNotional / leverage
+  return { pnl, roi: margin > 0 ? (pnl / margin) * 100 : 0 }
+}
+
 export function formatUsd(value: number | null | undefined, decimals = 2): string {
   if (value == null || !Number.isFinite(value)) return "--"
   return value.toLocaleString("pt-BR", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })

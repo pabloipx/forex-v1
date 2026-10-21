@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { cn } from "@/lib/utils"
 import {
   MARKET_MAP,
+  estimateClosePnl,
   formatPrice,
   formatUsd,
   notionalUsd,
@@ -137,6 +138,26 @@ function TpSlDialog({
     </label>
   )
 
+  // Resultado se a posição inteira fechar no preço digitado, a partir do preço de entrada.
+  const estimateLine = (kind: "tp" | "sl", raw: string) => {
+    if (!market || !raw) return null
+    const target = parseDecimalInput(raw, livePrice ?? position.entry_price)
+    if (!(Number.isFinite(target) && target > 0)) return null
+    const { pnl, roi } = estimateClosePnl(market, position.side, position.qty, position.entry_price, target, position.leverage)
+    const positive = pnl >= 0
+    const sign = positive ? "+" : "−"
+    return (
+      <p className="-mt-1 flex justify-between px-1 text-[11px]">
+        <span className="text-term-muted">{kind === "tp" ? "Lucro estimado" : "Perda estimada"}</span>
+        <span className={cn("font-semibold tabular-nums", positive ? "text-long" : "text-short")}>
+          {sign}
+          {formatUsd(Math.abs(pnl))} BRL · {sign}
+          {Math.abs(roi).toFixed(2)}%
+        </span>
+      </p>
+    )
+  }
+
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="border-term-line bg-term-panel text-term-text sm:max-w-sm">
@@ -148,7 +169,9 @@ function TpSlDialog({
           </DialogDescription>
         </DialogHeader>
         {input("Take Profit", tp, setTp)}
+        {estimateLine("tp", tp)}
         {input("Stop Loss", sl, setSl)}
+        {estimateLine("sl", sl)}
         {input("Trailing stop", trail, setTrail)}
         <p className="text-[11px] leading-relaxed text-term-muted">
           Trailing stop: distância em preço ({market?.quote ?? "USDT"}) a partir do melhor preço atingido. O stop acompanha o

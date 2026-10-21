@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils"
 import {
   MAKER_FEE,
   TAKER_FEE,
+  estimateClosePnl,
   formatPrice,
   formatUsd,
   liquidationPrice,
@@ -53,25 +54,54 @@ function Field({
   return (
     <label
       className={cn(
-        "flex items-center gap-2 rounded-md border border-transparent bg-term-bg px-3 py-2 focus-within:border-primary",
+        "flex items-center gap-3 rounded-lg border border-term-line bg-term-bg px-3 py-2 transition-colors focus-within:border-primary hover:border-term-muted/50",
         disabled && "opacity-60",
       )}
     >
-      <span className="shrink-0 text-xs text-term-muted">{label}</span>
-      <input
-        inputMode="decimal"
-        value={value}
-        disabled={disabled}
-        placeholder={placeholder}
-        onChange={(e) => onChange(sanitizeDecimalInput(e.target.value))}
-        className="w-full min-w-0 bg-transparent text-right font-mono text-sm text-term-text outline-none placeholder:text-term-muted"
-      />
-      <span className="shrink-0 text-xs font-medium text-term-text">{unit}</span>
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="text-[11px] leading-4 text-term-muted">{label}</span>
+        <input
+          inputMode="decimal"
+          value={value}
+          disabled={disabled}
+          placeholder={placeholder ?? "0"}
+          onChange={(e) => onChange(sanitizeDecimalInput(e.target.value))}
+          className="w-full min-w-0 bg-transparent text-[15px] font-semibold tabular-nums leading-6 text-term-text outline-none placeholder:font-normal placeholder:text-term-muted/70"
+        />
+      </span>
+      <span className="shrink-0 text-sm font-semibold text-term-text">{unit}</span>
     </label>
   )
 }
 
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-3 text-xs">
+      <dt className="text-term-muted underline decoration-term-muted/40 decoration-dotted underline-offset-4">{label}</dt>
+      <dd className="text-right font-medium tabular-nums text-term-text">{children}</dd>
+    </div>
+  )
+}
+
+function PnlHint({ kind, side, pnl, roi }: { kind: "tp" | "sl"; side: "long" | "short"; pnl: number; roi: number }) {
+  const positive = pnl >= 0
+  const sign = positive ? "+" : "−"
+  return (
+    <p className="flex items-center justify-between gap-2 px-1 text-[11px] leading-relaxed">
+      <span className="text-term-muted">
+        {kind === "tp" ? "Lucro estimado" : "Perda estimada"} ({side === "long" ? "Long" : "Short"})
+      </span>
+      <span className={cn("font-semibold tabular-nums", positive ? "text-long" : "text-short")}>
+        {sign}
+        {formatUsd(Math.abs(pnl))} BRL · {sign}
+        {Math.abs(roi).toFixed(2)}%
+      </span>
+    </p>
+  )
+}
+
 const LEVERAGE_MARKS = (max: number) => [1, ...[0.1, 0.25, 0.5, 0.75, 1].map((f) => Math.round(max * f))]
+const PERCENT_MARKS = [0, 25, 50, 75, 100]
 
 function riskLevel(lev: number) {
   if (lev <= 10) return { label: "Risco baixo", className: "text-long" }
@@ -130,7 +160,7 @@ function LeverageDialog({
               aria-checked={draftMode === k}
               onClick={() => setDraftMode(k)}
               className={cn(
-                "rounded-md border py-2 text-sm font-semibold",
+                "rounded-lg border py-2 text-sm font-semibold",
                 draftMode === k ? "border-primary bg-primary/10 text-primary" : "border-term-line text-term-muted hover:text-term-text",
               )}
             >
@@ -143,7 +173,7 @@ function LeverageDialog({
             ? "Cruzada: todo o saldo disponível sustenta suas posições. Reduz a chance de liquidação, mas uma perda grande pode consumir o saldo inteiro."
             : "Isolada: só a margem da posição fica em risco. A liquidação acontece antes, mas a perda máxima fica limitada a essa margem."}
         </p>
-        <div className="flex items-center justify-between rounded-md bg-term-bg px-3 py-2">
+        <div className="flex items-center justify-between rounded-lg bg-term-bg px-3 py-2">
           <button
             className="px-2 text-lg text-term-muted hover:text-term-text"
             onClick={() => setDraft((d) => Math.max(1, d - 1))}
@@ -151,7 +181,7 @@ function LeverageDialog({
           >
             −
           </button>
-          <span className="font-mono text-xl font-bold">{draft}x</span>
+          <span className="text-xl font-bold tabular-nums">{draft}x</span>
           <button
             className="px-2 text-lg text-term-muted hover:text-term-text"
             onClick={() => setDraft((d) => Math.min(max, d + 1))}
@@ -168,7 +198,7 @@ function LeverageDialog({
             </button>
           ))}
         </div>
-        <div className="rounded-md bg-term-bg p-3 text-xs leading-relaxed">
+        <div className="rounded-lg bg-term-bg p-3 text-xs leading-relaxed">
           <p className={cn("font-semibold", risk.className)}>{risk.label}</p>
           <p className="text-term-muted">
             Com {draft}x, uma variação de cerca de {liqMove.toFixed(2)}% contra a posição pode causar liquidação
@@ -180,7 +210,7 @@ function LeverageDialog({
             onConfirm(draft, draftMode)
             onOpenChange(false)
           }}
-          className="rounded-md bg-primary py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"
+          className="rounded-full bg-primary py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"
         >
           Confirmar
         </button>
@@ -232,6 +262,8 @@ export function OrderPanel({
       : orderType === "conditional"
         ? priceNum || triggerNum || (lastPrice ?? 0)
         : priceNum || (lastPrice ?? 0)
+  const tpSlRef =
+    orderType === "market" ? execPrice : orderType === "conditional" ? triggerNum || execPrice : priceNum || execPrice
 
   const unitUsd = execPrice > 0 ? execPrice * market.contractSize * quoteToUsd(market, execPrice) : 0
   const feeRate = orderType === "limit" && postOnly ? MAKER_FEE : TAKER_FEE
@@ -244,7 +276,23 @@ export function OrderPanel({
   const openCost = notional / leverage + notional * feeRate
   const costLong = openCost + notional * (1 - 1 / leverage) * TAKER_FEE
   const costShort = openCost + notional * (1 + 1 / leverage) * TAKER_FEE
-  const cost = Math.max(costLong, costShort)
+  const hasQty = qtyNum > 0
+
+  // TP acima da referência (ou SL abaixo) indica Long; o contrário indica Short.
+  const tpSlSide: "long" | "short" | null =
+    tpSlRef > 0 && tpNum > 0
+      ? tpNum > tpSlRef
+        ? "long"
+        : "short"
+      : tpSlRef > 0 && slNum > 0
+        ? slNum < tpSlRef
+          ? "long"
+          : "short"
+        : null
+  const tpEstimate =
+    tpSlSide && hasQty && tpNum > 0 ? estimateClosePnl(market, tpSlSide, qtyNum, tpSlRef, tpNum, leverage, feeRate) : null
+  const slEstimate =
+    tpSlSide && hasQty && slNum > 0 ? estimateClosePnl(market, tpSlSide, qtyNum, tpSlRef, slNum, leverage, feeRate) : null
 
   const applyPercent = (p: number) => {
     setPercent(p)
@@ -269,7 +317,6 @@ export function OrderPanel({
       toast.error("Informe um valor válido para o Take Profit / Stop Loss")
       return
     }
-    const tpSlRef = orderType === "market" ? execPrice : orderType === "conditional" ? triggerNum || execPrice : priceNum || execPrice
     const tpSlMessage =
       tpSlRef > 0 ? tpSlError(side, tpSlRef, tpNum || null, slNum || null, market.priceDecimals) : null
     if (tpSlMessage) {
@@ -321,7 +368,6 @@ export function OrderPanel({
     }
   }
 
-  const hasQty = qtyNum > 0
   const liqLong = hasQty && execPrice > 0 ? liquidationPrice("long", execPrice, leverage) : null
   const liqShort = hasQty && execPrice > 0 ? liquidationPrice("short", execPrice, leverage) : null
 
@@ -340,10 +386,10 @@ export function OrderPanel({
       : null
 
   return (
-    <section aria-label="Enviar ordem" className="flex h-full flex-col gap-3 overflow-y-auto bg-term-panel p-3">
+    <section aria-label="Enviar ordem" className="flex h-full flex-col gap-3 overflow-y-auto bg-term-panel p-3 font-sans">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-term-text">Trade</h2>
-        <span className="text-[11px] text-term-muted">
+        <h2 className="text-sm font-bold text-term-text">Trade</h2>
+        <span className="rounded-full bg-term-bg px-2 py-0.5 text-[11px] font-medium text-term-muted">
           {account === "demo" ? "Conta demo" : "Conta real"}
         </span>
       </div>
@@ -351,13 +397,13 @@ export function OrderPanel({
       <div className="grid grid-cols-2 gap-2">
         <button
           onClick={() => setLeverageOpen(true)}
-          className="rounded-md bg-term-bg py-1.5 text-xs font-semibold text-term-text hover:bg-term-line"
+          className="rounded-lg border border-term-line bg-term-bg py-2 text-xs font-semibold text-term-text hover:border-term-muted/50"
         >
           {marginMode === "cross" ? "Cruzada" : "Isolada"}
         </button>
         <button
           onClick={() => setLeverageOpen(true)}
-          className="rounded-md bg-term-bg py-1.5 font-mono text-xs font-semibold text-term-text hover:bg-term-line"
+          className="rounded-lg border border-term-line bg-term-bg py-2 text-xs font-semibold tabular-nums text-term-text hover:border-term-muted/50"
         >
           {leverage}.00x
         </button>
@@ -374,11 +420,11 @@ export function OrderPanel({
         }}
       />
 
-      <div role="tablist" aria-label="Tipo de ordem" className="flex gap-4 text-sm phone:gap-3 phone:text-xs">
+      <div role="tablist" aria-label="Tipo de ordem" className="flex gap-5 phone:gap-4">
         {(
           [
-            ["limit", "Limitada"],
-            ["market", "A mercado"],
+            ["limit", "Limite"],
+            ["market", "Mercado"],
             ["conditional", "Condicional"],
           ] as const
         ).map(([k, label]) => (
@@ -387,20 +433,29 @@ export function OrderPanel({
             role="tab"
             aria-selected={orderType === k}
             onClick={() => setOrderType(k)}
-            className={cn("font-semibold", orderType === k ? "text-primary" : "text-term-muted hover:text-term-text")}
+            className={cn(
+              "text-[15px] font-bold transition-colors phone:text-sm",
+              orderType === k ? "text-primary" : "text-term-muted hover:text-term-text",
+            )}
           >
             {label}
           </button>
         ))}
       </div>
 
-      <div className="flex items-center justify-between text-xs">
-        <span className="text-term-muted">Disponível</span>
-        <span className="font-mono text-term-text">
+      <div className="flex items-center justify-between gap-2 text-xs">
+        <span className="text-term-muted underline decoration-term-muted/40 decoration-dotted underline-offset-4">
+          Saldo disponível
+        </span>
+        <span className="flex items-center gap-1.5 font-semibold tabular-nums text-term-text">
           {authenticated ? formatUsd(balance) : "--"} BRL
           {authenticated && account === "real" && (
-            <Link href="/deposit" className="ml-1.5 text-primary hover:underline">
-              Depositar
+            <Link
+              href="/deposit"
+              aria-label="Depositar"
+              className="flex size-4 items-center justify-center rounded-full bg-primary text-[11px] font-bold leading-none text-primary-foreground hover:opacity-90"
+            >
+              +
             </Link>
           )}
         </span>
@@ -408,7 +463,7 @@ export function OrderPanel({
 
       {orderType === "conditional" && (
         <Field
-          label="Disparo"
+          label="Preço de disparo"
           unit={market.quote}
           value={triggerPrice}
           onChange={setTriggerPrice}
@@ -416,9 +471,12 @@ export function OrderPanel({
         />
       )}
       {orderType === "market" ? (
-        <div className="flex items-center justify-between rounded-md bg-term-bg px-3 py-2 text-xs text-term-muted">
-          <span>Preço</span>
-          <span>Melhor preço de mercado</span>
+        <div className="flex items-center gap-3 rounded-lg border border-term-line bg-term-bg px-3 py-2">
+          <span className="flex flex-1 flex-col">
+            <span className="text-[11px] leading-4 text-term-muted">Preço</span>
+            <span className="text-[15px] font-semibold leading-6 text-term-muted">Melhor preço de mercado</span>
+          </span>
+          <span className="text-sm font-semibold text-term-text">{market.quote}</span>
         </div>
       ) : (
         <div className="flex gap-2">
@@ -433,7 +491,7 @@ export function OrderPanel({
           </div>
           <button
             onClick={() => lastPrice && onPriceChange(lastPrice.toFixed(market.priceDecimals))}
-            className="rounded-md bg-term-bg px-2.5 text-xs font-semibold text-term-text hover:bg-term-line"
+            className="rounded-lg border border-term-line bg-term-bg px-3 text-xs font-semibold text-term-text hover:border-term-muted/50"
           >
             Último
           </button>
@@ -443,7 +501,7 @@ export function OrderPanel({
       <div className="flex gap-2">
         <div className="flex-1">
           <Field
-            label={qtyMode === "usdt" ? "Valor" : "Qtd"}
+            label={qtyMode === "usdt" ? "Valor do pedido" : "Quantidade"}
             unit={qtyMode === "usdt" ? "USDT" : market.qtyUnit}
             value={qty}
             onChange={(v) => {
@@ -455,59 +513,81 @@ export function OrderPanel({
         <button
           onClick={switchQtyMode}
           aria-label={`Inserir quantidade em ${qtyMode === "base" ? "USDT" : market.qtyUnit}`}
-          className="rounded-md bg-term-bg px-2.5 text-xs font-semibold text-term-text hover:bg-term-line"
+          className="rounded-lg border border-term-line bg-term-bg px-3 text-xs font-semibold text-term-text hover:border-term-muted/50"
         >
           {qtyMode === "base" ? "USDT" : market.qtyUnit}
         </button>
       </div>
       {qtyMode === "usdt" && hasQty && (
-        <p className="-mt-1 text-right font-mono text-[11px] text-term-muted">
+        <p className="-mt-1.5 text-right text-[11px] tabular-nums text-term-muted">
           {"≈ "}
           {qtyNum.toFixed(market.qtyDecimals)} {market.qtyUnit}
         </p>
       )}
 
-      <div className="px-1">
-        <Slider min={0} max={100} step={1} value={[percent]} onValueChange={([v]) => applyPercent(v)} />
-        <div className="mt-1.5 flex justify-between text-[11px] text-term-muted">
-          {[0, 25, 50, 75, 100].map((p) => (
-            <button key={p} onClick={() => applyPercent(p)} className="hover:text-term-text">
+      <div className="px-1.5 pt-1">
+        <div className="relative">
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-1/2 h-0">
+            {PERCENT_MARKS.map((p) => (
+              <span
+                key={p}
+                style={{ left: `${p}%` }}
+                className={cn(
+                  "absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2",
+                  p <= percent ? "border-primary bg-primary" : "border-term-muted/60 bg-term-panel",
+                )}
+              />
+            ))}
+          </div>
+          <Slider
+            min={0}
+            max={100}
+            step={1}
+            value={[percent]}
+            onValueChange={([v]) => applyPercent(v)}
+            aria-label="Percentual do saldo"
+          />
+        </div>
+        <div className="mt-2 flex justify-between text-[11px] tabular-nums text-term-muted">
+          {PERCENT_MARKS.map((p) => (
+            <button
+              key={p}
+              onClick={() => applyPercent(p)}
+              className={cn("hover:text-term-text", p === percent && "font-semibold text-term-text")}
+            >
               {p}%
             </button>
           ))}
         </div>
       </div>
 
-      <dl className="flex flex-col gap-1 text-xs">
-        <div className="flex justify-between">
-          <dt className="text-term-muted">Valor da ordem</dt>
-          <dd className="font-mono text-term-text">{formatUsd(notional)} BRL</dd>
-        </div>
-        <div className="flex justify-between">
-          <dt className="text-term-muted">Custo Long</dt>
-          <dd className="font-mono text-long">{formatUsd(costLong)} BRL</dd>
-        </div>
-        <div className="flex justify-between">
-          <dt className="text-term-muted">Custo Short</dt>
-          <dd className="font-mono text-short">{formatUsd(costShort)} BRL</dd>
-        </div>
-        <div className="flex justify-between">
-          <dt className="text-term-muted">Qtd máx.</dt>
-          <dd className="font-mono text-term-text">
-            {authenticated ? maxQty.toFixed(market.qtyDecimals) : "--"} {market.qtyUnit}
-          </dd>
-        </div>
+      <dl className="flex flex-col gap-1.5 rounded-lg border border-term-line px-3 py-2.5">
+        <Row label="Valor do pedido">{formatUsd(notional)} BRL</Row>
+        <Row label="Custo Long">
+          <span className="text-long">{formatUsd(costLong)} BRL</span>
+        </Row>
+        <Row label="Custo Short">
+          <span className="text-short">{formatUsd(costShort)} BRL</span>
+        </Row>
+        <Row label="Valor máximo">
+          {authenticated ? maxQty.toFixed(market.qtyDecimals) : "--"} {market.qtyUnit}
+        </Row>
       </dl>
 
-      <div className="flex flex-col gap-2 text-xs text-term-text">
+      <div className="flex flex-col gap-2.5 text-xs font-medium text-term-text">
         <label className="flex items-center gap-2">
           <Checkbox className="border-term-muted" checked={tpslEnabled} onCheckedChange={(v) => setTpslEnabled(v === true)} />
           TP/SL
         </label>
         {tpslEnabled && (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1.5">
             <Field label="Take Profit" unit={market.quote} value={tp} onChange={setTp} />
+            {tpEstimate && tpSlSide && <PnlHint kind="tp" side={tpSlSide} {...tpEstimate} />}
             <Field label="Stop Loss" unit={market.quote} value={sl} onChange={setSl} />
+            {slEstimate && tpSlSide && <PnlHint kind="sl" side={tpSlSide} {...slEstimate} />}
+            {!hasQty && (tpNum > 0 || slNum > 0) && (
+              <p className="px-1 text-[11px] text-term-muted">Informe a quantidade para ver o lucro e a perda estimados.</p>
+            )}
           </div>
         )}
         <div className="flex items-center justify-between gap-2">
@@ -528,7 +608,7 @@ export function OrderPanel({
             <select
               value={tif}
               onChange={(e) => setTif(e.target.value as TimeInForce)}
-              className="rounded bg-term-bg px-2 py-1 text-term-text outline-none"
+              className="rounded-lg border border-term-line bg-term-bg px-2 py-1 text-term-text outline-none"
             >
               <option value="GTC">Good-Till-Canceled</option>
               <option value="IOC">Immediate-Or-Cancel</option>
@@ -539,7 +619,7 @@ export function OrderPanel({
       </div>
 
       {!configured ? (
-        <p className="rounded-md bg-short/10 p-3 text-xs leading-relaxed text-short">
+        <p className="rounded-lg bg-short/10 p-3 text-xs leading-relaxed text-short">
           Banco de dados não configurado. Configure o Supabase nas variáveis do projeto para operar.
         </p>
       ) : authenticated ? (
@@ -549,17 +629,17 @@ export function OrderPanel({
               onClick={() => submit("buy")}
               disabled={blockedLong}
               aria-describedby={blockedReason ? "order-blocked-reason" : undefined}
-              className="rounded-md bg-long py-2.5 text-sm font-semibold text-term-text hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:opacity-40"
+              className="rounded-full bg-long py-3 text-sm font-bold text-term-text hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:opacity-40"
             >
-              {submitting === "buy" ? "Enviando..." : "Abrir Long"}
+              {submitting === "buy" ? "Enviando..." : "Comprar / Long"}
             </button>
             <button
               onClick={() => submit("sell")}
               disabled={blockedShort}
               aria-describedby={blockedReason ? "order-blocked-reason" : undefined}
-              className="rounded-md bg-short py-2.5 text-sm font-semibold text-term-text hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:opacity-40"
+              className="rounded-full bg-short py-3 text-sm font-bold text-term-text hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:opacity-40"
             >
-              {submitting === "sell" ? "Enviando..." : "Abrir Short"}
+              {submitting === "sell" ? "Enviando..." : "Vender / Short"}
             </button>
           </div>
           {blockedReason && (
@@ -570,7 +650,7 @@ export function OrderPanel({
           {noBalance && account === "real" && (
             <Link
               href="/deposit"
-              className="rounded-md bg-primary py-2.5 text-center text-sm font-semibold text-primary-foreground hover:opacity-90"
+              className="rounded-full bg-primary py-2.5 text-center text-sm font-semibold text-primary-foreground hover:opacity-90"
             >
               Depositar
             </Link>
@@ -580,13 +660,13 @@ export function OrderPanel({
         <div className="grid grid-cols-2 gap-2">
           <Link
             href="/auth/sign-up"
-            className="rounded-md bg-primary py-2.5 text-center text-sm font-semibold text-primary-foreground hover:opacity-90"
+            className="rounded-full bg-primary py-2.5 text-center text-sm font-semibold text-primary-foreground hover:opacity-90"
           >
             Cadastrar
           </Link>
           <Link
             href="/auth/login"
-            className="rounded-md bg-term-line py-2.5 text-center text-sm font-semibold text-term-text hover:opacity-90"
+            className="rounded-full bg-term-line py-2.5 text-center text-sm font-semibold text-term-text hover:opacity-90"
           >
             Entrar
           </Link>
@@ -596,8 +676,8 @@ export function OrderPanel({
       <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
         <dt className="text-term-muted">Liq. Long</dt>
         <dt className="text-right text-term-muted">Liq. Short</dt>
-        <dd className="font-mono text-term-text">{formatPrice(liqLong, market.priceDecimals)}</dd>
-        <dd className="text-right font-mono text-term-text">{formatPrice(liqShort, market.priceDecimals)}</dd>
+        <dd className="font-medium tabular-nums text-term-text">{formatPrice(liqLong, market.priceDecimals)}</dd>
+        <dd className="text-right font-medium tabular-nums text-term-text">{formatPrice(liqShort, market.priceDecimals)}</dd>
       </dl>
 
       <p className="mt-auto text-[11px] leading-relaxed text-term-muted">
