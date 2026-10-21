@@ -25,6 +25,7 @@ import {
 import type { AccountMode, MarginMode, OrderSide, OrderType, TimeInForce } from "@/lib/futures/types"
 import { futuresApi, type ClientTradingPrefs } from "@/hooks/use-futures"
 import { TpSlAdvancedDialog } from "@/components/futures/tpsl-advanced-dialog"
+import { HintPopover } from "@/components/futures/hint-popover"
 
 interface OrderPanelProps {
   market: FuturesMarket
@@ -632,10 +633,21 @@ export function OrderPanel({
 
         <div className="flex flex-col gap-3 text-[13px] font-medium text-term-text">
           <div className="flex items-center justify-between gap-2">
-            <label className="flex items-center gap-2">
-              <Checkbox className={ACCENT_CHECKBOX} checked={tpslEnabled} onCheckedChange={(v) => setTpslEnabled(v === true)} />
-              <span className="underline decoration-term-muted/60 decoration-dashed underline-offset-4">TP/SL</span>
-            </label>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                aria-label="Ativar TP/SL"
+                className={ACCENT_CHECKBOX}
+                checked={tpslEnabled}
+                onCheckedChange={(v) => setTpslEnabled(v === true)}
+              />
+              <HintPopover label="TP/SL">
+                Os usuários podem definir o Take-Profit/Stop-Loss (TP/SL) para a ordem atual. Assim que a ordem for
+                totalmente executada, o sistema colocará ordens TP/SL com base no preço predefinido e na quantidade da
+                ordem. Se a quantidade da sua ordem for pequena, a ordem TP/SL poderá não ser colocada com sucesso se a
+                plataforma aumentar a quantidade mínima da ordem no momento da execução ou se a quantidade da sua ordem
+                cair abaixo do requisito mínimo após a redução da taxa de transação.
+              </HintPopover>
+            </div>
             {tpslEnabled && (
               <button
                 type="button"
