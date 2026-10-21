@@ -93,8 +93,10 @@ self.onmessage = (e) => {
     out.hlines.push({ price: p, title: String(o.title ?? "").slice(0, 40), color: String(o.color ?? "#848e9c"), pane: o.pane === "separate" ? "separate" : "price" }); };
   const signal = (cond, o = {}) => { const arr = Array.isArray(cond) ? cond : [];
     const buy = (o.side ?? "buy") === "buy";
-    arr.forEach((c, i) => { if (c && out.markers.length < MAX_MARKERS) out.markers.push({ index: i, position: buy ? "below" : "above",
-      color: String(o.color ?? (buy ? "#20b26c" : "#ef454a")), shape: buy ? "arrowUp" : "arrowDown", text: String(o.text ?? "").slice(0, 12) }); }); };
+    const position = o.position === "above" || o.position === "below" ? o.position : buy ? "below" : "above";
+    const shape = ["arrowUp", "arrowDown", "circle"].includes(o.shape) ? o.shape : buy ? "arrowUp" : "arrowDown";
+    arr.forEach((c, i) => { if (c && out.markers.length < MAX_MARKERS) out.markers.push({ index: i, position,
+      color: String(o.color ?? (buy ? "#20b26c" : "#ef454a")), shape, text: String(o.text ?? "").slice(0, 12) }); }); };
   try {
     const fn = new Function("open", "high", "low", "close", "volume", "time", "hl2", "hlc3", "bars", "ta", "plot", "hline", "signal", "Math", code);
     fn(open, high, low, close, volume, time, hl2, hlc3, bars, ta, plot, hline, signal, Math);
@@ -114,7 +116,16 @@ function getWorkerUrl() {
   return workerUrl
 }
 
+const PINE_PATTERN = /^\s*\/\/\s*@version|^\s*(indicator|strategy|study)\s*\(/m
+
 export function runScript(code: string, bars: Candle[]): Promise<ScriptResult> {
+  if (PINE_PATTERN.test(code)) {
+    return Promise.resolve({
+      ok: false,
+      error:
+        "Pine Script (TradingView) não é suportado. Este gráfico usa JavaScript com ta, plot, hline e signal. Veja o modelo Sniper Pro V8.",
+    })
+  }
   return new Promise((resolve) => {
     const worker = new Worker(getWorkerUrl())
     const timer = setTimeout(() => {
@@ -176,6 +187,93 @@ plot(lower, { title: "BB inf", color: "#2190ff", width: 1 })
 plot(hist, { title: "Hist", color: "#848e9c", type: "histogram", pane: "separate" })
 plot(macd, { title: "MACD", color: "#2962ff", pane: "separate" })
 plot(sinal, { title: "Sinal", color: "#f7a600", pane: "separate" })
+`,
+  },
+  {
+    name: "Sniper Pro V8",
+    code: `// SNIPER EDITION TRADER PRO V8 — convertido do Pine Script
+const cfg = {
+  emaRapida: 9, emaLenta: 21, rsiPeriodo: 14, atrPeriodo: 14,
+  candleMinATR: 0.3,   // candle mínimo (x ATR)
+  forcaMinima: 0.2,    // distância mínima entre EMAs (x ATR)
+  usarFiltroHorario: true,
+  janelas: [[9, 11], [14, 16]], // adicione [4, 6] para ativar a Janela 3
+  fusoHorario: -3,     // horário de Brasília
+  cooldownBarras: 5,
+  tp1ATR: 1, tp2ATR: 2, slATR: 1,
+}
+
+const emaFast = ta.ema(close, cfg.emaRapida)
+const emaSlow = ta.ema(close, cfg.emaLenta)
+const rsi = ta.rsi(close, cfg.rsiPeriodo)
+const atr = ta.atr(cfg.atrPeriodo)
+
+const n = close.length
+const serie = (v) => new Array(n).fill(v)
+const compra = serie(false), venda = serie(false)
+const tp1 = serie(false), tp2 = serie(false), stop = serie(false)
+const lEntrada = serie(null), lTP1 = serie(null), lTP2 = serie(null), lSL = serie(null)
+
+let desdeSinal = 1e9
+let pos = null
+
+for (let i = 1; i < n; i++) {
+  desdeSinal++
+  if (emaFast[i] == null || emaSlow[i] == null || rsi[i] == null || atr[i] == null) continue
+
+  const hora = new Date((time[i] + cfg.fusoHorario * 3600) * 1000).getUTCHours()
+  const horarioOk = !cfg.usarFiltroHorario || cfg.janelas.some(([a, b]) => hora >= a && hora < b)
+  const candleForte = high[i] - low[i] >= atr[i] * cfg.candleMinATR
+  const mercadoForte = Math.abs(emaFast[i] - emaSlow[i]) > atr[i] * cfg.forcaMinima
+  const filtros = horarioOk && mercadoForte && desdeSinal >= cfg.cooldownBarras && candleForte
+
+  const c = filtros && emaFast[i] > emaSlow[i] && rsi[i] > 50 &&
+    close[i] > open[i] && close[i] > high[i - 1] && close[i] > emaFast[i]
+  const v = filtros && emaFast[i] < emaSlow[i] && rsi[i] < 50 &&
+    close[i] < open[i] && close[i] < low[i - 1] && close[i] < emaFast[i]
+
+  compra[i] = c
+  venda[i] = v
+  if (c || v) desdeSinal = 0
+
+  if (!pos && (c || v)) {
+    const d = c ? 1 : -1
+    pos = {
+      d, entrada: close[i], tp1Hit: false,
+      sl: close[i] - d * atr[i] * cfg.slATR,
+      tp1: close[i] + d * atr[i] * cfg.tp1ATR,
+      tp2: close[i] + d * atr[i] * cfg.tp2ATR,
+    }
+  }
+
+  if (pos) {
+    const atingiu = (p) => (pos.d === 1 ? high[i] >= p : low[i] <= p)
+    const parou = pos.d === 1 ? low[i] <= pos.sl : high[i] >= pos.sl
+    if (!pos.tp1Hit && atingiu(pos.tp1)) { pos.tp1Hit = true; tp1[i] = true }
+    if (atingiu(pos.tp2)) { tp2[i] = true; pos = null }
+    else if (parou) { stop[i] = true; pos = null }
+  }
+
+  if (pos) {
+    lEntrada[i] = pos.entrada
+    lTP1[i] = pos.tp1
+    lTP2[i] = pos.tp2
+    lSL[i] = pos.sl
+  }
+}
+
+plot(emaFast, { title: "EMA Rápida", color: "#00ff8c", width: 3 })
+plot(emaSlow, { title: "EMA Lenta", color: "#ff2828", width: 2 })
+plot(lEntrada, { title: "Entrada", color: "#00b4ff", width: 1 })
+plot(lTP1, { title: "TP1", color: "#33ffa3", width: 2 })
+plot(lTP2, { title: "TP2", color: "#00ff8c", width: 2 })
+plot(lSL, { title: "Stop", color: "#ff2828", width: 1 })
+
+signal(compra, { side: "buy", text: "COMPRA", color: "#00ff8c" })
+signal(venda, { side: "sell", text: "VENDA", color: "#ff2828" })
+signal(tp1, { position: "above", shape: "circle", text: "TP1", color: "#ffd200" })
+signal(tp2, { position: "above", shape: "circle", text: "TP2", color: "#00ff8c" })
+signal(stop, { position: "below", shape: "circle", text: "STOP", color: "#ff2828" })
 `,
   },
 ]

@@ -129,7 +129,8 @@ export function useScriptOverlay({ chart, getMain, barsRef, scripts, dataVersion
         const data = []
         for (let j = 0; j < bars.length; j++) {
           const v = plot.data[j]
-          if (v != null) data.push({ time: bars[j].time as UTCTimestamp, value: v })
+          const t = bars[j].time as UTCTimestamp
+          data.push(v != null ? { time: t, value: v } : { time: t })
         }
         target.setData(data)
       })
