@@ -205,7 +205,7 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
               </div>
             </div>
           </div>
-          <div className={cn("h-72 shrink-0", expanded && "hidden")}>
+          <div className={cn("h-48 shrink-0", expanded && "hidden")}>
             <AccountTables
               state={state}
               account={account}

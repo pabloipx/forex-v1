@@ -2,8 +2,18 @@
 
 import { useCallback, useEffect, useRef, useState, type MutableRefObject, type PointerEvent as ReactPointerEvent } from "react"
 import type { IChartApi, ISeriesApi, Logical, SeriesType } from "lightweight-charts"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import {
   AlignJustify,
+  ArrowBigDown,
+  ArrowBigLeft,
+  ArrowBigRight,
+  ArrowBigUp,
+  ArrowRight,
+  ArrowUpRight,
+  Brush,
+  Circle,
+  Highlighter,
   Crosshair,
   ZoomIn,
   ChartNoAxesGantt,
@@ -25,7 +35,25 @@ import { cn } from "@/lib/utils"
 import { formatPrice } from "@/lib/futures/markets"
 import type { Candle } from "@/lib/futures/chart-intervals"
 
-export type DrawTool = "cursor" | "trend" | "ray" | "hline" | "vline" | "rect" | "fib" | "measure" | "text"
+export type DrawTool =
+  | "cursor"
+  | "trend"
+  | "ray"
+  | "hline"
+  | "vline"
+  | "rect"
+  | "ellipse"
+  | "fib"
+  | "measure"
+  | "text"
+  | "brush"
+  | "highlighter"
+  | "arrowMarker"
+  | "arrow"
+  | "arrowUp"
+  | "arrowDown"
+  | "arrowLeft"
+  | "arrowRight"
 type ShapeType = Exclude<DrawTool, "cursor">
 
 interface Pt {
@@ -38,25 +66,173 @@ interface Drawing {
   type: ShapeType
   pts: Pt[]
   color: string
+  width?: number
   text?: string
 }
 
-const SINGLE_CLICK: ShapeType[] = ["hline", "vline", "text"]
+const ARROW_MARKS: ShapeType[] = ["arrowUp", "arrowDown", "arrowLeft", "arrowRight"]
+const FREEHAND: ShapeType[] = ["brush", "highlighter"]
+const SINGLE_CLICK: ShapeType[] = ["hline", "vline", "text", ...ARROW_MARKS]
+const NO_HANDLES: ShapeType[] = ["hline", "vline", "text", ...ARROW_MARKS, ...FREEHAND]
 const FIB_LEVELS = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1]
-const SWATCHES = ["#2190ff", "#089981", "#f23645", "#9598a1"]
+const SWATCHES = ["#2190ff", "#00d1e0", "#089981", "#f0b90b", "#f23645", "#9598a1"]
+const WIDTHS = [1, 2, 3, 4]
+const DEFAULT_WIDTH: Partial<Record<ShapeType, number>> = { brush: 2, highlighter: 12 }
+const MARK_ROTATION: Partial<Record<ShapeType, number>> = { arrowUp: 0, arrowRight: 90, arrowDown: 180, arrowLeft: 270 }
 const STORAGE_PREFIX = "fx-drawings:"
 
-export const TOOLS: { id: DrawTool; label: string; icon: LucideIcon }[] = [
-  { id: "cursor", label: "Cruz", icon: Crosshair },
-  { id: "trend", label: "Linha de tendência", icon: Slash },
-  { id: "ray", label: "Raio", icon: MoveUpRight },
-  { id: "hline", label: "Linha horizontal", icon: AlignJustify },
-  { id: "vline", label: "Linha vertical", icon: SeparatorVertical },
-  { id: "rect", label: "Retângulo", icon: Square },
-  { id: "fib", label: "Retração de Fibonacci", icon: ChartNoAxesGantt },
-  { id: "measure", label: "Régua (medir preço e tempo)", icon: Ruler },
-  { id: "text", label: "Texto", icon: Type },
+interface ToolDef {
+  id: DrawTool
+  label: string
+  icon: LucideIcon
+}
+
+interface ToolGroup {
+  id: string
+  sections: { title?: string; tools: ToolDef[] }[]
+}
+
+export const TOOL_GROUPS: ToolGroup[] = [
+  { id: "cursor", sections: [{ tools: [{ id: "cursor", label: "Cruz", icon: Crosshair }] }] },
+  {
+    id: "lines",
+    sections: [
+      {
+        title: "Linhas",
+        tools: [
+          { id: "trend", label: "Linha de tendência", icon: Slash },
+          { id: "ray", label: "Raio", icon: MoveUpRight },
+          { id: "hline", label: "Linha horizontal", icon: AlignJustify },
+          { id: "vline", label: "Linha vertical", icon: SeparatorVertical },
+        ],
+      },
+    ],
+  },
+  { id: "fib", sections: [{ tools: [{ id: "fib", label: "Retração de Fibonacci", icon: ChartNoAxesGantt }] }] },
+  {
+    id: "brushes",
+    sections: [
+      {
+        title: "Pincéis",
+        tools: [
+          { id: "brush", label: "Pincel", icon: Brush },
+          { id: "highlighter", label: "Marcatexto", icon: Highlighter },
+        ],
+      },
+      {
+        title: "Setas",
+        tools: [
+          { id: "arrowMarker", label: "Marcador Seta", icon: ArrowUpRight },
+          { id: "arrow", label: "Seta", icon: ArrowRight },
+          { id: "arrowUp", label: "Seta Para Cima", icon: ArrowBigUp },
+          { id: "arrowDown", label: "Seta Para Baixo", icon: ArrowBigDown },
+          { id: "arrowLeft", label: "Seta Para Esquerda", icon: ArrowBigLeft },
+          { id: "arrowRight", label: "Seta Para Direita", icon: ArrowBigRight },
+        ],
+      },
+      {
+        title: "Formas",
+        tools: [
+          { id: "rect", label: "Retângulo", icon: Square },
+          { id: "ellipse", label: "Elipse", icon: Circle },
+        ],
+      },
+    ],
+  },
+  { id: "text", sections: [{ tools: [{ id: "text", label: "Texto", icon: Type }] }] },
+  { id: "measure", sections: [{ tools: [{ id: "measure", label: "Régua (medir preço e tempo)", icon: Ruler }] }] },
 ]
+
+const groupTools = (g: ToolGroup) => g.sections.flatMap((s) => s.tools)
+
+function ToolGroupButton({
+  group,
+  tool,
+  setTool,
+}: {
+  group: ToolGroup
+  tool: DrawTool
+  setTool: (t: DrawTool) => void
+}) {
+  const tools = groupTools(group)
+  const [lastId, setLastId] = useState<DrawTool>(tools[0].id)
+  const [open, setOpen] = useState(false)
+  const activeInGroup = tools.find((t) => t.id === tool)
+  const shown = activeInGroup ?? tools.find((t) => t.id === lastId) ?? tools[0]
+
+  if (tools.length === 1) {
+    return <SideButton label={shown.label} icon={shown.icon} active={tool === shown.id} onClick={() => setTool(tool === shown.id ? "cursor" : shown.id)} />
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          title={shown.label}
+          aria-label={activeInGroup ? `${shown.label} (ativo) — abrir opções` : `${shown.label} — abrir opções`}
+          aria-haspopup="menu"
+          className={cn(
+            "relative flex size-9 shrink-0 items-center justify-center rounded transition-colors",
+            activeInGroup ? "text-term-accent" : "text-term-text/80 hover:bg-term-line/60 hover:text-term-text",
+          )}
+        >
+          <shown.icon className="size-5" strokeWidth={1.25} aria-hidden="true" />
+          <span className="absolute bottom-1 right-1 size-0 border-l-[4px] border-t-[4px] border-l-transparent border-t-current opacity-60" aria-hidden="true" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        side="right"
+        align="start"
+        sideOffset={6}
+        collisionPadding={8}
+        className="max-h-[min(70vh,520px)] w-56 overflow-y-auto border-term-line bg-term-panel p-1 text-term-text"
+      >
+        <div role="menu" aria-label="Ferramentas">
+          {group.sections.map((s, i) => (
+            <div key={s.title ?? i} className={cn(i > 0 && "mt-1 border-t border-term-line pt-1")}>
+              {s.title && <p className="px-2 pb-1 pt-1.5 text-[11px] font-medium uppercase tracking-wide text-term-muted">{s.title}</p>}
+              {s.tools.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={tool === t.id}
+                  onClick={() => {
+                    setLastId(t.id)
+                    setTool(t.id)
+                    setOpen(false)
+                  }}
+                  className={cn(
+                    "flex min-h-10 w-full items-center gap-3 rounded px-2 text-left text-sm transition-colors hover:bg-term-line/60",
+                    tool === t.id ? "text-term-accent" : "text-term-text",
+                  )}
+                >
+                  <t.icon className="size-5 shrink-0" strokeWidth={1.25} aria-hidden="true" />
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          ))}
+          {activeInGroup && (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setTool("cursor")
+                setOpen(false)
+              }}
+              className="mt-1 flex min-h-10 w-full items-center gap-3 rounded border-t border-term-line px-2 text-left text-sm text-term-muted hover:bg-term-line/60 hover:text-term-text"
+            >
+              <Crosshair className="size-5 shrink-0" strokeWidth={1.25} aria-hidden="true" />
+              Parar de desenhar
+            </button>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
+}
 
 function loadDrawings(symbol: string): Drawing[] {
   try {
@@ -190,8 +366,8 @@ export function DrawingToolbar({ state, onZoomIn }: { state: DrawingState; onZoo
       aria-orientation="vertical"
       className="flex w-12 shrink-0 flex-col items-center gap-0.5 overflow-y-auto border-r border-term-line py-2 [scrollbar-width:none]"
     >
-      {TOOLS.map((t) => (
-        <SideButton key={t.id} label={t.label} icon={t.icon} active={tool === t.id} onClick={() => setTool(tool === t.id ? "cursor" : t.id)} />
+      {TOOL_GROUPS.map((g) => (
+        <ToolGroupButton key={g.id} group={g} tool={tool} setTool={setTool} />
       ))}
       {onZoomIn && <SideButton label="Aproximar" icon={ZoomIn} onClick={onZoomIn} />}
       <span className="my-1.5 h-px w-7 shrink-0 bg-term-line" aria-hidden="true" />
@@ -236,6 +412,7 @@ export function DrawingLayer({ state, chart, getSeries, barsRef, step, decimals 
   const [draft, setDraft] = useState<Drawing | null>(null)
   const [drag, setDrag] = useState<Drag | null>(null)
   const [textEdit, setTextEdit] = useState<{ id?: string; pt: Pt; value: string } | null>(null)
+  const lastFreehandRef = useRef<{ x: number; y: number } | null>(null)
 
   const commitText = () => {
     if (!textEdit) return
@@ -363,6 +540,13 @@ export function DrawingLayer({ state, chart, getSeries, barsRef, step, decimals 
     const pt = eventPoint(e, true)
     if (!pt) return
     const type = tool as ShapeType
+    if (FREEHAND.includes(type)) {
+      e.preventDefault()
+      svgRef.current?.setPointerCapture(e.pointerId)
+      lastFreehandRef.current = { x: e.clientX, y: e.clientY }
+      setDraft({ id: crypto.randomUUID(), type, pts: [pt], color, width: DEFAULT_WIDTH[type] })
+      return
+    }
     if (SINGLE_CLICK.includes(type)) {
       if (type === "text") {
         e.preventDefault()
@@ -388,6 +572,15 @@ export function DrawingLayer({ state, chart, getSeries, barsRef, step, decimals 
   }
 
   const onSvgPointerMove = (e: ReactPointerEvent<SVGSVGElement>) => {
+    if (draft && FREEHAND.includes(draft.type)) {
+      const last = lastFreehandRef.current
+      if (last && Math.hypot(e.clientX - last.x, e.clientY - last.y) < 2) return
+      const pt = eventPoint(e, false)
+      if (!pt) return
+      lastFreehandRef.current = { x: e.clientX, y: e.clientY }
+      setDraft((d) => (d ? { ...d, pts: [...d.pts, pt] } : d))
+      return
+    }
     if (draft) {
       const pt = eventPoint(e, true)
       if (pt) setDraft({ ...draft, pts: [draft.pts[0], pt] })
@@ -412,6 +605,14 @@ export function DrawingLayer({ state, chart, getSeries, barsRef, step, decimals 
   }
 
   const endDrag = (e: ReactPointerEvent<SVGSVGElement>) => {
+    if (draft && FREEHAND.includes(draft.type)) {
+      svgRef.current?.releasePointerCapture(e.pointerId)
+      lastFreehandRef.current = null
+      const stroke = draft
+      setDraft(null)
+      if (stroke.pts.length > 1) setDrawings((all) => [...all, stroke])
+      return
+    }
     if (!drag) return
     svgRef.current?.releasePointerCapture(e.pointerId)
     setDrag(null)
@@ -428,6 +629,19 @@ export function DrawingLayer({ state, chart, getSeries, barsRef, step, decimals 
   }
 
   const recolor = (c: string) => setDrawings((all) => all.map((d) => (d.id === selected ? { ...d, color: c } : d)))
+  const cycleWidth = () =>
+    setDrawings((all) =>
+      all.map((d) => {
+        if (d.id !== selected) return d
+        if (d.type === "highlighter") {
+          const steps = [8, 12, 18, 24]
+          const cur = d.width ?? 12
+          return { ...d, width: steps[(steps.indexOf(cur) + 1) % steps.length] || steps[0] }
+        }
+        const cur = d.width ?? 1
+        return { ...d, width: WIDTHS[(WIDTHS.indexOf(cur) + 1) % WIDTHS.length] || WIDTHS[0] }
+      }),
+    )
   const removeSelected = () => {
     setDrawings((all) => all.filter((d) => d.id !== selected))
     setSelected(null)
@@ -447,13 +661,74 @@ export function DrawingLayer({ state, chart, getSeries, barsRef, step, decimals 
     const [y1, y2 = y1] = ys as number[]
     const isSel = selected === d.id && !isDraft
     const stroke = d.color
-    const sw = isSel ? 2 : 1.5
+    const base = d.width ?? DEFAULT_WIDTH[d.type] ?? 1.5
+    const sw = isSel && !FREEHAND.includes(d.type) ? base + 0.5 : base
     const hit = { pointerEvents: shapePE as "auto" | "none", cursor: interactive ? "move" : undefined }
     const bodyDown = (e: ReactPointerEvent) => startDrag(e, d, "body")
     const fmt = (v: number) => formatPrice(v, decimals)
     const els: React.ReactNode[] = []
 
-    if (d.type === "trend" || d.type === "ray") {
+    if (FREEHAND.includes(d.type)) {
+      const path = (xs as number[]).map((x, i) => `${i ? "L" : "M"}${x.toFixed(1)} ${(ys[i] as number).toFixed(1)}`).join(" ")
+      const hl = d.type === "highlighter"
+      if (isSel) els.push(<path key="sel" d={path} fill="none" stroke={stroke} strokeOpacity={0.35} strokeWidth={sw + 6} strokeLinecap="round" strokeLinejoin="round" />)
+      els.push(
+        <path key="p" d={path} fill="none" stroke={stroke} strokeOpacity={hl ? 0.35 : 1} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" />,
+      )
+      els.push(
+        <path key="h" d={path} fill="none" stroke="transparent" strokeWidth={Math.max(12, sw + 6)} strokeLinecap="round" style={hit} onPointerDown={bodyDown} />,
+      )
+    } else if (d.type === "arrow") {
+      const a = Math.atan2(y2 - y1, x2 - x1)
+      const s = 9 + sw * 2
+      const head = `${x2},${y2} ${x2 - s * Math.cos(a - 0.45)},${y2 - s * Math.sin(a - 0.45)} ${x2 - s * Math.cos(a + 0.45)},${y2 - s * Math.sin(a + 0.45)}`
+      els.push(<line key="l" x1={x1} y1={y1} x2={x2 - (s * 0.7) * Math.cos(a)} y2={y2 - (s * 0.7) * Math.sin(a)} stroke={stroke} strokeWidth={sw} />)
+      els.push(<polygon key="hd" points={head} fill={stroke} />)
+      els.push(<line key="h" x1={x1} y1={y1} x2={x2} y2={y2} stroke="transparent" strokeWidth={12} style={hit} onPointerDown={bodyDown} />)
+    } else if (d.type === "arrowMarker") {
+      const len = Math.hypot(x2 - x1, y2 - y1)
+      const deg = (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI
+      const hw = 3 + sw
+      const hh = hw * 2.6
+      const hl = Math.min(len, hh * 1.6)
+      const pts = `0,${-hw} ${len - hl},${-hw} ${len - hl},${-hh} ${len},0 ${len - hl},${hh} ${len - hl},${hw} 0,${hw}`
+      els.push(
+        <g key="m" transform={`translate(${x1} ${y1}) rotate(${deg})`}>
+          <polygon points={pts} fill={stroke} fillOpacity={0.85} stroke={isSel ? stroke : "none"} strokeWidth={1} style={hit} onPointerDown={bodyDown} />
+        </g>,
+      )
+    } else if (ARROW_MARKS.includes(d.type)) {
+      const k = 0.8 + (d.width ?? 2) * 0.2
+      const pts = "0,0 11,11 4.5,11 4.5,24 -4.5,24 -4.5,11 -11,11"
+      els.push(
+        <g key="m" transform={`translate(${x1} ${y1}) rotate(${MARK_ROTATION[d.type] ?? 0}) scale(${k})`}>
+          <polygon
+            points={pts}
+            fill={stroke}
+            stroke={isSel ? "var(--color-term-text, #fff)" : "none"}
+            strokeWidth={1}
+            style={hit}
+            onPointerDown={bodyDown}
+          />
+        </g>,
+      )
+    } else if (d.type === "ellipse") {
+      els.push(
+        <ellipse
+          key="e"
+          cx={(x1 + x2) / 2}
+          cy={(y1 + y2) / 2}
+          rx={Math.abs(x2 - x1) / 2}
+          ry={Math.abs(y2 - y1) / 2}
+          fill={stroke}
+          fillOpacity={0.12}
+          stroke={stroke}
+          strokeWidth={sw}
+          style={hit}
+          onPointerDown={bodyDown}
+        />,
+      )
+    } else if (d.type === "trend" || d.type === "ray") {
       let ex = x2
       let ey = y2
       if (d.type === "ray" && (x2 !== x1 || y2 !== y1)) {
@@ -564,7 +839,7 @@ export function DrawingLayer({ state, chart, getSeries, barsRef, step, decimals 
     }
 
     if (isSel && !locked) {
-      const handles = d.type === "hline" || d.type === "vline" || d.type === "text" ? [] : xs.map((x, i) => ({ x: x as number, y: ys[i] as number, i }))
+      const handles = NO_HANDLES.includes(d.type) ? [] : xs.map((x, i) => ({ x: x as number, y: ys[i] as number, i }))
       for (const h of handles) {
         els.push(
           <circle
@@ -645,7 +920,9 @@ export function DrawingLayer({ state, chart, getSeries, barsRef, step, decimals 
 
       {tool !== "cursor" && !locked && (
         <p className="pointer-events-none absolute bottom-8 left-1/2 z-10 -translate-x-1/2 rounded bg-term-bg/90 px-2 py-1 text-[11px] text-term-muted">
-          {SINGLE_CLICK.includes(tool as ShapeType)
+          {FREEHAND.includes(tool as ShapeType)
+            ? "Pressione e arraste para desenhar · toque no ícone para parar"
+            : SINGLE_CLICK.includes(tool as ShapeType)
             ? "Clique no gráfico para posicionar · Esc cancela"
             : draft
               ? "Clique para definir o segundo ponto"
@@ -654,20 +931,53 @@ export function DrawingLayer({ state, chart, getSeries, barsRef, step, decimals 
       )}
 
       {selectedDrawing && !locked && !hidden && (
-        <div className="absolute left-1/2 top-8 z-10 flex -translate-x-1/2 items-center gap-1 rounded-md border border-term-line bg-term-panel px-1.5 py-1 shadow-lg">
+        <div
+          role="toolbar"
+          aria-label="Editar desenho"
+          className="absolute left-1/2 top-8 z-10 flex max-w-[calc(100%-1rem)] -translate-x-1/2 items-center gap-0.5 overflow-x-auto rounded-md border border-term-line bg-term-panel px-1 py-0.5 shadow-lg [scrollbar-width:none]"
+        >
           {SWATCHES.map((c) => (
             <button
               key={c}
               type="button"
               aria-label={`Cor ${c}`}
+              aria-pressed={selectedDrawing.color === c}
               onClick={() => recolor(c)}
-              className={cn("size-4 rounded-full border", selectedDrawing.color === c ? "border-term-text" : "border-transparent")}
-              style={{ backgroundColor: c }}
-            />
+              className="flex size-8 shrink-0 items-center justify-center"
+            >
+              <span
+                className={cn("size-4 rounded-full border-2", selectedDrawing.color === c ? "border-term-text" : "border-transparent")}
+                style={{ backgroundColor: c }}
+                aria-hidden="true"
+              />
+            </button>
           ))}
-          <span className="mx-0.5 h-4 w-px bg-term-line" aria-hidden="true" />
-          <button type="button" aria-label="Remover desenho" onClick={removeSelected} className="flex size-5 items-center justify-center text-term-muted hover:text-short">
-            <Trash2 className="size-3.5" aria-hidden="true" />
+          {selectedDrawing.type !== "text" && selectedDrawing.type !== "measure" && (
+            <>
+              <span className="mx-0.5 h-4 w-px shrink-0 bg-term-line" aria-hidden="true" />
+              <button
+                type="button"
+                aria-label="Alterar espessura"
+                onClick={cycleWidth}
+                className="flex h-8 shrink-0 items-center gap-1.5 rounded px-1.5 font-mono text-xs text-term-text hover:bg-term-line/60"
+              >
+                <span
+                  className="w-3 rounded-full bg-current"
+                  style={{ height: Math.min(6, Math.max(1, (selectedDrawing.width ?? DEFAULT_WIDTH[selectedDrawing.type] ?? 1.5) / (selectedDrawing.type === "highlighter" ? 4 : 1))) }}
+                  aria-hidden="true"
+                />
+                {`${selectedDrawing.width ?? DEFAULT_WIDTH[selectedDrawing.type] ?? 1}px`}
+              </button>
+            </>
+          )}
+          <span className="mx-0.5 h-4 w-px shrink-0 bg-term-line" aria-hidden="true" />
+          <button
+            type="button"
+            aria-label="Remover desenho"
+            onClick={removeSelected}
+            className="flex size-8 shrink-0 items-center justify-center rounded text-term-muted hover:bg-term-line/60 hover:text-short"
+          >
+            <Trash2 className="size-4" aria-hidden="true" />
           </button>
         </div>
       )}
