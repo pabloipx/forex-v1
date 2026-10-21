@@ -887,7 +887,9 @@ body.is-entering main, body.is-entering .header { animation: pageIn 0.7s var(--e
 }
 @media (max-width: 900px) {
   :root { --header-h: 68px; }
-  .header__actions .btn--ghost, .header__actions .icon-btn { display: none; }
+  .header__actions .icon-btn { display: none; }
+  .header__actions { gap: 8px; }
+  .header__actions .btn { height: 40px; padding: 0 14px; font-size: 14px; white-space: nowrap; }
   .hero__inner { grid-template-columns: 1fr; min-height: 0; padding-top: 40px; padding-bottom: 8px; gap: 24px; }
   .hero__content { max-width: 600px; }
   .hero__title { font-size: clamp(40px, 7.6vw, 54px); }

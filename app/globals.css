@@ -632,6 +632,19 @@ input[type="number"] {
   }
 }
 
+/* Phones in landscape get the full desktop terminal in ~375px of height; shrinking the
+   root size scales rem-based text and spacing together so labels stop wrapping/overlapping. */
+@media (orientation: landscape) and (max-height: 520px) {
+  html:has(.term-root) {
+    font-size: 12px;
+  }
+  .term-root button,
+  .term-root [role="tab"],
+  .term-root th {
+    white-space: nowrap;
+  }
+}
+
 /* Prevent overscroll on iOS */
 html,
 body {

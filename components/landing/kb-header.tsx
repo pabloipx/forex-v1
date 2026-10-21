@@ -73,10 +73,10 @@ export function KbHeader() {
           </nav>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Link
             href="/auth/login"
-            className="hidden rounded-lg bg-lp-bg px-5 py-2.5 text-[15px] font-semibold text-lp-ink shadow-sm ring-1 ring-lp-line transition-colors hover:bg-lp-soft sm:inline-flex"
+            className="inline-flex rounded-lg bg-lp-bg px-4 py-2 text-sm font-semibold text-lp-ink shadow-sm ring-1 ring-lp-line transition-colors hover:bg-lp-soft sm:px-5 sm:py-2.5 sm:text-[15px]"
           >
             Entrar
           </Link>
