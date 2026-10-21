@@ -6,7 +6,16 @@ import { Pencil } from "lucide-react"
 import { Slider } from "@/components/ui/slider"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
-import { MARKET_MAP, formatPrice, formatUsd, notionalUsd, unrealizedPnl } from "@/lib/futures/markets"
+import {
+  MARKET_MAP,
+  formatPrice,
+  formatUsd,
+  notionalUsd,
+  parseDecimalInput,
+  sanitizeDecimalInput,
+  tpSlError,
+  unrealizedPnl,
+} from "@/lib/futures/markets"
 import type { AccountMode, FuturesState, Order, Position } from "@/lib/futures/types"
 import { futuresApi, type DerivativesInfo, type Ticker } from "@/hooks/use-futures"
 
@@ -62,7 +71,17 @@ function SideLabel({ side }: { side: "long" | "short" | "buy" | "sell" }) {
   return <span className={isLong ? "text-long" : "text-short"}>{label}</span>
 }
 
-function TpSlDialog({ position, onClose, onSaved }: { position: Position; onClose: () => void; onSaved: () => void }) {
+function TpSlDialog({
+  position,
+  livePrice,
+  onClose,
+  onSaved,
+}: {
+  position: Position
+  livePrice: number | null
+  onClose: () => void
+  onSaved: () => void
+}) {
   const market = MARKET_MAP[position.symbol]
   const [tp, setTp] = useState(position.take_profit?.toString() ?? "")
   const [sl, setSl] = useState(position.stop_loss?.toString() ?? "")
@@ -70,10 +89,30 @@ function TpSlDialog({ position, onClose, onSaved }: { position: Position; onClos
   const [saving, setSaving] = useState(false)
 
   const save = async () => {
+    const ref = livePrice ?? position.entry_price
+    const tpNum = tp ? parseDecimalInput(tp, ref) : null
+    const slNum = sl ? parseDecimalInput(sl, ref) : null
+    const trailNum = trail ? parseDecimalInput(trail) : null
+    if ([tpNum, slNum, trailNum].some((n) => n != null && !(Number.isFinite(n) && n > 0))) {
+      toast.error("Informe valores válidos")
+      return
+    }
+    const message = tpSlError(
+      position.side === "long" ? "buy" : "sell",
+      ref,
+      tpNum,
+      slNum,
+      market?.priceDecimals ?? 2,
+      livePrice != null ? "preço atual" : "preço de entrada",
+    )
+    if (message) {
+      toast.error(message)
+      return
+    }
     setSaving(true)
     try {
-      await futuresApi.setTpSl(position.id, tp ? Number(tp) : null, sl ? Number(sl) : null)
-      const nextTrail = trail ? Number(trail) : null
+      await futuresApi.setTpSl(position.id, tpNum, slNum)
+      const nextTrail = trailNum
       if (nextTrail !== (position.trailing_distance ?? null)) await futuresApi.setTrailing(position.id, nextTrail)
       toast.success("TP/SL atualizado")
       onSaved()
@@ -91,7 +130,7 @@ function TpSlDialog({ position, onClose, onSaved }: { position: Position; onClos
       <input
         inputMode="decimal"
         value={value}
-        onChange={(e) => set(e.target.value.replace(",", ".").replace(/[^0-9.]/g, ""))}
+        onChange={(e) => set(sanitizeDecimalInput(e.target.value))}
         placeholder="Não definido"
         className="w-full bg-transparent text-right font-mono text-sm text-term-text outline-none placeholder:text-term-muted"
       />
@@ -608,7 +647,14 @@ export function AccountTables({ state, account, marks, derivs, liveSymbol, liveP
           </table>
         )}
       </div>
-      {editing && <TpSlDialog position={editing} onClose={() => setEditing(null)} onSaved={onChanged} />}
+      {editing && (
+        <TpSlDialog
+          position={editing}
+          livePrice={markOf(editing.symbol)}
+          onClose={() => setEditing(null)}
+          onSaved={onChanged}
+        />
+      )}
       {editingLev && <LeverageDialog position={editingLev} onClose={() => setEditingLev(null)} onSaved={onChanged} />}
     </section>
   )

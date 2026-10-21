@@ -13,8 +13,11 @@ import {
   formatPrice,
   formatUsd,
   liquidationPrice,
+  parseDecimalInput,
   quoteToUsd,
   roundToStep,
+  sanitizeDecimalInput,
+  tpSlError,
   type FuturesMarket,
 } from "@/lib/futures/markets"
 import type { AccountMode, MarginMode, OrderSide, OrderType, TimeInForce } from "@/lib/futures/types"
@@ -60,7 +63,7 @@ function Field({
         value={value}
         disabled={disabled}
         placeholder={placeholder}
-        onChange={(e) => onChange(e.target.value.replace(",", ".").replace(/[^0-9.]/g, ""))}
+        onChange={(e) => onChange(sanitizeDecimalInput(e.target.value))}
         className="w-full min-w-0 bg-transparent text-right font-mono text-sm text-term-text outline-none placeholder:text-term-muted"
       />
       <span className="shrink-0 text-xs font-medium text-term-text">{unit}</span>
@@ -214,17 +217,26 @@ export function OrderPanel({
   const [tif, setTif] = useState<TimeInForce>("GTC")
   const [submitting, setSubmitting] = useState<OrderSide | null>(null)
 
+  const toPrice = (v: string) => {
+    const n = parseDecimalInput(v, lastPrice)
+    return Number.isFinite(n) && n > 0 ? n : 0
+  }
+  const priceNum = toPrice(price)
+  const triggerNum = toPrice(triggerPrice)
+  const tpNum = tpslEnabled && tp ? toPrice(tp) : 0
+  const slNum = tpslEnabled && sl ? toPrice(sl) : 0
+
   const execPrice =
     orderType === "market"
       ? (lastPrice ?? 0)
       : orderType === "conditional"
-        ? Number(price) || Number(triggerPrice) || (lastPrice ?? 0)
-        : Number(price) || (lastPrice ?? 0)
+        ? priceNum || triggerNum || (lastPrice ?? 0)
+        : priceNum || (lastPrice ?? 0)
 
   const unitUsd = execPrice > 0 ? execPrice * market.contractSize * quoteToUsd(market, execPrice) : 0
   const feeRate = orderType === "limit" && postOnly ? MAKER_FEE : TAKER_FEE
   const maxQty = unitUsd > 0 ? roundToStep(balance / (unitUsd * (1 / leverage + feeRate)), market.qtyStep) : 0
-  const rawQty = Number(qty) || 0
+  const rawQty = parseDecimalInput(qty) || 0
   const qtyNum =
     qtyMode === "usdt" ? (unitUsd > 0 ? roundToStep(rawQty / unitUsd, market.qtyStep) : 0) : rawQty
   const notional = qtyNum * unitUsd
@@ -253,6 +265,17 @@ export function OrderPanel({
       toast.error(`Quantidade mínima: ${market.minQty} ${market.qtyUnit}`)
       return
     }
+    if ((tpslEnabled && tp && !tpNum) || (tpslEnabled && sl && !slNum)) {
+      toast.error("Informe um valor válido para o Take Profit / Stop Loss")
+      return
+    }
+    const tpSlRef = orderType === "market" ? execPrice : orderType === "conditional" ? triggerNum || execPrice : priceNum || execPrice
+    const tpSlMessage =
+      tpSlRef > 0 ? tpSlError(side, tpSlRef, tpNum || null, slNum || null, market.priceDecimals) : null
+    if (tpSlMessage) {
+      toast.error(tpSlMessage)
+      return
+    }
     if (
       prefs?.confirmOrders &&
       !window.confirm(
@@ -271,15 +294,15 @@ export function OrderPanel({
         side,
         orderType,
         qty: qtyNum,
-        price: orderType === "market" ? null : Number(price) || null,
-        triggerPrice: orderType === "conditional" ? Number(triggerPrice) || null : null,
+        price: orderType === "market" ? null : priceNum || null,
+        triggerPrice: orderType === "conditional" ? triggerNum || null : null,
         leverage,
         marginMode,
         reduceOnly,
         postOnly: orderType === "limit" && postOnly,
         timeInForce: orderType === "limit" && postOnly ? "PostOnly" : tif,
-        takeProfit: tpslEnabled && tp ? Number(tp) : null,
-        stopLoss: tpslEnabled && sl ? Number(sl) : null,
+        takeProfit: tpNum || null,
+        stopLoss: slNum || null,
       })
       toast.success(
         orderType === "market"
