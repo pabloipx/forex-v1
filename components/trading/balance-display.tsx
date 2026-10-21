@@ -48,13 +48,6 @@ export function BalanceDisplay({ balance }: { balance: number }) {
       <Button className="bg-blue-500 hover:bg-blue-600 text-white font-semibold h-9 px-4 rounded">
         Depósito
       </Button>
-
-      {/* Admin link if admin */}
-      {isAdmin && (
-        <Button asChild size="sm" variant="ghost" className="text-white/60 hover:text-white hover:bg-white/10 h-8 px-2">
-          <Link href="/admin001">Admin</Link>
-        </Button>
-      )}
     </div>
   )
 }

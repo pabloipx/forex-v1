@@ -31,6 +31,13 @@ const nextConfig = {
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
         ],
       },
+      ...["/admin001", "/admin", "/admin/:path*", "/api/admin/:path*"].map((source) => ({
+        source,
+        headers: [
+          { key: "Cache-Control", value: "no-store, max-age=0" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      })),
     ]
   },
 }
