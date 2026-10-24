@@ -2,6 +2,7 @@ import { createClient, createAdminClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
 import { CRYPTO_MIN_USD, CRYPTO_OPTIONS, USD_TO_BRL, isCryptoType } from "@/lib/deposit/crypto"
+import { getUsdBrlRate } from "@/lib/fx"
 
 export async function POST(request: Request) {
   try {
@@ -51,14 +52,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Esta transacao ja foi registrada" }, { status: 400 })
     }
 
-    const amountBrl = Math.round(numAmount * USD_TO_BRL * 100) / 100
+    // O saldo da corretora e em dolar: o deposito cripto credita exatamente o valor em USD.
+    // O equivalente em reais e so informativo, pela cotacao ao vivo (com fallback fixo).
+    let brlRate = USD_TO_BRL
+    try {
+      brlRate = (await getUsdBrlRate()).rate
+    } catch {}
+    const amountBrl = Math.round(numAmount * brlRate * 100) / 100
 
     // Create the deposit record
     const { data: deposit, error: depositError } = await admin
       .from("deposits")
       .insert({
         user_id: user.id,
-        amount: amountBrl,
+        amount: numAmount,
+        currency: "USD",
         method: "crypto",
         status: "pending",
         external_id: cleanTxHash,
@@ -68,6 +76,7 @@ export async function POST(request: Request) {
           network: crypto.network,
           amount_usd: numAmount,
           amount_brl: amountBrl,
+          fx_rate: brlRate,
           tx_hash: cleanTxHash,
           wallet_address: crypto.wallet,
         },

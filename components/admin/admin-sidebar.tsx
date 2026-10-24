@@ -64,9 +64,9 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
   ]
 
   return (
-    <aside className="w-64 bg-[#0D1117] border-r border-[#1E2430] flex flex-col h-screen sticky top-0">
+    <aside className="w-64 bg-adm-surface border-r border-adm-line flex flex-col h-screen sticky top-0">
       {/* Logo */}
-      <div className="p-4 border-b border-[#1E2430]">
+      <div className="p-4 border-b border-adm-line">
         <Image
           src="/images/kryptobit-logo.png"
           alt="Kryptobit"
@@ -87,8 +87,8 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
             className={cn(
               "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
               activeSection === item.id
-                ? "bg-[#2190ff]/20 text-[#4da6ff]"
-                : "text-gray-400 hover:text-white hover:bg-[#1E2430]",
+                ? "bg-adm-accent/20 text-adm-accent-soft"
+                : "text-adm-muted hover:text-adm-fg hover:bg-adm-elevated",
             )}
           >
             <item.icon className="w-5 h-5" />
@@ -100,7 +100,7 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
         <div className="pt-4">
           <button
             onClick={() => setConfigOpen(!configOpen)}
-            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider"
+            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-adm-muted uppercase tracking-wider"
           >
             Configurações
             {configOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
@@ -114,8 +114,8 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                     activeSection === item.id
-                      ? "bg-[#2190ff]/20 text-[#4da6ff]"
-                      : "text-gray-400 hover:text-white hover:bg-[#1E2430]",
+                      ? "bg-adm-accent/20 text-adm-accent-soft"
+                      : "text-adm-muted hover:text-adm-fg hover:bg-adm-elevated",
                   )}
                 >
                   <item.icon className="w-5 h-5" />
@@ -130,7 +130,7 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
         <div className="pt-4">
           <button
             onClick={() => setOperacoesOpen(!operacoesOpen)}
-            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider"
+            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-adm-muted uppercase tracking-wider"
           >
             Operacoes
             {operacoesOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
@@ -144,8 +144,8 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                     activeSection === item.id
-                      ? "bg-[#2190ff]/20 text-[#4da6ff]"
-                      : "text-gray-400 hover:text-white hover:bg-[#1E2430]",
+                      ? "bg-adm-accent/20 text-adm-accent-soft"
+                      : "text-adm-muted hover:text-adm-fg hover:bg-adm-elevated",
                   )}
                 >
                   <item.icon className="w-5 h-5" />
@@ -160,7 +160,7 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
         <div className="pt-4">
           <button
             onClick={() => setAdminOpen(!adminOpen)}
-            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider"
+            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-adm-muted uppercase tracking-wider"
           >
             Administracao
             {adminOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
@@ -174,8 +174,8 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                     activeSection === item.id
-                      ? "bg-[#2190ff]/20 text-[#4da6ff]"
-                      : "text-gray-400 hover:text-white hover:bg-[#1E2430]",
+                      ? "bg-adm-accent/20 text-adm-accent-soft"
+                      : "text-adm-muted hover:text-adm-fg hover:bg-adm-elevated",
                   )}
                 >
                   <item.icon className="w-5 h-5" />
@@ -188,7 +188,7 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
       </nav>
 
       {/* Logout */}
-      <div className="p-3 border-t border-[#1E2430]">
+      <div className="p-3 border-t border-adm-line">
         <button
           onClick={handleLogout}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"

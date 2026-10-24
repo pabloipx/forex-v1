@@ -40,20 +40,20 @@ export function SettingsManager({ settings, onUpdate }: SettingsManagerProps) {
   }
 
   return (
-    <Card className="border-zinc-800 bg-zinc-900">
+    <Card className="border-adm-line bg-adm-surface">
       <CardHeader>
-        <CardTitle className="text-white">System Settings</CardTitle>
+        <CardTitle className="text-adm-fg">System Settings</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {settings.map((setting) => (
-          <div key={setting.id} className="bg-zinc-800 rounded-lg p-4">
+          <div key={setting.id} className="bg-adm-elevated rounded-lg p-4">
             <div className="space-y-2">
-              <div className="font-semibold text-white">{setting.setting_key}</div>
-              <div className="text-sm text-zinc-400">{setting.description}</div>
+              <div className="font-semibold text-adm-fg">{setting.setting_key}</div>
+              <div className="text-sm text-adm-muted">{setting.description}</div>
 
               {editing === setting.setting_key ? (
                 <div className="space-y-2 mt-3">
-                  <Label className="text-zinc-300">Value</Label>
+                  <Label className="text-adm-fg/80">Value</Label>
                   <Input
                     type="text"
                     value={JSON.stringify(value)}
@@ -64,17 +64,17 @@ export function SettingsManager({ settings, onUpdate }: SettingsManagerProps) {
                         // Invalid JSON, ignore
                       }
                     }}
-                    className="bg-zinc-700 border-zinc-600 text-white font-mono text-sm"
+                    className="bg-adm-line border-adm-line text-adm-fg font-mono text-sm"
                   />
                   <div className="flex gap-2">
-                    <Button size="sm" onClick={() => handleUpdate(setting.setting_key)} className="bg-blue-600">
+                    <Button size="sm" onClick={() => handleUpdate(setting.setting_key)} className="bg-adm-accent">
                       Save
                     </Button>
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => setEditing(null)}
-                      className="border-zinc-700 bg-transparent"
+                      className="border-adm-line bg-transparent"
                     >
                       Cancel
                     </Button>
@@ -82,7 +82,7 @@ export function SettingsManager({ settings, onUpdate }: SettingsManagerProps) {
                 </div>
               ) : (
                 <div className="mt-2 flex justify-between items-center">
-                  <span className="text-sm text-white font-mono">{JSON.stringify(setting.setting_value)}</span>
+                  <span className="text-sm text-adm-fg font-mono">{JSON.stringify(setting.setting_value)}</span>
                   <Button
                     size="sm"
                     variant="ghost"
@@ -90,7 +90,7 @@ export function SettingsManager({ settings, onUpdate }: SettingsManagerProps) {
                       setEditing(setting.setting_key)
                       setValue(setting.setting_value)
                     }}
-                    className="text-zinc-400 hover:text-white hover:bg-zinc-700"
+                    className="text-adm-muted hover:text-adm-fg hover:bg-adm-line"
                   >
                     Edit
                   </Button>

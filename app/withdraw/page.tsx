@@ -141,8 +141,8 @@ export default function WithdrawPage() {
 
   const validationError = (() => {
     if (!parsed) return null
-    if (parsed < MIN_WITHDRAWAL) return `Valor mínimo para saque é R$ ${brl(MIN_WITHDRAWAL)}`
-    if (parsed > available) return `Saldo disponível para saque: R$ ${brl(available)}`
+    if (parsed < MIN_WITHDRAWAL) return `Valor mínimo para saque é US$ ${brl(MIN_WITHDRAWAL)}`
+    if (parsed > available) return `Saldo disponível para saque: US$ ${brl(available)}`
     return null
   })()
 
@@ -245,11 +245,11 @@ export default function WithdrawPage() {
                     onClick={() => setAmount(brl(Math.floor(available * 100) / 100))}
                     className="font-medium text-primary hover:underline"
                   >
-                    {`Máx. R$ ${brl(available)}`}
+                    {`Máx. US$ ${brl(available)}`}
                   </button>
                 </label>
                 <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-term-muted">R$</span>
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-term-muted">US$</span>
                   <input
                     id="amount"
                     inputMode="numeric"
@@ -262,7 +262,7 @@ export default function WithdrawPage() {
                   />
                 </div>
                 <p id="amount-hint" className={cn("text-xs", validationError ? "text-short" : "text-term-muted")}>
-                  {validationError ?? `Mínimo R$ ${brl(MIN_WITHDRAWAL)}`}
+                  {validationError ?? `Mínimo US$ ${brl(MIN_WITHDRAWAL)}`}
                 </p>
                 <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">
                   {QUICK_AMOUNTS.map((v) => (
@@ -369,7 +369,7 @@ export default function WithdrawPage() {
                 ) : method === "crypto" ? (
                   `Sacar ${(parsed / USD_TO_BRL).toFixed(2)} ${crypto.toUpperCase()}`
                 ) : (
-                  `Sacar R$ ${amount || "0,00"}`
+                  `Sacar US$ ${amount || "0,00"}`
                 )}
               </button>
             </fieldset>
@@ -378,11 +378,11 @@ export default function WithdrawPage() {
           <aside className="flex flex-col gap-4">
             <section className={cn(panel, "flex flex-col gap-3 p-4")} aria-label="Saldo">
               <p className="text-xs text-term-muted">Disponível para saque</p>
-              <p className="font-mono text-2xl font-semibold">{`R$ ${brl(available)}`}</p>
+              <p className="font-mono text-2xl font-semibold">{`US$ ${brl(available)}`}</p>
               <dl className="flex flex-col gap-1.5 border-t border-term-line pt-3 text-xs">
-                <Row label="Saldo total" value={`R$ ${brl(balance)}`} />
-                {bonusLocked > 0 && <Row label="Bônus travado" value={`R$ ${brl(bonusLocked)}`} locked />}
-                {depositLocked > 0 && <Row label="Depósito travado" value={`R$ ${brl(depositLocked)}`} locked />}
+                <Row label="Saldo total" value={`US$ ${brl(balance)}`} />
+                {bonusLocked > 0 && <Row label="Bônus travado" value={`US$ ${brl(bonusLocked)}`} locked />}
+                {depositLocked > 0 && <Row label="Depósito travado" value={`US$ ${brl(depositLocked)}`} locked />}
               </dl>
             </section>
 
@@ -394,7 +394,7 @@ export default function WithdrawPage() {
                 note={
                   bonusRollover.cancelOnWithdrawal
                     ? "Sacar acima do disponível cancela o bônus."
-                    : `Faltam R$ ${brl(bonusRollover.remaining)} em volume negociado.`
+                    : `Faltam US$ ${brl(bonusRollover.remaining)} em volume negociado.`
                 }
               />
             )}
@@ -403,7 +403,7 @@ export default function WithdrawPage() {
                 title={depositRollover.depositsCount > 1 ? "Rollover dos depósitos" : "Rollover do depósito"}
                 progress={depositRollover.rolloverProgress}
                 required={depositRollover.rolloverRequired}
-                note={`Faltam R$ ${brl(depositRollover.remaining)} em volume para liberar R$ ${brl(depositRollover.lockedAmount)}. O valor segue disponível para operar.`}
+                note={`Faltam US$ ${brl(depositRollover.remaining)} em volume para liberar US$ ${brl(depositRollover.lockedAmount)}. O valor segue disponível para operar.`}
               />
             )}
 
@@ -548,7 +548,7 @@ function RolloverCard({ title, progress, required, note }: { title: string; prog
       <div className="h-1.5 overflow-hidden rounded-full bg-term-line">
         <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
       </div>
-      <p className="font-mono text-xs text-term-muted">{`R$ ${brl(progress)} / R$ ${brl(required)}`}</p>
+      <p className="font-mono text-xs text-term-muted">{`US$ ${brl(progress)} / US$ ${brl(required)}`}</p>
       <p className="text-xs leading-relaxed text-term-muted">{note}</p>
     </section>
   )

@@ -41,14 +41,14 @@ function ChartCard({
 }) {
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0c121c] p-5 transition-colors hover:border-white/[0.1] ${className}`}
+      className={`relative overflow-hidden rounded-2xl border border-white/[0.06] bg-adm-bg p-5 transition-colors hover:border-white/[0.1] ${className}`}
     >
-      <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-[#2190ff]/[0.08] blur-3xl" />
+      <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-adm-accent/[0.08] blur-3xl" />
       <div className="relative">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h3 className="text-[15px] font-semibold tracking-tight text-white">{title}</h3>
-            {subtitle && <p className="mt-0.5 text-xs text-gray-500">{subtitle}</p>}
+            <h3 className="text-[15px] font-semibold tracking-tight text-adm-fg">{title}</h3>
+            {subtitle && <p className="mt-0.5 text-xs text-adm-muted">{subtitle}</p>}
           </div>
         </div>
         {children}
@@ -60,8 +60,8 @@ function ChartCard({
 function TooltipBox({ active, payload, label, currency }: any) {
   if (!active || !payload?.length) return null
   return (
-    <div className="rounded-lg border border-[#2A3142] bg-[#0b1019]/95 px-3 py-2 shadow-xl backdrop-blur">
-      <p className="mb-1 text-[11px] font-medium text-gray-400">{label}</p>
+    <div className="rounded-lg border border-adm-line bg-adm-bg/95 px-3 py-2 shadow-xl backdrop-blur">
+      <p className="mb-1 text-[11px] font-medium text-adm-muted">{label}</p>
       {payload.map((p: any, i: number) => (
         <p key={i} className="flex items-center gap-2 text-xs font-semibold" style={{ color: p.color }}>
           <span className="inline-block h-2 w-2 rounded-full" style={{ background: p.color }} />
@@ -100,7 +100,7 @@ export function AdminCharts({ refreshKey }: { refreshKey: number }) {
         {[0, 1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className={`h-64 animate-pulse rounded-2xl border border-[#1b2333] bg-[#0d1117] ${
+            className={`h-64 animate-pulse rounded-2xl border border-adm-line bg-adm-surface ${
               i === 0 ? "lg:col-span-2" : ""
             }`}
           />
@@ -140,16 +140,16 @@ export function AdminCharts({ refreshKey }: { refreshKey: number }) {
             </PieChart>
           </ResponsiveContainer>
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-3xl font-bold text-white">{winRate}%</span>
-            <span className="text-xs text-gray-500">taxa de vitória</span>
+            <span className="text-3xl font-bold text-adm-fg">{winRate}%</span>
+            <span className="text-xs text-adm-muted">taxa de vitória</span>
           </div>
         </div>
         <div className="mt-2 flex items-center justify-center gap-6 text-xs">
-          <span className="flex items-center gap-2 text-gray-400">
-            <span className="h-2 w-2 rounded-full bg-[#2190ff]" /> {data.winLoss.wins} vitórias
+          <span className="flex items-center gap-2 text-adm-muted">
+            <span className="h-2 w-2 rounded-full bg-adm-accent" /> {data.winLoss.wins} vitórias
           </span>
-          <span className="flex items-center gap-2 text-gray-400">
-            <span className="h-2 w-2 rounded-full bg-[#ef4444]" /> {data.winLoss.losses} derrotas
+          <span className="flex items-center gap-2 text-adm-muted">
+            <span className="h-2 w-2 rounded-full bg-adm-down" /> {data.winLoss.losses} derrotas
           </span>
         </div>
       </ChartCard>
@@ -178,7 +178,7 @@ export function AdminCharts({ refreshKey }: { refreshKey: number }) {
       {/* Top símbolos - barras horizontais */}
       <ChartCard title="Ativos Mais Operados" subtitle="Top 5 · 14 dias">
         {data.topSymbols.length === 0 ? (
-          <div className="flex h-[220px] items-center justify-center text-sm text-gray-600">Sem operações</div>
+          <div className="flex h-[220px] items-center justify-center text-sm text-adm-muted">Sem operações</div>
         ) : (
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={data.topSymbols} layout="vertical" margin={{ left: 8, right: 16 }}>

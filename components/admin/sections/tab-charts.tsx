@@ -27,8 +27,8 @@ const fmtCurrency = (v: number) =>
 function TooltipBox({ active, payload, label, currency }: any) {
   if (!active || !payload?.length) return null
   return (
-    <div className="rounded-lg border border-[#2A3142] bg-[#0b1019]/95 px-3 py-2 shadow-xl backdrop-blur">
-      <p className="mb-1 text-[11px] font-medium text-gray-400">{label}</p>
+    <div className="rounded-lg border border-adm-line bg-adm-bg/95 px-3 py-2 shadow-xl backdrop-blur">
+      <p className="mb-1 text-[11px] font-medium text-adm-muted">{label}</p>
       {payload.map((p: any, i: number) => (
         <p key={i} className="flex items-center gap-2 text-xs font-semibold" style={{ color: p.color }}>
           <span className="inline-block h-2 w-2 rounded-full" style={{ background: p.color }} />
@@ -73,15 +73,15 @@ function ChartShell({
   children: React.ReactNode
 }) {
   return (
-    <div className="relative mb-6 overflow-hidden rounded-2xl border border-[#1b2333] bg-gradient-to-b from-[#0e1521] to-[#0a0f18] p-5">
+    <div className="relative mb-6 overflow-hidden rounded-2xl border border-adm-line bg-gradient-to-b from-adm-surface to-adm-bg p-5">
       <div
         className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full blur-3xl"
         style={{ background: `${accent}1a` }}
       />
       <div className="relative">
         <div className="mb-4">
-          <h3 className="text-sm font-semibold text-white">{title}</h3>
-          <p className="text-xs text-gray-500">{subtitle}</p>
+          <h3 className="text-sm font-semibold text-adm-fg">{title}</h3>
+          <p className="text-xs text-adm-muted">{subtitle}</p>
         </div>
         {children}
       </div>
@@ -90,7 +90,7 @@ function ChartShell({
 }
 
 function Skeleton() {
-  return <div className="mb-6 h-64 animate-pulse rounded-2xl border border-[#1b2333] bg-[#0d1117]" />
+  return <div className="mb-6 h-64 animate-pulse rounded-2xl border border-adm-line bg-adm-surface" />
 }
 
 export function UsersChart({ refreshKey }: { refreshKey: number }) {

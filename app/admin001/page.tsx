@@ -61,7 +61,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-adm-bg flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Image
@@ -72,35 +72,35 @@ export default function AdminLoginPage() {
             priority
             className="mx-auto mb-4 h-auto w-[240px]"
           />
-          <h1 className="text-2xl font-bold text-white">Painel Administrativo</h1>
-          <p className="text-gray-400 mt-2">Digite suas credenciais para acessar</p>
+          <h1 className="text-2xl font-bold text-adm-fg">Painel Administrativo</h1>
+          <p className="text-adm-muted mt-2">Digite suas credenciais para acessar</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-adm-muted" />
             <Input
               type="email"
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="pl-10 h-12 bg-[#1A1F2E] border-[#2A3142] text-white placeholder:text-gray-500"
+              className="pl-10 h-12 bg-adm-surface border-adm-line text-adm-fg placeholder:text-adm-muted"
             />
           </div>
 
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-adm-muted" />
             <Input
               type={showPassword ? "text" : "password"}
               placeholder="Senha"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="pl-10 pr-10 h-12 bg-[#1A1F2E] border-[#2A3142] text-white placeholder:text-gray-500"
+              className="pl-10 pr-10 h-12 bg-adm-surface border-adm-line text-adm-fg placeholder:text-adm-muted"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-adm-muted hover:text-adm-fg/80"
             >
               {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
@@ -111,7 +111,7 @@ export default function AdminLoginPage() {
           <Button
             type="submit"
             disabled={isLoading || !email || !password}
-            className="w-full h-12 bg-gradient-to-r from-[#2190ff] to-[#4da6ff] hover:from-[#0b5ed7] hover:to-[#2190ff] text-white font-semibold"
+            className="w-full h-12 bg-adm-accent hover:bg-adm-accent-strong text-adm-on-accent font-semibold"
           >
             {isLoading ? "Entrando..." : "Entrar"}
           </Button>

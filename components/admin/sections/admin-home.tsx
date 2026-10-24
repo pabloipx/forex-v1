@@ -89,18 +89,18 @@ export function AdminHome({ stats, loading, onRefresh, refreshKey }: AdminHomePr
         <div>
           <div className="flex items-center gap-2">
             <span className="relative flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#2190ff] opacity-60" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#2190ff]" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-adm-accent opacity-60" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-adm-accent" />
             </span>
-            <h1 className="text-2xl font-bold tracking-tight text-white">Dashboard</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-adm-fg">Dashboard</h1>
           </div>
-          <p className="mt-1 text-sm text-gray-400">Visão geral da operação em tempo real.</p>
+          <p className="mt-1 text-sm text-adm-muted">Visão geral da operação em tempo real.</p>
         </div>
         <Button
           onClick={onRefresh}
           disabled={loading}
           variant="outline"
-          className="border-[#1b2333] bg-[#0e1521] text-gray-300 hover:bg-[#141c2b] hover:text-white"
+          className="border-adm-line bg-adm-surface text-adm-fg/80 hover:bg-adm-elevated hover:text-adm-fg"
         >
           <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           Atualizar
@@ -112,7 +112,7 @@ export function AdminHome({ stats, loading, onRefresh, refreshKey }: AdminHomePr
         {cards.map((card, index) => (
           <div
             key={index}
-            className="group relative overflow-hidden rounded-2xl border border-[#1b2333] bg-gradient-to-b from-[#0e1521] to-[#0a0f18] p-5 transition-all hover:border-[#2A3142]"
+            className="group relative overflow-hidden rounded-2xl border border-adm-line bg-gradient-to-b from-adm-surface to-adm-bg p-5 transition-all hover:border-adm-line"
           >
             {/* glow accent */}
             <div
@@ -126,7 +126,7 @@ export function AdminHome({ stats, loading, onRefresh, refreshKey }: AdminHomePr
             />
             <div className="relative">
               <div className="mb-4 flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-400">{card.title}</span>
+                <span className="text-sm font-medium text-adm-muted">{card.title}</span>
                 <div
                   className="flex h-9 w-9 items-center justify-center rounded-xl border"
                   style={{
@@ -137,10 +137,10 @@ export function AdminHome({ stats, loading, onRefresh, refreshKey }: AdminHomePr
                   <card.icon className="h-5 w-5" style={{ color: card.accent }} />
                 </div>
               </div>
-              <div className="mb-1.5 text-2xl font-bold tracking-tight text-white tabular-nums">
+              <div className="mb-1.5 text-2xl font-bold tracking-tight text-adm-fg tabular-nums">
                 {card.isCount ? card.value.toLocaleString("pt-BR") : formatCurrency(card.value)}
               </div>
-              <span className={`text-xs ${card.captionWarn ? "text-yellow-500" : "text-gray-500"}`}>
+              <span className={`text-xs ${card.captionWarn ? "text-yellow-500" : "text-adm-muted"}`}>
                 {card.caption}
               </span>
             </div>

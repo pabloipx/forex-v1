@@ -112,6 +112,20 @@
   --color-atlas-warning: #f59e0b;
   --color-atlas-success: #2190ff;
 
+  /* Painel administrativo */
+  --color-adm-bg: var(--adm-bg);
+  --color-adm-surface: var(--adm-surface);
+  --color-adm-elevated: var(--adm-elevated);
+  --color-adm-line: var(--adm-line);
+  --color-adm-fg: var(--adm-fg);
+  --color-adm-muted: var(--adm-muted);
+  --color-adm-accent: var(--adm-accent);
+  --color-adm-accent-soft: var(--adm-accent-soft);
+  --color-adm-accent-strong: var(--adm-accent-strong);
+  --color-adm-on-accent: var(--adm-on-accent);
+  --color-adm-up: var(--adm-up);
+  --color-adm-down: var(--adm-down);
+
   /* Terminal de derivativos (futuros/forex) */
   --color-term-bg: var(--term-bg);
   --color-term-panel: var(--term-panel);
@@ -131,6 +145,18 @@
 
 /* Paleta do terminal: escura por padrao (admin/perfil), clara via .term-light */
 :root {
+  --adm-bg: #07090d;
+  --adm-surface: #0d1016;
+  --adm-elevated: #141922;
+  --adm-line: #1c222d;
+  --adm-fg: #e7eaf0;
+  --adm-muted: #8a93a4;
+  --adm-accent: #2190ff;
+  --adm-accent-soft: #7cbcff;
+  --adm-accent-strong: #1172dc;
+  --adm-on-accent: #ffffff;
+  --adm-up: #2dd4a0;
+  --adm-down: #f26d6d;
   --term-bg: #0a0d14;
   --term-panel: #131722;
   --term-line: #232836;
@@ -834,4 +860,37 @@ body {
   .animate-result-coin {
     animation: none !important;
   }
+}
+
+/* ========================================
+   Painel administrativo — tipografia e base
+   ======================================== */
+.admin-theme {
+  font-family: var(--font-admin-sans), system-ui, sans-serif;
+  background-color: var(--adm-bg);
+  color: var(--adm-fg);
+  letter-spacing: -0.005em;
+  font-variant-numeric: tabular-nums;
+}
+.admin-theme .font-sans {
+  font-family: var(--font-admin-sans), system-ui, sans-serif;
+}
+.admin-theme .font-mono {
+  font-family: var(--font-admin-mono), ui-monospace, monospace;
+}
+.admin-theme :is(h1, h2, h3) {
+  letter-spacing: -0.02em;
+}
+.admin-theme th {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--adm-muted);
+}
+.admin-theme ::selection {
+  background-color: color-mix(in srgb, var(--adm-accent) 35%, transparent);
+}
+.admin-theme * {
+  scrollbar-color: var(--adm-line) transparent;
 }

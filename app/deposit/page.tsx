@@ -9,16 +9,28 @@ import Image from "next/image"
 import { QRCodeSVG } from "qrcode.react"
 import { CRYPTO_MIN_USD, CRYPTO_OPTIONS, USD_TO_BRL, type CryptoType } from "@/lib/deposit/crypto"
 import { CryptoDeposit } from "@/components/deposit/crypto-deposit"
+import { PixAmount, fmtBrl, fmtUsd, usdToBrlClient, useUsdBrlQuote } from "@/components/deposit/pix-conversion"
+import useSWR from "swr"
 
 const QUICK_AMOUNTS = [50, 100, 500, 1000, 5000, 10000, 50000, 100000]
 
-  interface PixPaymentData {
+interface DepositMethodsResponse {
+  pix_enabled?: boolean
+  min_deposit_usd?: number
+  max_deposit_usd?: number
+}
+
+const jsonFetcher = (url: string) => fetch(url).then((r) => r.json())
+
+interface PixPaymentData {
   deposit_id: string
   transaction_id: string
   qr_code: string
   qr_code_base64?: string
   copy_paste: string
-  amount: number
+  amount_usd: number
+  amount_brl: number
+  fx_rate: number
   expires_at?: string
 }
 
@@ -56,8 +68,27 @@ export default function DepositPage() {
 
   // Deposit methods enabled state
   const cryptoEnabled = true
-  const [pixEnabled, setPixEnabled] = useState(false)
-  const [methodsLoading, setMethodsLoading] = useState(true)
+  const { data: methodsData, isLoading: methodsLoading } = useSWR<DepositMethodsResponse>(
+    "/api/settings/deposit-methods",
+    jsonFetcher,
+    { revalidateOnFocus: false },
+  )
+  const pixEnabled = Boolean(methodsData?.pix_enabled)
+
+  // PIX: o cliente escolhe o valor em dolar; o BRL e calculado pela cotacao ao vivo.
+  const { data: fxQuote, error: fxError, isLoading: fxLoading, mutate: refreshQuote } = useUsdBrlQuote()
+  const minDepositUsd = fxQuote?.min_deposit_usd ?? methodsData?.min_deposit_usd ?? 100
+  const maxDepositUsd = fxQuote?.max_deposit_usd ?? methodsData?.max_deposit_usd ?? 20000
+  const [pixAmountUsd, setPixAmountUsd] = useState("100.00")
+  const parsedPixUsd = Number(pixAmountUsd.replace(/,/g, "")) || 0
+  const pixAmountBrl = fxQuote && parsedPixUsd > 0 ? usdToBrlClient(parsedPixUsd, fxQuote.rate) : 0
+  const pixAmountValid = parsedPixUsd >= minDepositUsd && parsedPixUsd <= maxDepositUsd && Boolean(fxQuote)
+
+  // Assim que o PIX carrega disponivel, ele vira o metodo padrao.
+  const [methodTouched, setMethodTouched] = useState(false)
+  if (pixEnabled && !methodTouched && method !== "pix") {
+    setMethod("pix")
+  }
   
   // Crypto form state
   const [cryptoType, setCryptoType] = useState<CryptoType>("usdt")
@@ -73,32 +104,13 @@ export default function DepositPage() {
   // Computed BRL value based on USD amount for crypto
   const cryptoAmountBrl = useMemo(() => {
     const usdAmount = Number(cryptoAmountUsd) || 0
-    return (usdAmount * USD_TO_BRL).toFixed(2)
-  }, [cryptoAmountUsd])
+    return (usdAmount * (fxQuote?.market_rate ?? USD_TO_BRL)).toFixed(2)
+  }, [cryptoAmountUsd, fxQuote?.market_rate])
 
   const supabase = useMemo(
     () => createClient(),
     [],
   )
-
-  // Fetch deposit methods on mount
-  useEffect(() => {
-    const fetchMethods = async () => {
-      try {
-        const res = await fetch("/api/settings/deposit-methods")
-        const data = await res.json()
-        if (data?.pix_enabled) {
-          setPixEnabled(true)
-          setMethod("pix")
-        }
-      } catch (err) {
-        console.error("Error fetching deposit methods:", err)
-      } finally {
-        setMethodsLoading(false)
-      }
-    }
-    fetchMethods()
-  }, [])
 
   // Timer de expiracao do QR Code
   useEffect(() => {
@@ -267,13 +279,16 @@ export default function DepositPage() {
       setError("Voce precisa aceitar os termos e condicoes")
       return
     }
-    const depositAmount = parseAmount()
-    if (!depositAmount || depositAmount < 50) {
-      setError("Valor minimo de R$ 50,00")
+    if (!parsedPixUsd || parsedPixUsd < minDepositUsd) {
+      setError(`Depósito mínimo de US$ ${fmtUsd(minDepositUsd)}`)
       return
     }
-    if (depositAmount > 100000) {
-      setError("Valor maximo de R$ 100.000,00")
+    if (parsedPixUsd > maxDepositUsd) {
+      setError(`Depósito máximo de US$ ${fmtUsd(maxDepositUsd)}`)
+      return
+    }
+    if (!fxQuote) {
+      setError("Cotação do dólar indisponível. Tente novamente em instantes.")
       return
     }
 
@@ -291,7 +306,7 @@ export default function DepositPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: depositAmount,
+          amountUsd: parsedPixUsd,
           promoCode: appliedPromoCode,
           cpf: cleanCpf,
         }),
@@ -305,7 +320,9 @@ export default function DepositPage() {
         qr_code: data.qr_code || data.copy_paste,
         qr_code_base64: data.qr_code_base64 || "",
         copy_paste: data.copy_paste || data.qr_code,
-        amount: data.amount,
+        amount_usd: Number(data.amount_usd),
+        amount_brl: Number(data.amount_brl),
+        fx_rate: Number(data.fx_rate),
         expires_at: data.expires_at,
       })
     } catch (err) {
@@ -595,11 +612,27 @@ export default function DepositPage() {
             </div>
           )}
 
-          <div className="text-center">
-            <p className="text-[#9CA3AF] text-sm">Valor do deposito</p>
-            <p className="text-3xl font-bold text-white mt-1">
-              R$ {pixData.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-            </p>
+          <div className="flex flex-col items-center gap-3 text-center">
+            <div>
+              <p className="text-[#9CA3AF] text-sm">Valor a pagar via PIX</p>
+              <p className="mt-1 font-mono text-3xl font-bold tabular-nums text-white">
+                {`R$ ${fmtBrl(pixData.amount_brl)}`}
+              </p>
+            </div>
+            <div className="flex w-full items-center justify-between rounded-xl border border-[#1F2933] bg-[#121826] px-4 py-3 text-left">
+              <div>
+                <p className="text-xs text-[#9CA3AF]">Crédito no saldo</p>
+                <p className="font-mono text-lg font-semibold tabular-nums text-[#2190ff]">
+                  {`US$ ${fmtUsd(pixData.amount_usd)}`}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-[#9CA3AF]">Cotação travada</p>
+                <p className="font-mono text-sm tabular-nums text-white">
+                  {`R$ ${pixData.fx_rate.toLocaleString("pt-BR", { minimumFractionDigits: 4, maximumFractionDigits: 4 })}`}
+                </p>
+              </div>
+            </div>
           </div>
 
           <div className="flex justify-center">
@@ -719,7 +752,7 @@ export default function DepositPage() {
             {pixEnabled ? (
               <button
                 type="button"
-                onClick={() => { setMethod("pix"); setError(null) }}
+                onClick={() => { setMethodTouched(true); setMethod("pix"); setError(null) }}
                 aria-pressed={method === "pix"}
                 className={`relative flex min-h-24 items-center gap-4 rounded-lg px-6 py-5 text-left transition-colors ${
                   method === "pix" ? "bg-[#2a3142] ring-2 ring-[#2190ff]" : "bg-[#262b3a] hover:bg-[#2d3344]"
@@ -734,7 +767,7 @@ export default function DepositPage() {
                 />
                 <span className="flex min-w-0 flex-col gap-1">
                   <span className="truncate text-base font-medium text-white">PIX (Apenas seu CPF)</span>
-                  <span className="text-sm text-[#9CA3AF]">Crédito automático · mín. R$ 50</span>
+                  <span className="text-sm text-[#9CA3AF]">{`Paga em reais, cai em dólar · mín. US$ ${minDepositUsd.toLocaleString("en-US")}`}</span>
                 </span>
                 {method === "pix" && (
                   <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-[#2190ff]">
@@ -771,7 +804,7 @@ export default function DepositPage() {
             {cryptoEnabled && (
               <button
                 type="button"
-                onClick={() => { setMethod("crypto"); setError(null) }}
+                onClick={() => { setMethodTouched(true); setMethod("crypto"); setError(null) }}
                 aria-pressed={method === "crypto"}
                 className={`relative flex min-h-24 items-center gap-4 rounded-lg px-6 py-5 text-left transition-colors ${
                   method === "crypto" ? "bg-[#2a3142] ring-2 ring-[#2190ff]" : "bg-[#262b3a] hover:bg-[#2d3344]"
@@ -815,8 +848,26 @@ export default function DepositPage() {
           </div>
         )}
 
-        {/* Amount - hide for crypto since it has its own USD input */}
-        {method !== "crypto" && (
+        {/* PIX: valor em dolar com conversao ao vivo para reais */}
+        {method === "pix" && (
+          <PixAmount
+            amount={pixAmountUsd}
+            onAmountChange={(v) => {
+              setPixAmountUsd(v)
+              setError(null)
+            }}
+            parsedUsd={parsedPixUsd}
+            minUsd={minDepositUsd}
+            maxUsd={maxDepositUsd}
+            quote={fxQuote}
+            quoteError={fxError}
+            quoteLoading={fxLoading}
+            onRetryQuote={() => refreshQuote()}
+          />
+        )}
+
+        {/* Amount - card only (crypto and PIX have their own USD input) */}
+        {method === "card" && (
           <div>
             <label className="block text-sm text-[#9CA3AF] mb-2">Valor</label>
             <div className="relative">
@@ -833,8 +884,8 @@ export default function DepositPage() {
           </div>
         )}
 
-        {/* Quick amounts - hide for crypto */}
-        {method !== "crypto" && (
+        {/* Quick amounts - card only */}
+        {method === "card" && (
           <div className="grid grid-cols-4 gap-3">
             {QUICK_AMOUNTS.map((value) => (
               <button
@@ -1038,7 +1089,9 @@ export default function DepositPage() {
         {method !== "crypto" && (
           <button
             onClick={method === "pix" ? handlePixDeposit : handleCardDeposit}
-            disabled={!acceptTerms || parseAmount() < 50 || isLoading}
+            disabled={
+              !acceptTerms || isLoading || (method === "pix" ? !pixAmountValid : parseAmount() < 50)
+            }
             className="w-full py-4 rounded-xl font-semibold text-white bg-[#2190ff] hover:bg-[#0b5ed7] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
           >
             {isLoading ? (
@@ -1046,10 +1099,14 @@ export default function DepositPage() {
                 <Loader2 className="w-5 h-5 animate-spin" />
                 <span>{method === "pix" ? "Gerando QR Code..." : "Processando..."}</span>
               </>
-            ) : (
+            ) : method === "pix" ? (
               <span>
-                {method === "pix" ? "Deposito PIX" : "Depositar via Cartao"} R$ {amount}
+                {pixAmountBrl > 0
+                  ? `Pagar R$ ${fmtBrl(pixAmountBrl)} · receber US$ ${fmtUsd(parsedPixUsd)}`
+                  : "Gerar PIX"}
               </span>
+            ) : (
+              <span>Depositar via Cartao R$ {amount}</span>
             )}
           </button>
         )}

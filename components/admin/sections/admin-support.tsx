@@ -73,13 +73,13 @@ export function AdminSupport() {
     <div className="term-dark flex flex-col gap-4 font-sans text-term-text">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-white">Suporte</h2>
-          <p className="text-sm text-gray-400">Atendimentos abertos pelos leads</p>
+          <h2 className="text-xl font-bold text-adm-fg">Suporte</h2>
+          <p className="text-sm text-adm-muted">Atendimentos abertos pelos leads</p>
         </div>
         <button
           type="button"
           onClick={() => mutate()}
-          className="flex items-center gap-2 rounded-lg bg-[#1A1F2E] px-4 py-2 text-sm text-gray-300 hover:bg-[#232A3A]"
+          className="flex items-center gap-2 rounded-lg bg-adm-surface px-4 py-2 text-sm text-adm-fg/80 hover:bg-adm-elevated"
         >
           <RefreshCw className={cn("size-4", isValidating && "animate-spin")} aria-hidden="true" />
           Atualizar
@@ -88,21 +88,21 @@ export function AdminSupport() {
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <SummaryCard label="Aguardando resposta" value={summary?.open} tone="text-support" />
-        <SummaryCard label="Não lidos" value={summary?.unread} tone="text-blue-500" />
+        <SummaryCard label="Não lidos" value={summary?.unread} tone="text-adm-accent" />
         <SummaryCard label="Respondidos" value={summary?.answered} tone="text-term-up" />
-        <SummaryCard label="Encerrados" value={summary?.closed} tone="text-gray-400" />
+        <SummaryCard label="Encerrados" value={summary?.closed} tone="text-adm-muted" />
       </div>
 
-      <div className="flex h-[calc(100dvh-16rem)] min-h-[520px] overflow-hidden rounded-xl border border-[#1E2633] bg-[#131A24]">
+      <div className="flex h-[calc(100dvh-16rem)] min-h-[520px] overflow-hidden rounded-xl border border-adm-line bg-adm-surface">
         <aside
           className={cn(
-            "min-h-0 w-full flex-col border-[#1E2633] lg:flex lg:w-96 lg:shrink-0 lg:border-r",
+            "min-h-0 w-full flex-col border-adm-line lg:flex lg:w-96 lg:shrink-0 lg:border-r",
             activeId ? "hidden" : "flex",
           )}
           aria-label="Tickets"
         >
-          <div className="flex flex-col gap-3 border-b border-[#1E2633] p-3">
-            <div className="flex gap-1 rounded-lg bg-[#0F151E] p-1" role="tablist">
+          <div className="flex flex-col gap-3 border-b border-adm-line p-3">
+            <div className="flex gap-1 rounded-lg bg-adm-surface p-1" role="tablist">
               {FILTERS.map((f) => (
                 <button
                   key={f.id}
@@ -112,7 +112,7 @@ export function AdminSupport() {
                   onClick={() => setFilter(f.id)}
                   className={cn(
                     "flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors",
-                    filter === f.id ? "bg-blue-500 text-white" : "text-gray-400 hover:text-gray-200",
+                    filter === f.id ? "bg-adm-accent text-adm-fg" : "text-adm-muted hover:text-adm-fg/90",
                   )}
                 >
                   {f.label}
@@ -122,12 +122,12 @@ export function AdminSupport() {
             <div className="flex gap-2">
               <label className="relative flex-1">
                 <span className="sr-only">Buscar tickets</span>
-                <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-gray-500" aria-hidden="true" />
+                <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-adm-muted" aria-hidden="true" />
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Buscar lead ou assunto"
-                  className="w-full rounded-lg border border-[#1E2633] bg-[#0F151E] py-2 pl-8 pr-3 text-sm text-white outline-none placeholder:text-gray-500 focus:border-blue-500/60"
+                  className="w-full rounded-lg border border-adm-line bg-adm-surface py-2 pl-8 pr-3 text-sm text-adm-fg outline-none placeholder:text-adm-muted focus:border-adm-accent/60"
                 />
               </label>
               <label>
@@ -135,7 +135,7 @@ export function AdminSupport() {
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="h-full rounded-lg border border-[#1E2633] bg-[#0F151E] px-2 text-sm text-gray-300 outline-none"
+                  className="h-full rounded-lg border border-adm-line bg-adm-surface px-2 text-sm text-adm-fg/80 outline-none"
                 >
                   <option value="all">Todos os tipos</option>
                   {SUPPORT_CATEGORIES.map((c) => (
@@ -150,11 +150,11 @@ export function AdminSupport() {
 
           <ul className="min-h-0 flex-1 overflow-y-auto">
             {isLoading ? (
-              <li className="flex justify-center py-10 text-gray-500">
+              <li className="flex justify-center py-10 text-adm-muted">
                 <Loader2 className="size-5 animate-spin" aria-label="Carregando" />
               </li>
             ) : tickets.length === 0 ? (
-              <li className="px-4 py-10 text-center text-sm text-gray-500">Nenhum ticket aqui.</li>
+              <li className="px-4 py-10 text-center text-sm text-adm-muted">Nenhum ticket aqui.</li>
             ) : (
               tickets.map((t) => (
                 <li key={t.id}>
@@ -163,28 +163,28 @@ export function AdminSupport() {
                     onClick={() => setActiveId(t.id)}
                     aria-current={activeId === t.id ? "true" : undefined}
                     className={cn(
-                      "flex w-full gap-3 border-b border-[#1E2633] px-4 py-3 text-left transition-colors hover:bg-[#1A1F2E]",
-                      activeId === t.id && "bg-[#1A1F2E]",
+                      "flex w-full gap-3 border-b border-adm-line px-4 py-3 text-left transition-colors hover:bg-adm-elevated",
+                      activeId === t.id && "bg-adm-surface",
                     )}
                   >
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-blue-500/15 text-sm font-semibold uppercase text-blue-500">
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-adm-accent/15 text-sm font-semibold uppercase text-adm-accent">
                       {(t.user_name || t.user_email || "?").charAt(0)}
                     </span>
                     <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                       <span className="flex items-center justify-between gap-2">
-                        <span className={cn("truncate text-sm", t.unread_admin ? "font-semibold text-white" : "text-gray-200")}>
+                        <span className={cn("truncate text-sm", t.unread_admin ? "font-semibold text-adm-fg" : "text-adm-fg/90")}>
                           {t.user_name || t.user_email || "Lead"}
                         </span>
-                        <time className="shrink-0 text-[11px] text-gray-500">{formatSupportTime(t.last_message_at)}</time>
+                        <time className="shrink-0 text-[11px] text-adm-muted">{formatSupportTime(t.last_message_at)}</time>
                       </span>
-                      <span className="truncate text-xs text-gray-400"><span className="font-mono text-support">#{t.ticket_number}</span> · {t.subject}</span>
+                      <span className="truncate text-xs text-adm-muted"><span className="font-mono text-support">#{t.ticket_number}</span> · {t.subject}</span>
                       <span className="mt-1 flex items-center gap-2">
-                        <span className="rounded bg-[#0F151E] px-1.5 py-0.5 text-[11px] text-gray-400">
+                        <span className="rounded bg-adm-surface px-1.5 py-0.5 text-[11px] text-adm-muted">
                           {categoryLabel(t.category)}
                         </span>
                         <StatusBadge status={t.status} label={SUPPORT_STATUS_LABEL[t.status]} />
                         {t.unread_admin ? (
-                          <span className="ml-auto size-2 rounded-full bg-blue-500" aria-label="Não lido" />
+                          <span className="ml-auto size-2 rounded-full bg-adm-accent" aria-label="Não lido" />
                         ) : null}
                       </span>
                     </span>
@@ -200,8 +200,8 @@ export function AdminSupport() {
             <AdminTicketChat key={activeId} id={activeId} onBack={() => setActiveId(null)} onChanged={() => mutate()} />
           ) : (
             <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
-              <Inbox className="size-8 text-gray-600" aria-hidden="true" />
-              <p className="text-sm text-gray-400">Selecione um ticket para responder</p>
+              <Inbox className="size-8 text-adm-muted" aria-hidden="true" />
+              <p className="text-sm text-adm-muted">Selecione um ticket para responder</p>
             </div>
           )}
         </section>
@@ -212,8 +212,8 @@ export function AdminSupport() {
 
 function SummaryCard({ label, value, tone }: { label: string; value?: number; tone: string }) {
   return (
-    <div className="rounded-xl border border-[#1E2633] bg-[#131A24] p-4">
-      <p className="text-xs text-gray-400">{label}</p>
+    <div className="rounded-xl border border-adm-line bg-adm-surface p-4">
+      <p className="text-xs text-adm-muted">{label}</p>
       <p className={cn("mt-1 text-2xl font-bold tabular-nums", tone)}>{value ?? "–"}</p>
     </div>
   )
@@ -257,20 +257,20 @@ function AdminTicketChat({ id, onBack, onChanged }: { id: string; onBack: () => 
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex shrink-0 flex-wrap items-center gap-3 border-b border-[#1E2633] px-4 py-3">
+      <div className="flex shrink-0 flex-wrap items-center gap-3 border-b border-adm-line px-4 py-3">
         <button
           type="button"
           onClick={onBack}
-          className="rounded-lg bg-[#1A1F2E] px-2.5 py-1.5 text-xs text-gray-300 lg:hidden"
+          className="rounded-lg bg-adm-surface px-2.5 py-1.5 text-xs text-adm-fg/80 lg:hidden"
         >
           Voltar
         </button>
         <div className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate text-sm font-semibold text-white">
+          <span className="truncate text-sm font-semibold text-adm-fg">
             {data?.user.full_name || data?.user.email || "Carregando..."}
           </span>
           {data ? (
-            <span className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-gray-400">
+            <span className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-adm-muted">
               {data.user.email ? (
                 <span className="flex items-center gap-1">
                   <Mail className="size-3" aria-hidden="true" />
@@ -288,15 +288,15 @@ function AdminTicketChat({ id, onBack, onChanged }: { id: string; onBack: () => 
         </div>
         {ticket ? (
           <div className="flex items-center gap-2">
-            <span className="rounded bg-[#0F151E] px-2 py-1 font-mono text-xs text-support">#{ticket.ticket_number}</span>
-            <span className="rounded bg-[#0F151E] px-2 py-1 text-xs text-gray-300">{categoryLabel(ticket.category)}</span>
+            <span className="rounded bg-adm-surface px-2 py-1 font-mono text-xs text-support">#{ticket.ticket_number}</span>
+            <span className="rounded bg-adm-surface px-2 py-1 text-xs text-adm-fg/80">{categoryLabel(ticket.category)}</span>
             <StatusBadge status={ticket.status} label={SUPPORT_STATUS_LABEL[ticket.status]} />
             {closed ? (
               <button
                 type="button"
                 disabled={updating}
                 onClick={() => setStatus("open")}
-                className="flex items-center gap-1.5 rounded-lg bg-[#1A1F2E] px-3 py-1.5 text-xs font-medium text-gray-200 hover:bg-[#232A3A] disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-lg bg-adm-surface px-3 py-1.5 text-xs font-medium text-adm-fg/90 hover:bg-adm-elevated disabled:opacity-50"
               >
                 <RotateCcw className="size-3.5" aria-hidden="true" />
                 Reabrir
@@ -317,16 +317,16 @@ function AdminTicketChat({ id, onBack, onChanged }: { id: string; onBack: () => 
                     Encerrar atendimento
                   </button>
                 </AlertDialogTrigger>
-                <AlertDialogContent className="border-[#1E2633] bg-[#131A24] text-white">
+                <AlertDialogContent className="border-adm-line bg-adm-surface text-adm-fg">
                   <AlertDialogHeader>
                     <AlertDialogTitle>Encerrar atendimento #{ticket.ticket_number}?</AlertDialogTitle>
-                    <AlertDialogDescription className="text-gray-400">
+                    <AlertDialogDescription className="text-adm-muted">
                       O chat será fechado para {data?.user.full_name || data?.user.email || "o lead"} e ele receberá
                       uma mensagem de encerramento. Se precisar, ele poderá abrir um novo ticket.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel className="border-[#1E2633] bg-[#1A1F2E] text-gray-200 hover:bg-[#232A3A] hover:text-white">
+                    <AlertDialogCancel className="border-adm-line bg-adm-surface text-adm-fg/90 hover:bg-adm-elevated hover:text-adm-fg">
                       Cancelar
                     </AlertDialogCancel>
                     <AlertDialogAction
@@ -343,16 +343,16 @@ function AdminTicketChat({ id, onBack, onChanged }: { id: string; onBack: () => 
         ) : null}
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto bg-[#0F151E] px-4 py-5" aria-live="polite">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto bg-adm-surface px-4 py-5" aria-live="polite">
         {error ? (
           <p className="text-center text-sm text-term-down">{error.message}</p>
         ) : !data ? (
-          <div className="flex flex-1 items-center justify-center text-gray-500">
+          <div className="flex flex-1 items-center justify-center text-adm-muted">
             <Loader2 className="size-5 animate-spin" aria-label="Carregando" />
           </div>
         ) : (
           <>
-            <p className="text-center text-[11px] text-gray-500">
+            <p className="text-center text-[11px] text-adm-muted">
               Ticket aberto em {new Date(data.ticket.created_at).toLocaleString("pt-BR")}
             </p>
             {data.messages.map((m) => (
@@ -369,14 +369,14 @@ function AdminTicketChat({ id, onBack, onChanged }: { id: string; onBack: () => 
         <div ref={endRef} />
       </div>
 
-      <div className="flex shrink-0 flex-col gap-2 border-t border-[#1E2633] p-3">
+      <div className="flex shrink-0 flex-col gap-2 border-t border-adm-line p-3">
         {actionError ? (
           <p role="alert" className="text-center text-xs text-red-400">
             {actionError}
           </p>
         ) : null}
         {closed ? (
-          <p className="py-2 text-center text-sm text-gray-500">
+          <p className="py-2 text-center text-sm text-adm-muted">
             Atendimento encerrado. O lead pode abrir um novo ticket se precisar.
           </p>
         ) : (
