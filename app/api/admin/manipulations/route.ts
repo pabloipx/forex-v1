@@ -3,9 +3,9 @@ import { isAdminRequest } from "@/lib/admin/session"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { isTestModeEnabled } from "@/lib/futures/demo-session"
 import { MARKET_MAP } from "@/lib/futures/markets"
-import { getRawTickers } from "@/lib/futures/prices"
+import { getAllTickers, getRawTickers } from "@/lib/futures/prices"
 import { invalidateManipulations, testStore } from "@/lib/futures/manipulation"
-import { effectiveEnd, offsetAt, phaseAt, type FuturesManipulation } from "@/lib/futures/manipulation-curve"
+import { effectiveEnd, offsetAt, phaseAt, priceAt, type FuturesManipulation } from "@/lib/futures/manipulation-curve"
 
 export const dynamic = "force-dynamic"
 
@@ -35,14 +35,15 @@ export async function GET() {
     const now = Date.now()
     const manipulations = list.map((m) => {
       const realPrice = raw[m.symbol]?.price ?? null
-      const offset = offsetAt(m, now)
+      const anchor = m.anchor_price == null ? null : Number(m.anchor_price)
+      const price = realPrice == null ? null : priceAt(m, now, realPrice, anchor)
       return {
         ...m,
         phase: phaseAt(m, now),
         effective_end: new Date(effectiveEnd(m)).toISOString(),
-        offset_pct: offset * 100,
+        offset_pct: price == null || !realPrice ? offsetAt(m, now) * 100 : (price / realPrice - 1) * 100,
         real_price: realPrice,
-        price: realPrice == null ? null : realPrice * (1 + offset),
+        price,
       }
     })
     return NextResponse.json({ manipulations, serverTime: new Date(now).toISOString() })
@@ -72,7 +73,11 @@ export async function POST(req: NextRequest) {
     if (start.getTime() < Date.now() - 60_000) return bad("O horário agendado já passou")
   }
   const end = new Date(start.getTime() + (ramp + hold + release) * 1000)
+  // Começando agora, parte do preço que o cliente está vendo neste instante.
+  const startsNow = start.getTime() <= Date.now() + 1000
+  const anchor = startsNow ? ((await getAllTickers().catch(() => null))?.[market.symbol]?.price ?? null) : null
   const row = {
+    anchor_price: anchor,
     symbol: market.symbol,
     direction: body.direction,
     move_pct: Number(movePct.toFixed(4)),

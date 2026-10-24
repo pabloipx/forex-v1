@@ -12,6 +12,8 @@ export interface FuturesManipulation {
   start_time: string
   end_time: string
   stopped_at: string | null
+  /** Preço no instante em que a manipulação começou; é dele que o movimento parte. */
+  anchor_price?: number | null
   note: string | null
   created_at: string
 }
@@ -54,10 +56,54 @@ export function intensityAt(m: FuturesManipulation, t: number) {
   return level * (1 - smooth((t - stop) / (m.release_seconds * 1000)))
 }
 
-/** Deslocamento relativo assinado (ex.: 0.004 = +0,4%) no instante `t`. */
+/** Deslocamento relativo planejado (ex.: 0.004 = +0,4%) sobre o preço âncora. */
 export function offsetAt(m: FuturesManipulation, t: number) {
   const sign = m.direction === "up" ? 1 : -1
   return sign * (m.move_pct / 100) * intensityAt(m, t)
+}
+
+// Quanto do movimento real continua visível durante o controle. Só o "balanço" do mercado
+// passa, nunca a tendência: o limite garante que a direção escolhida sempre vença.
+const NOISE_SHARE = 0.35
+const NOISE_CAP = 0.25
+
+/** Instante em que o preço deixa de ser conduzido e começa a voltar para o real. */
+function releaseStart(m: FuturesManipulation) {
+  const planned = new Date(m.start_time).getTime() + (m.ramp_seconds + m.hold_seconds) * 1000
+  return m.stopped_at ? Math.min(planned, new Date(m.stopped_at).getTime()) : planned
+}
+
+/** Âncora implícita quando ela é capturada depois do início: evita salto no preço. */
+export function inferAnchor(m: FuturesManipulation, t: number, price: number) {
+  return price / (1 + offsetAt(m, t))
+}
+
+/**
+ * Preço exibido no instante `t`, dado o preço que chegaria sem esta manipulação.
+ * O alvo parte do preço no início (âncora), então "subir" sobe mesmo com o mercado caindo
+ * e "cair" aprofunda a queda de forma contínua. Na devolução, desliza suave até o real.
+ */
+export function priceAt(m: FuturesManipulation, t: number, price: number, anchor: number | null) {
+  const start = new Date(m.start_time).getTime()
+  if (t <= start || t >= effectiveEnd(m) || !(price > 0)) return price
+  if (!anchor || !(anchor > 0)) return price * (1 + offsetAt(m, t))
+
+  const relStart = releaseStart(m)
+  const conducted = t < relStart
+  const offset = offsetAt(m, conducted ? t : relStart)
+
+  const limit = (m.move_pct / 100) * NOISE_CAP
+  const drift = Math.log(price / anchor) * NOISE_SHARE
+  const noise = Math.exp(Math.max(-limit, Math.min(limit, drift)))
+  const anchored = anchor * (1 + offset) * noise
+  // Mercado já indo a favor: soma o movimento por cima dele em vez de segurá-lo no alvo.
+  const riding = price * (1 + offset)
+  const target = m.direction === "up" ? Math.max(anchored, riding) : Math.min(anchored, riding)
+  if (conducted) return target
+
+  const level = intensityAt(m, relStart)
+  const weight = level > 0 ? intensityAt(m, t) / level : 0
+  return Math.exp(Math.log(target) * weight + Math.log(price) * (1 - weight))
 }
 
 export function effectiveEnd(m: FuturesManipulation) {
