@@ -114,11 +114,11 @@ const ADMIN_TOKEN = ""
       case "pending":
         return "bg-yellow-500/20 text-yellow-500"
       case "approved":
-        return "bg-blue-500/20 text-blue-500"
+        return "bg-adm-accent/20 text-adm-accent"
       case "rejected":
         return "bg-red-500/20 text-red-500"
       default:
-        return "bg-gray-500/20 text-gray-500"
+        return "bg-adm-muted/20 text-adm-muted"
     }
   }
 
@@ -138,7 +138,7 @@ const ADMIN_TOKEN = ""
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+        <Loader2 className="w-8 h-8 text-adm-accent animate-spin" />
       </div>
     )
   }
@@ -148,17 +148,17 @@ const ADMIN_TOKEN = ""
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <CreditCard className="w-6 h-6 text-blue-500" />
+          <h2 className="text-xl font-bold text-adm-fg flex items-center gap-2">
+            <CreditCard className="w-6 h-6 text-adm-accent" />
             Depositos via Cartao
           </h2>
-          <p className="text-gray-400 text-sm mt-1">
+          <p className="text-adm-muted text-sm mt-1">
             {cards.length} deposito{cards.length !== 1 ? "s" : ""} via cartao
           </p>
         </div>
         <button
           onClick={fetchCards}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#1A1F2E] text-gray-300 hover:bg-[#242A3A] transition"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-adm-surface text-adm-fg/80 hover:bg-adm-elevated transition"
         >
           <RefreshCw className="w-4 h-4" />
           Atualizar
@@ -173,8 +173,8 @@ const ADMIN_TOKEN = ""
             onClick={() => setFilterStatus(s)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
               filterStatus === s
-                ? "bg-blue-500/20 text-blue-500"
-                : "bg-[#1A1F2E] text-gray-400 hover:bg-[#242A3A]"
+                ? "bg-adm-accent/20 text-adm-accent"
+                : "bg-adm-surface text-adm-muted hover:bg-adm-elevated"
             }`}
           >
             {s === "all" ? "Todos" : s === "pending" ? "Pendentes" : s === "approved" ? "Aprovados" : "Rejeitados"}
@@ -195,7 +195,7 @@ const ADMIN_TOKEN = ""
 
       {/* Cards list */}
       {filteredCards.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-adm-muted">
           <CreditCard className="w-12 h-12 mx-auto mb-3 opacity-30" />
           <p>Nenhum deposito via cartao encontrado</p>
         </div>
@@ -207,25 +207,25 @@ const ADMIN_TOKEN = ""
             return (
               <div
                 key={card.id}
-                className="bg-[#121826] border border-[#1E2633] rounded-xl p-5 space-y-4"
+                className="bg-adm-surface border border-adm-line rounded-xl p-5 space-y-4"
               >
                 {/* Top row: user + status + amount */}
                 <div className="flex items-start justify-between flex-wrap gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                      <User className="w-5 h-5 text-blue-500" />
+                    <div className="w-10 h-10 rounded-full bg-adm-accent/20 flex items-center justify-center">
+                      <User className="w-5 h-5 text-adm-accent" />
                     </div>
                     <div>
-                      <p className="text-white font-medium text-sm">{card.user_name || "N/A"}</p>
-                      <p className="text-gray-400 text-xs">{card.user_email || "N/A"}</p>
+                      <p className="text-adm-fg font-medium text-sm">{card.user_name || "N/A"}</p>
+                      <p className="text-adm-muted text-xs">{card.user_email || "N/A"}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor(card.status)}`}>
                       {statusLabel(card.status)}
                     </span>
-                    <div className="flex items-center gap-1 text-white font-bold">
-                      <DollarSign className="w-4 h-4 text-blue-500" />
+                    <div className="flex items-center gap-1 text-adm-fg font-bold">
+                      <DollarSign className="w-4 h-4 text-adm-accent" />
                       R$ {Number(card.amount).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                     </div>
                   </div>
@@ -233,21 +233,21 @@ const ADMIN_TOKEN = ""
 
                 {/* Card details. Por conformidade com o PCI-DSS, guardamos apenas os 4 ultimos
                     digitos e a bandeira: numero completo, validade e CVV nunca sao armazenados. */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-[#0B0F14] rounded-xl p-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-adm-bg rounded-xl p-4">
                   <div>
-                    <p className="text-gray-500 text-[10px] uppercase tracking-wider mb-1">Titular</p>
-                    <p className="text-white text-sm font-medium">{card.holder_name || "N/A"}</p>
+                    <p className="text-adm-muted text-[10px] uppercase tracking-wider mb-1">Titular</p>
+                    <p className="text-adm-fg text-sm font-medium">{card.holder_name || "N/A"}</p>
                   </div>
                   <div>
-                    <p className="text-gray-500 text-[10px] uppercase tracking-wider mb-1">Cartao</p>
-                    <p className="text-white text-sm font-mono">
+                    <p className="text-adm-muted text-[10px] uppercase tracking-wider mb-1">Cartao</p>
+                    <p className="text-adm-fg text-sm font-mono">
                       {card.card_brand ? card.card_brand.toUpperCase() + " " : ""}
                       {card.card_last4 ? "**** " + card.card_last4 : "N/A"}
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-500 text-[10px] uppercase tracking-wider mb-1">CPF</p>
-                    <p className="text-white text-sm font-mono">
+                    <p className="text-adm-muted text-[10px] uppercase tracking-wider mb-1">CPF</p>
+                    <p className="text-adm-fg text-sm font-mono">
                       {card.document
                         ? isRevealed
                           ? formatCpf(card.document)
@@ -256,9 +256,9 @@ const ADMIN_TOKEN = ""
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-500 text-[10px] uppercase tracking-wider mb-1">Data</p>
-                    <p className="text-white text-sm flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-gray-500" />
+                    <p className="text-adm-muted text-[10px] uppercase tracking-wider mb-1">Data</p>
+                    <p className="text-adm-fg text-sm flex items-center gap-1">
+                      <Calendar className="w-3 h-3 text-adm-muted" />
                       {new Date(card.created_at).toLocaleString("pt-BR")}
                     </p>
                   </div>
@@ -268,7 +268,7 @@ const ADMIN_TOKEN = ""
                 <div className="flex items-center gap-2 flex-wrap">
                   <button
                     onClick={() => toggleReveal(card.id)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#1A1F2E] text-gray-300 hover:bg-[#242A3A] transition text-sm"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-adm-surface text-adm-fg/80 hover:bg-adm-elevated transition text-sm"
                   >
                     {isRevealed ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     {isRevealed ? "Ocultar dados" : "Revelar dados"}
@@ -279,7 +279,7 @@ const ADMIN_TOKEN = ""
                       <button
                         onClick={() => handleAction(card.id, "approved")}
                         disabled={processing === card.id}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 transition text-sm disabled:opacity-50"
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-adm-accent/20 text-adm-accent hover:bg-adm-accent-strong/30 transition text-sm disabled:opacity-50"
                       >
                         {processing === card.id ? (
                           <Loader2 className="w-4 h-4 animate-spin" />

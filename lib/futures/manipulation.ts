@@ -2,7 +2,7 @@ import "server-only"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { isTestModeEnabled } from "./demo-session"
 import { getMarket } from "./markets"
-import { effectiveEnd, offsetAt, type FuturesManipulation } from "./manipulation-curve"
+import { effectiveEnd, inferAnchor, priceAt, type FuturesManipulation } from "./manipulation-curve"
 import type { Ticker } from "./prices"
 import type { Candle } from "./chart-intervals"
 
@@ -24,7 +24,10 @@ export function testStore() {
 
 async function fetchRecent(): Promise<FuturesManipulation[]> {
   const since = Date.now() - HISTORY_MS
-  if (isTestModeEnabled()) return testStore().filter((m) => effectiveEnd(m) > since)
+  if (isTestModeEnabled())
+    return testStore()
+      .filter((m) => effectiveEnd(m) > since)
+      .sort((a, b) => a.start_time.localeCompare(b.start_time))
   const { data, error } = await createAdminClient()
     .from("futures_manipulations")
     .select("*")
@@ -32,7 +35,11 @@ async function fetchRecent(): Promise<FuturesManipulation[]> {
     .order("start_time", { ascending: true })
     .limit(300)
   if (error) return g.__fxManip?.data ?? []
-  return (data ?? []).map((r) => ({ ...r, move_pct: Number(r.move_pct) })) as FuturesManipulation[]
+  return (data ?? []).map((r) => ({
+    ...r,
+    move_pct: Number(r.move_pct),
+    anchor_price: r.anchor_price == null ? null : Number(r.anchor_price),
+  })) as FuturesManipulation[]
 }
 
 export async function loadManipulations(force = false): Promise<FuturesManipulation[]> {
@@ -55,10 +62,51 @@ export function invalidateManipulations() {
   g.__fxManip = undefined
 }
 
-function factorAt(list: FuturesManipulation[], t: number) {
-  let off = 0
-  for (const m of list) off += offsetAt(m, t)
-  return 1 + off
+const isLive = (m: FuturesManipulation, t: number) => t > new Date(m.start_time).getTime() && t < effectiveEnd(m)
+
+/** Encadeia as manipulações do ativo em ordem de início sobre o preço real. */
+function chainPrice(list: FuturesManipulation[], t: number, real: number, anchors?: Map<string, number>) {
+  let p = real
+  for (const m of list) {
+    if (!isLive(m, t)) continue
+    p = priceAt(m, t, p, m.anchor_price ?? anchors?.get(m.id) ?? null)
+  }
+  return p
+}
+
+function persistAnchor(m: FuturesManipulation, anchor: number) {
+  m.anchor_price = anchor
+  if (isTestModeEnabled()) return
+  void createAdminClient()
+    .from("futures_manipulations")
+    .update({ anchor_price: anchor })
+    .eq("id", m.id)
+    .is("anchor_price", null)
+    .then(({ error }) => {
+      if (!error) invalidateManipulations()
+    })
+}
+
+/** Garante a âncora das manipulações que acabaram de começar, usando o preço atual. */
+function captureAnchors(list: FuturesManipulation[], t: number, real: number) {
+  let p = real
+  for (const m of list) {
+    if (!isLive(m, t)) continue
+    if (!m.anchor_price) persistAnchor(m, inferAnchor(m, t, p))
+    p = priceAt(m, t, p, m.anchor_price ?? null)
+  }
+}
+
+/** Para o gráfico: âncora a partir da vela real em que a manipulação começou. */
+function anchorsFromCandles(list: FuturesManipulation[], candles: Candle[], intervalSec: number) {
+  const map = new Map<string, number>()
+  for (const m of list) {
+    if (m.anchor_price) continue
+    const s = new Date(m.start_time).getTime() / 1000
+    const c = candles.find((x) => s >= x.time && s < x.time + intervalSec)
+    if (c) map.set(m.id, c.open + (c.close - c.open) * ((s - c.time) / intervalSec))
+  }
+  return map
 }
 
 function bySymbol(list: FuturesManipulation[]) {
@@ -82,8 +130,9 @@ export async function applyToTickers(raw: Record<string, Ticker>): Promise<Recor
   for (const [symbol, arr] of bySymbol(list)) {
     const t = raw[symbol]
     if (!t) continue
-    const f = factorAt(arr, now)
-    if (f === 1) continue
+    captureAnchors(arr, now, t.price)
+    const f = chainPrice(arr, now, t.price) / t.price
+    if (f === 1 || !Number.isFinite(f)) continue
     const d = getMarket(symbol)?.priceDecimals ?? 5
     const price = roundTo(t.price * f, d)
     const open = t.price / (1 + t.changePercent / 100)
@@ -107,13 +156,15 @@ export async function applyToCandles(symbol: string, candles: Candle[], interval
   const now = Date.now()
   const from = Math.min(...list.map((m) => new Date(m.start_time).getTime()))
   const d = getMarket(symbol)?.priceDecimals ?? 5
+  const anchors = anchorsFromCandles(list, candles, intervalSec)
   return candles.map((c) => {
     const t0 = c.time * 1000
     const t1 = Math.min(t0 + intervalSec * 1000, now)
     if (t1 < from) return c
-    const fOpen = factorAt(list, t0)
-    const fClose = factorAt(list, t1)
-    const fMid = factorAt(list, (t0 + t1) / 2)
+    const mid = (c.open + c.close) / 2
+    const fOpen = chainPrice(list, t0, c.open, anchors) / c.open
+    const fClose = chainPrice(list, t1, c.close, anchors) / c.close
+    const fMid = chainPrice(list, (t0 + t1) / 2, mid, anchors) / mid
     if (fOpen === 1 && fClose === 1 && fMid === 1) return c
     const open = c.open * fOpen
     const close = c.close * fClose

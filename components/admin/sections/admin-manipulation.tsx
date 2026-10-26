@@ -176,10 +176,10 @@ export function AdminManipulation() {
     const now = nowTick
     const start = new Date(m.start_time).getTime()
     const end = new Date(m.end_time).getTime()
-    if (!m.active) return { key: "stopped", label: "Encerrada", color: "text-gray-500 bg-gray-500/10" }
-    if (now < start) return { key: "scheduled", label: "Agendada", color: "text-blue-400 bg-blue-500/10" }
-    if (now > end) return { key: "done", label: "Concluida", color: "text-gray-500 bg-gray-500/10" }
-    return { key: "active", label: "Ativa", color: "text-blue-400 bg-blue-500/10" }
+    if (!m.active) return { key: "stopped", label: "Encerrada", color: "text-adm-muted bg-adm-muted/10" }
+    if (now < start) return { key: "scheduled", label: "Agendada", color: "text-adm-accent-soft bg-adm-accent/10" }
+    if (now > end) return { key: "done", label: "Concluida", color: "text-adm-muted bg-adm-muted/10" }
+    return { key: "active", label: "Ativa", color: "text-adm-accent-soft bg-adm-accent/10" }
   }
 
   const remainingLabel = (m: Manipulation) => {
@@ -214,10 +214,10 @@ export function AdminManipulation() {
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-blue-500" />
-            <h1 className="text-2xl font-bold tracking-tight text-white">Manipulacao</h1>
+            <Zap className="h-5 w-5 text-adm-accent" />
+            <h1 className="text-2xl font-bold tracking-tight text-adm-fg">Manipulacao</h1>
           </div>
-          <p className="mt-1 text-sm text-gray-400">
+          <p className="mt-1 text-sm text-adm-muted">
             Force a direcao dos candles de qualquer ativo OTC. {activeCount} ativa(s)/agendada(s).
           </p>
         </div>
@@ -225,7 +225,7 @@ export function AdminManipulation() {
           onClick={fetchList}
           variant="outline"
           size="sm"
-          className="border-white/[0.06] bg-[#0c121c] text-gray-300 hover:bg-[#141c2b] hover:text-white"
+          className="border-white/[0.06] bg-adm-bg text-adm-fg/80 hover:bg-adm-elevated hover:text-adm-fg"
         >
           <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           Atualizar
@@ -234,47 +234,47 @@ export function AdminManipulation() {
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,420px)_1fr]">
         {/* Painel de criacao */}
-        <div className="rounded-2xl border border-white/[0.08] bg-[#0c121c] p-5">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-400">Nova manipulacao</h2>
+        <div className="rounded-2xl border border-white/[0.08] bg-adm-bg p-5">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-adm-muted">Nova manipulacao</h2>
 
           {/* Ativo */}
-          <label className="mb-1.5 block text-xs font-medium text-gray-400">Ativo OTC</label>
+          <label className="mb-1.5 block text-xs font-medium text-adm-muted">Ativo OTC</label>
           <div className="relative mb-2">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-adm-muted" />
             <input
               placeholder="Buscar ativo..."
               value={assetSearch}
               onChange={(e) => setAssetSearch(e.target.value)}
-              className="h-9 w-full rounded-lg border border-white/[0.06] bg-[#0a0e16] pl-9 pr-3 text-sm text-white outline-none placeholder:text-gray-500 focus:border-white/20"
+              className="h-9 w-full rounded-lg border border-white/[0.06] bg-adm-bg pl-9 pr-3 text-sm text-adm-fg outline-none placeholder:text-adm-muted focus:border-white/20"
             />
           </div>
-          <div className="mb-4 max-h-40 overflow-auto rounded-lg border border-white/[0.06] bg-[#0a0e16]">
+          <div className="mb-4 max-h-40 overflow-auto rounded-lg border border-white/[0.06] bg-adm-bg">
             {filteredAssets.map((a) => (
               <button
                 key={a.symbol}
                 onClick={() => setSymbol(a.symbol)}
                 className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm transition-colors ${
-                  symbol === a.symbol ? "bg-blue-500/15 text-blue-400" : "text-gray-300 hover:bg-white/[0.04]"
+                  symbol === a.symbol ? "bg-adm-accent/15 text-adm-accent-soft" : "text-adm-fg/80 hover:bg-white/[0.04]"
                 }`}
               >
                 <span className="truncate">{a.name}</span>
-                <span className="ml-2 shrink-0 text-xs text-gray-600">{a.symbol}</span>
+                <span className="ml-2 shrink-0 text-xs text-adm-muted">{a.symbol}</span>
               </button>
             ))}
             {filteredAssets.length === 0 && (
-              <p className="px-3 py-4 text-center text-xs text-gray-500">Nenhum ativo.</p>
+              <p className="px-3 py-4 text-center text-xs text-adm-muted">Nenhum ativo.</p>
             )}
           </div>
 
           {/* Direcao */}
-          <label className="mb-1.5 block text-xs font-medium text-gray-400">Direcao dos candles</label>
+          <label className="mb-1.5 block text-xs font-medium text-adm-muted">Direcao dos candles</label>
           <div className="mb-4 grid grid-cols-2 gap-2">
             <button
               onClick={() => setDirection("up")}
               className={`flex items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-semibold transition-all ${
                 direction === "up"
-                  ? "border-blue-500 bg-blue-500/15 text-blue-400"
-                  : "border-white/[0.06] bg-[#0a0e16] text-gray-400 hover:text-gray-200"
+                  ? "border-adm-accent bg-adm-accent/15 text-adm-accent-soft"
+                  : "border-white/[0.06] bg-adm-bg text-adm-muted hover:text-adm-fg/90"
               }`}
             >
               <TrendingUp className="h-4 w-4" /> Alta
@@ -284,7 +284,7 @@ export function AdminManipulation() {
               className={`flex items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-semibold transition-all ${
                 direction === "down"
                   ? "border-red-500 bg-red-500/15 text-red-400"
-                  : "border-white/[0.06] bg-[#0a0e16] text-gray-400 hover:text-gray-200"
+                  : "border-white/[0.06] bg-adm-bg text-adm-muted hover:text-adm-fg/90"
               }`}
             >
               <TrendingDown className="h-4 w-4" /> Baixa
@@ -292,7 +292,7 @@ export function AdminManipulation() {
           </div>
 
           {/* Estilo dos candles */}
-          <label className="mb-1.5 block text-xs font-medium text-gray-400">Estilo dos candles</label>
+          <label className="mb-1.5 block text-xs font-medium text-adm-muted">Estilo dos candles</label>
           <div className="mb-1 grid grid-cols-2 gap-2">
             {STYLES.map((s) => (
               <button
@@ -300,20 +300,20 @@ export function AdminManipulation() {
                 onClick={() => setStyle(s.value)}
                 className={`rounded-lg border px-3 py-2 text-left text-sm font-semibold transition-all ${
                   style === s.value
-                    ? "border-blue-500 bg-blue-500/15 text-blue-400"
-                    : "border-white/[0.06] bg-[#0a0e16] text-gray-400 hover:text-gray-200"
+                    ? "border-adm-accent bg-adm-accent/15 text-adm-accent-soft"
+                    : "border-white/[0.06] bg-adm-bg text-adm-muted hover:text-adm-fg/90"
                 }`}
               >
                 {s.label}
               </button>
             ))}
           </div>
-          <p className="mb-4 text-[11px] leading-relaxed text-gray-500">
+          <p className="mb-4 text-[11px] leading-relaxed text-adm-muted">
             {STYLES.find((s) => s.value === style)?.desc}
           </p>
 
           {/* Tempo grafico */}
-          <label className="mb-1.5 block text-xs font-medium text-gray-400">Tempo do candle</label>
+          <label className="mb-1.5 block text-xs font-medium text-adm-muted">Tempo do candle</label>
           <div className="mb-4 grid grid-cols-3 gap-2">
             {TIMEFRAMES.map((t) => (
               <button
@@ -321,8 +321,8 @@ export function AdminManipulation() {
                 onClick={() => setTimeframe(t.value)}
                 className={`rounded-lg border py-2 text-sm font-semibold transition-all ${
                   timeframe === t.value
-                    ? "border-blue-500 bg-blue-500/15 text-blue-400"
-                    : "border-white/[0.06] bg-[#0a0e16] text-gray-400 hover:text-gray-200"
+                    ? "border-adm-accent bg-adm-accent/15 text-adm-accent-soft"
+                    : "border-white/[0.06] bg-adm-bg text-adm-muted hover:text-adm-fg/90"
                 }`}
               >
                 {t.label}
@@ -331,14 +331,14 @@ export function AdminManipulation() {
           </div>
 
           {/* Momento */}
-          <label className="mb-1.5 block text-xs font-medium text-gray-400">Quando aplicar</label>
+          <label className="mb-1.5 block text-xs font-medium text-adm-muted">Quando aplicar</label>
           <div className="mb-3 grid grid-cols-2 gap-2">
             <button
               onClick={() => setMode("now")}
               className={`flex items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-semibold transition-all ${
                 mode === "now"
-                  ? "border-blue-500 bg-blue-500/15 text-blue-400"
-                  : "border-white/[0.06] bg-[#0a0e16] text-gray-400 hover:text-gray-200"
+                  ? "border-adm-accent bg-adm-accent/15 text-adm-accent-soft"
+                  : "border-white/[0.06] bg-adm-bg text-adm-muted hover:text-adm-fg/90"
               }`}
             >
               <Zap className="h-4 w-4" /> Agora
@@ -347,8 +347,8 @@ export function AdminManipulation() {
               onClick={() => setMode("scheduled")}
               className={`flex items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-semibold transition-all ${
                 mode === "scheduled"
-                  ? "border-blue-500 bg-blue-500/15 text-blue-400"
-                  : "border-white/[0.06] bg-[#0a0e16] text-gray-400 hover:text-gray-200"
+                  ? "border-adm-accent bg-adm-accent/15 text-adm-accent-soft"
+                  : "border-white/[0.06] bg-adm-bg text-adm-muted hover:text-adm-fg/90"
               }`}
             >
               <Clock className="h-4 w-4" /> Agendar
@@ -359,13 +359,13 @@ export function AdminManipulation() {
               type="datetime-local"
               value={startAt}
               onChange={(e) => setStartAt(e.target.value)}
-              className="mb-4 h-10 w-full rounded-lg border border-white/[0.06] bg-[#0a0e16] px-3 text-sm text-white outline-none focus:border-white/20 [color-scheme:dark]"
+              className="mb-4 h-10 w-full rounded-lg border border-white/[0.06] bg-adm-bg px-3 text-sm text-adm-fg outline-none focus:border-white/20 [color-scheme:dark]"
             />
           )}
           {mode === "now" && <div className="mb-1" />}
 
           {/* Duracao em candles */}
-          <label className="mb-1.5 block text-xs font-medium text-gray-400">
+          <label className="mb-1.5 block text-xs font-medium text-adm-muted">
             Duracao: {durationCandles} candle(s) &middot; {durationLabel}
           </label>
           <input
@@ -378,7 +378,7 @@ export function AdminManipulation() {
           />
 
           {/* Forca */}
-          <label className="mb-1.5 block text-xs font-medium text-gray-400">Intensidade: {strength}%</label>
+          <label className="mb-1.5 block text-xs font-medium text-adm-muted">Intensidade: {strength}%</label>
           <input
             type="range"
             min={10}
@@ -397,8 +397,8 @@ export function AdminManipulation() {
           <Button
             onClick={createManipulation}
             disabled={creating}
-            className={`w-full font-semibold text-white ${
-              direction === "up" ? "bg-blue-600 hover:bg-blue-500" : "bg-red-600 hover:bg-red-500"
+            className={`w-full font-semibold text-adm-fg ${
+              direction === "up" ? "bg-adm-accent hover:bg-adm-accent-strong" : "bg-red-600 hover:bg-red-500"
             }`}
           >
             {creating ? (
@@ -415,17 +415,17 @@ export function AdminManipulation() {
         {/* Lista de manipulacoes */}
         <div>
           <div className="mb-3 flex items-center gap-2">
-            <Activity className="h-4 w-4 text-gray-500" />
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-400">Manipulacoes</h2>
-            <span className="text-xs text-gray-600">({list.length})</span>
+            <Activity className="h-4 w-4 text-adm-muted" />
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-adm-muted">Manipulacoes</h2>
+            <span className="text-xs text-adm-muted">({list.length})</span>
           </div>
 
           {loading && list.length === 0 ? (
-            <div className="flex items-center justify-center py-20 text-gray-500">
+            <div className="flex items-center justify-center py-20 text-adm-muted">
               <RefreshCw className="mr-2 h-5 w-5 animate-spin" /> Carregando...
             </div>
           ) : list.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-white/[0.08] bg-[#0a0e16] py-16 text-center text-sm text-gray-500">
+            <div className="rounded-2xl border border-dashed border-white/[0.08] bg-adm-bg py-16 text-center text-sm text-adm-muted">
               Nenhuma manipulacao criada ainda.
             </div>
           ) : (
@@ -436,12 +436,12 @@ export function AdminManipulation() {
                 return (
                   <div
                     key={m.id}
-                    className="flex flex-col gap-3 rounded-2xl border border-white/[0.08] bg-[#0c121c] p-4 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col gap-3 rounded-2xl border border-white/[0.08] bg-adm-bg p-4 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="flex items-center gap-3">
                       <div
                         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-                          m.direction === "up" ? "bg-blue-500/15 text-blue-400" : "bg-red-500/15 text-red-400"
+                          m.direction === "up" ? "bg-adm-accent/15 text-adm-accent-soft" : "bg-red-500/15 text-red-400"
                         }`}
                       >
                         {m.direction === "up" ? (
@@ -452,16 +452,16 @@ export function AdminManipulation() {
                       </div>
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className="truncate text-sm font-semibold text-white">{assetName(m.symbol)}</p>
+                          <p className="truncate text-sm font-semibold text-adm-fg">{assetName(m.symbol)}</p>
                           <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${st.color}`}>
                             {st.label}
                           </span>
                         </div>
-                        <p className="mt-0.5 text-xs text-gray-500">
+                        <p className="mt-0.5 text-xs text-adm-muted">
                           {m.direction === "up" ? "Alta" : "Baixa"} &middot; {styleLabel(m.style)} &middot;{" "}
                           {tfLabel(m.timeframe)} &middot; {m.duration_candles} candle(s) &middot; forca {m.strength}%
                         </p>
-                        <p className="mt-0.5 text-xs font-medium text-gray-400">
+                        <p className="mt-0.5 text-xs font-medium text-adm-muted">
                           {isRunning ? remainingLabel(m) : "Encerrada"}
                         </p>
                       </div>
@@ -470,7 +470,7 @@ export function AdminManipulation() {
                       {isRunning && (
                         <button
                           onClick={() => stopManipulation(m.id)}
-                          className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-[#0a0e16] px-3 py-1.5 text-xs font-medium text-gray-300 hover:bg-white/[0.04]"
+                          className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-adm-bg px-3 py-1.5 text-xs font-medium text-adm-fg/80 hover:bg-white/[0.04]"
                         >
                           <Square className="h-3.5 w-3.5" /> Parar
                         </button>

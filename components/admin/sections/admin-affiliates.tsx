@@ -78,10 +78,10 @@ const EMPTY_SETTINGS: AdminSettings = {
   updated_at: null,
 }
 
-const cardClass = "rounded-xl bg-[#121826] border border-[#1F2933]"
+const cardClass = "rounded-xl bg-adm-surface border border-adm-line"
 const inputClass =
-  "h-10 rounded-lg bg-[#0a0e17] border border-[#1F2933] px-3 text-sm text-white outline-none focus:border-[#2190ff]"
-const thClass = "px-3 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-white/40"
+  "h-10 rounded-lg bg-adm-bg border border-adm-line px-3 text-sm text-adm-fg outline-none focus:border-adm-accent"
+const thClass = "px-3 py-3 text-left text-[11px] font-medium uppercase tracking-wide text-adm-fg/40"
 
 type SortKey = "recent" | "earned" | "referrals" | "deposits" | "balance"
 
@@ -172,7 +172,7 @@ export function AdminAffiliates() {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-[#2190ff]" />
+        <Loader2 className="h-6 w-6 animate-spin text-adm-accent" />
       </div>
     )
   }
@@ -181,15 +181,15 @@ export function AdminAffiliates() {
     <div className="flex flex-col gap-5">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-white">Programa de afiliados</h1>
-          <p className="text-sm text-white/40">
+          <h1 className="text-xl font-bold text-adm-fg">Programa de afiliados</h1>
+          <p className="text-sm text-adm-fg/40">
             Monitore o desempenho e defina os valores de CPA e RevShare de cada afiliado
           </p>
         </div>
         <button
           type="button"
           onClick={() => loadData(true)}
-          className="flex h-10 items-center gap-2 rounded-lg border border-[#1F2933] px-4 text-sm text-white/70 hover:bg-[#121826] hover:text-white"
+          className="flex h-10 items-center gap-2 rounded-lg border border-adm-line px-4 text-sm text-adm-fg/70 hover:bg-adm-elevated hover:text-adm-fg"
         >
           <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
           Atualizar
@@ -198,14 +198,14 @@ export function AdminAffiliates() {
 
       {error && <p className="rounded-lg bg-red-500/10 px-3 py-2.5 text-sm text-red-400">{error}</p>}
 
-      <nav className="flex gap-1 overflow-x-auto border-b border-[#1F2933]">
+      <nav className="flex gap-1 overflow-x-auto border-b border-adm-line">
         {TABS.map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => setTab(t.id)}
             className={`flex shrink-0 items-center gap-2 border-b-2 px-4 py-3 text-sm transition-colors ${
-              tab === t.id ? "border-[#2190ff] text-white" : "border-transparent text-white/40 hover:text-white/70"
+              tab === t.id ? "border-adm-accent text-adm-fg" : "border-transparent text-adm-fg/40 hover:text-adm-fg/70"
             }`}
           >
             {t.label}
@@ -241,35 +241,35 @@ export function AdminAffiliates() {
 
           <div className="grid gap-4 lg:grid-cols-2">
             <section className={cardClass}>
-              <div className="flex items-center justify-between border-b border-[#1F2933] px-4 py-3">
-                <p className="text-sm font-semibold text-white">Top afiliados por comissão</p>
+              <div className="flex items-center justify-between border-b border-adm-line px-4 py-3">
+                <p className="text-sm font-semibold text-adm-fg">Top afiliados por comissão</p>
                 <button
                   type="button"
                   onClick={() => setTab("affiliates")}
-                  className="flex items-center gap-1 text-[11px] text-[#2190ff] hover:underline"
+                  className="flex items-center gap-1 text-[11px] text-adm-accent hover:underline"
                 >
                   Ver todos <ArrowUpRight className="h-3 w-3" />
                 </button>
               </div>
               {topAffiliates.length === 0 ? (
-                <p className="p-4 text-sm text-white/40">Nenhum afiliado cadastrado</p>
+                <p className="p-4 text-sm text-adm-fg/40">Nenhum afiliado cadastrado</p>
               ) : (
-                <ul className="divide-y divide-[#1F2933]">
+                <ul className="divide-y divide-adm-line">
                   {topAffiliates.map((a, i) => (
                     <li key={a.id}>
                       <button
                         type="button"
                         onClick={() => setSelected(a)}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-[#0a0e17]"
+                        className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-adm-bg"
                       >
-                        <span className="w-5 text-sm text-white/30">{i + 1}</span>
+                        <span className="w-5 text-sm text-adm-fg/30">{i + 1}</span>
                         <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm text-white">{a.name}</span>
-                          <span className="block truncate text-[11px] text-white/40">
+                          <span className="block truncate text-sm text-adm-fg">{a.name}</span>
+                          <span className="block truncate text-[11px] text-adm-fg/40">
                             {a.code} · {compact(a.referrals)} referidos · {MODEL_LABEL[a.terms.model]}
                           </span>
                         </span>
-                        <span className="shrink-0 text-sm font-semibold text-[#2190ff]">{money(a.total_earned)}</span>
+                        <span className="shrink-0 text-sm font-semibold text-adm-accent">{money(a.total_earned)}</span>
                       </button>
                     </li>
                   ))}
@@ -278,25 +278,25 @@ export function AdminAffiliates() {
             </section>
 
             <section className={cardClass}>
-              <div className="flex items-center gap-2 border-b border-[#1F2933] px-4 py-3">
-                <History className="h-4 w-4 text-white/40" />
-                <p className="text-sm font-semibold text-white">Últimas alterações do admin</p>
+              <div className="flex items-center gap-2 border-b border-adm-line px-4 py-3">
+                <History className="h-4 w-4 text-adm-fg/40" />
+                <p className="text-sm font-semibold text-adm-fg">Últimas alterações do admin</p>
               </div>
               {logs.length === 0 ? (
-                <p className="p-4 text-sm text-white/40">Nenhuma alteração registrada</p>
+                <p className="p-4 text-sm text-adm-fg/40">Nenhuma alteração registrada</p>
               ) : (
-                <ul className="max-h-[320px] divide-y divide-[#1F2933] overflow-y-auto">
+                <ul className="max-h-[320px] divide-y divide-adm-line overflow-y-auto">
                   {logs.slice(0, 12).map((l) => (
                     <li key={l.id} className="px-4 py-3">
-                      <p className="text-sm text-white">
+                      <p className="text-sm text-adm-fg">
                         {l.action.replace(/_/g, " ")}
-                        {l.affiliate_name && <span className="text-white/50"> · {l.affiliate_name}</span>}
+                        {l.affiliate_name && <span className="text-adm-fg/50"> · {l.affiliate_name}</span>}
                       </p>
-                      <p className="text-[11px] text-white/40">
+                      <p className="text-[11px] text-adm-fg/40">
                         {l.old_value ? `${l.old_value} → ` : ""}
                         {l.new_value || "—"}
                       </p>
-                      <p className="text-[11px] text-white/25">{dateTime(l.created_at)}</p>
+                      <p className="text-[11px] text-adm-fg/25">{dateTime(l.created_at)}</p>
                     </li>
                   ))}
                 </ul>
@@ -310,7 +310,7 @@ export function AdminAffiliates() {
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap gap-3">
             <div className="relative min-w-[220px] flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-adm-fg/30" />
               <input
                 className={`${inputClass} w-full pl-9`}
                 placeholder="Buscar por nome, email ou código"
@@ -342,7 +342,7 @@ export function AdminAffiliates() {
           <div className={`${cardClass} overflow-x-auto`}>
             <table className="w-full min-w-[980px] text-sm">
               <thead>
-                <tr className="border-b border-[#1F2933]">
+                <tr className="border-b border-adm-line">
                   <th className={thClass}>Afiliado</th>
                   <th className={thClass}>Modelo</th>
                   <th className={thClass}>RevShare</th>
@@ -358,7 +358,7 @@ export function AdminAffiliates() {
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="px-3 py-8 text-center text-white/40">
+                    <td colSpan={10} className="px-3 py-8 text-center text-adm-fg/40">
                       Nenhum afiliado encontrado
                     </td>
                   </tr>
@@ -367,39 +367,39 @@ export function AdminAffiliates() {
                     <tr
                       key={a.id}
                       onClick={() => setSelected(a)}
-                      className="cursor-pointer border-b border-[#1F2933] last:border-0 hover:bg-[#0a0e17]"
+                      className="cursor-pointer border-b border-adm-line last:border-0 hover:bg-adm-bg"
                     >
                       <td className="px-3 py-3">
-                        <p className="text-white">{a.name}</p>
-                        <p className="text-[11px] text-white/40">
-                          {a.email} · <span className="text-[#2190ff]">{a.code}</span>
+                        <p className="text-adm-fg">{a.name}</p>
+                        <p className="text-[11px] text-adm-fg/40">
+                          {a.email} · <span className="text-adm-accent">{a.code}</span>
                         </p>
                       </td>
                       <td className="px-3 py-3">
-                        <span className="rounded-md bg-[#2190ff]/15 px-2 py-0.5 text-[11px] font-medium text-[#2190ff]">
+                        <span className="rounded-md bg-adm-accent/15 px-2 py-0.5 text-[11px] font-medium text-adm-accent">
                           {MODEL_LABEL[a.terms.model]}
                         </span>
                       </td>
-                      <td className="px-3 py-3 text-white/70">{a.terms.revshare_percent}%</td>
-                      <td className="px-3 py-3 text-white/70">{money(a.terms.cpa_amount)}</td>
-                      <td className="px-3 py-3 text-white/70">
+                      <td className="px-3 py-3 text-adm-fg/70">{a.terms.revshare_percent}%</td>
+                      <td className="px-3 py-3 text-adm-fg/70">{money(a.terms.cpa_amount)}</td>
+                      <td className="px-3 py-3 text-adm-fg/70">
                         {compact(a.referrals)}
-                        <span className="text-[11px] text-white/30"> / {compact(a.depositors)} dep.</span>
+                        <span className="text-[11px] text-adm-fg/30"> / {compact(a.depositors)} dep.</span>
                       </td>
-                      <td className="px-3 py-3 text-white/70">{money(a.deposit_total)}</td>
-                      <td className="px-3 py-3 text-white/70">{pct(a.conversion_rate)}</td>
+                      <td className="px-3 py-3 text-adm-fg/70">{money(a.deposit_total)}</td>
+                      <td className="px-3 py-3 text-adm-fg/70">{pct(a.conversion_rate)}</td>
                       <td className="px-3 py-3">
-                        <p className="text-[#2190ff]">{money(a.total_earned)}</p>
-                        <p className="text-[11px] text-white/30">
+                        <p className="text-adm-accent">{money(a.total_earned)}</p>
+                        <p className="text-[11px] text-adm-fg/30">
                           Rev {money(a.revshare_earned)} · CPA {money(a.cpa_earned)}
                         </p>
                       </td>
-                      <td className="px-3 py-3 text-white/70">{money(a.balance)}</td>
+                      <td className="px-3 py-3 text-adm-fg/70">{money(a.balance)}</td>
                       <td className="px-3 py-3">
                         <span
                           className={`rounded-md px-2 py-0.5 text-[11px] font-medium ${
                             a.status === "active"
-                              ? "bg-[#2190ff]/15 text-[#2190ff]"
+                              ? "bg-adm-accent/15 text-adm-accent"
                               : a.status === "blocked"
                                 ? "bg-red-500/15 text-red-400"
                                 : "bg-yellow-500/15 text-yellow-400"
@@ -414,7 +414,7 @@ export function AdminAffiliates() {
               </tbody>
             </table>
           </div>
-          <p className="text-[11px] text-white/30">
+          <p className="text-[11px] text-adm-fg/30">
             Clique em um afiliado para ver o detalhamento completo e ajustar CPA, RevShare, status e saldo.
           </p>
         </div>
@@ -423,47 +423,47 @@ export function AdminAffiliates() {
       {tab === "withdrawals" && (
         <div className="flex flex-col gap-5">
           <section className={`${cardClass} ${pending.length > 0 ? "border-yellow-500/30" : ""}`}>
-            <div className="flex items-center gap-2 border-b border-[#1F2933] px-4 py-3">
+            <div className="flex items-center gap-2 border-b border-adm-line px-4 py-3">
               <Clock className="h-4 w-4 text-yellow-500" />
-              <p className="text-sm font-semibold text-white">Pendentes ({pending.length})</p>
+              <p className="text-sm font-semibold text-adm-fg">Pendentes ({pending.length})</p>
               {pending.length > 0 && (
-                <span className="ml-auto text-sm text-white/50">{money(stats.pendingPayout)} a liberar</span>
+                <span className="ml-auto text-sm text-adm-fg/50">{money(stats.pendingPayout)} a liberar</span>
               )}
             </div>
             {pending.length === 0 ? (
-              <p className="p-4 text-sm text-white/40">Nenhum saque aguardando aprovação</p>
+              <p className="p-4 text-sm text-adm-fg/40">Nenhum saque aguardando aprovação</p>
             ) : (
-              <ul className="divide-y divide-[#1F2933]">
+              <ul className="divide-y divide-adm-line">
                 {pending.map((w) => (
                   <li key={w.id} className="flex flex-wrap items-center justify-between gap-4 px-4 py-4">
                     <div className="min-w-0">
-                      <p className="truncate text-sm text-white">{w.profile?.full_name || "Afiliado"}</p>
-                      <p className="truncate text-[11px] text-white/40">
+                      <p className="truncate text-sm text-adm-fg">{w.profile?.full_name || "Afiliado"}</p>
+                      <p className="truncate text-[11px] text-adm-fg/40">
                         {w.profile?.affiliate_code || "—"} · {w.pix_key_type}: {w.pix_key}
                       </p>
-                      <p className="mt-1 text-base font-semibold text-[#2190ff]">
-                        {money(w.net_amount)} <span className="text-[11px] font-normal text-white/40">a pagar</span>
+                      <p className="mt-1 text-base font-semibold text-adm-accent">
+                        {money(w.net_amount)} <span className="text-[11px] font-normal text-adm-fg/40">a pagar</span>
                       </p>
-                      <p className="text-[11px] text-white/30">
+                      <p className="text-[11px] text-adm-fg/30">
                         Solicitado {money(w.amount)} · taxa {money(w.fee)} · {dateTime(w.created_at)}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
                       {processing === w.id ? (
-                        <Loader2 className="h-5 w-5 animate-spin text-white/60" />
+                        <Loader2 className="h-5 w-5 animate-spin text-adm-fg/60" />
                       ) : (
                         <>
                           <button
                             type="button"
                             onClick={() => processWithdrawal(w.id, "completed")}
-                            className="flex h-10 items-center gap-2 rounded-lg bg-[#2190ff] px-4 text-sm font-medium text-white"
+                            className="flex h-10 items-center gap-2 rounded-lg bg-adm-accent px-4 text-sm font-medium text-adm-fg"
                           >
                             <Check className="h-4 w-4" /> Aprovar
                           </button>
                           <button
                             type="button"
                             onClick={() => processWithdrawal(w.id, "rejected")}
-                            className="flex h-10 items-center gap-2 rounded-lg bg-red-500 px-4 text-sm font-medium text-white"
+                            className="flex h-10 items-center gap-2 rounded-lg bg-red-500 px-4 text-sm font-medium text-adm-fg"
                           >
                             <X className="h-4 w-4" /> Recusar
                           </button>
@@ -477,12 +477,12 @@ export function AdminAffiliates() {
           </section>
 
           <section className={`${cardClass} overflow-x-auto`}>
-            <div className="border-b border-[#1F2933] px-4 py-3">
-              <p className="text-sm font-semibold text-white">Histórico ({processed.length})</p>
+            <div className="border-b border-adm-line px-4 py-3">
+              <p className="text-sm font-semibold text-adm-fg">Histórico ({processed.length})</p>
             </div>
             <table className="w-full min-w-[720px] text-sm">
               <thead>
-                <tr className="border-b border-[#1F2933]">
+                <tr className="border-b border-adm-line">
                   <th className={thClass}>Afiliado</th>
                   <th className={thClass}>Solicitado</th>
                   <th className={thClass}>Líquido</th>
@@ -494,21 +494,21 @@ export function AdminAffiliates() {
               <tbody>
                 {processed.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-3 py-8 text-center text-white/40">
+                    <td colSpan={6} className="px-3 py-8 text-center text-adm-fg/40">
                       Nenhum saque processado
                     </td>
                   </tr>
                 ) : (
                   processed.map((w) => (
-                    <tr key={w.id} className="border-b border-[#1F2933] last:border-0">
+                    <tr key={w.id} className="border-b border-adm-line last:border-0">
                       <td className="px-3 py-3">
-                        <p className="text-white">{w.profile?.full_name || "Afiliado"}</p>
-                        <p className="text-[11px] text-white/40">{w.profile?.affiliate_code || "—"}</p>
+                        <p className="text-adm-fg">{w.profile?.full_name || "Afiliado"}</p>
+                        <p className="text-[11px] text-adm-fg/40">{w.profile?.affiliate_code || "—"}</p>
                       </td>
-                      <td className="px-3 py-3 text-white/70">{money(w.amount)}</td>
-                      <td className="px-3 py-3 text-white/70">{money(w.net_amount)}</td>
-                      <td className="px-3 py-3 text-[11px] text-white/50">{w.pix_key}</td>
-                      <td className="px-3 py-3 text-white/50">{dateTime(w.processed_at)}</td>
+                      <td className="px-3 py-3 text-adm-fg/70">{money(w.amount)}</td>
+                      <td className="px-3 py-3 text-adm-fg/70">{money(w.net_amount)}</td>
+                      <td className="px-3 py-3 text-[11px] text-adm-fg/50">{w.pix_key}</td>
+                      <td className="px-3 py-3 text-adm-fg/50">{dateTime(w.processed_at)}</td>
                       <td className="px-3 py-3">
                         <StatusPill status={w.status} />
                       </td>
@@ -523,15 +523,15 @@ export function AdminAffiliates() {
 
       {tab === "commissions" && (
         <section className={`${cardClass} overflow-x-auto`}>
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#1F2933] px-4 py-3">
-            <p className="text-sm font-semibold text-white">Comissões recentes</p>
-            <p className="text-[11px] text-white/40">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-adm-line px-4 py-3">
+            <p className="text-sm font-semibold text-adm-fg">Comissões recentes</p>
+            <p className="text-[11px] text-adm-fg/40">
               RevShare {money(stats.totalRevshare)} · CPA {money(stats.totalCpa)}
             </p>
           </div>
           <table className="w-full min-w-[820px] text-sm">
             <thead>
-              <tr className="border-b border-[#1F2933]">
+              <tr className="border-b border-adm-line">
                 <th className={thClass}>Data</th>
                 <th className={thClass}>Afiliado</th>
                 <th className={thClass}>Referido</th>
@@ -546,29 +546,29 @@ export function AdminAffiliates() {
             <tbody>
               {commissions.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-3 py-8 text-center text-white/40">
+                  <td colSpan={6} className="px-3 py-8 text-center text-adm-fg/40">
                     Nenhuma comissão registrada
                   </td>
                 </tr>
               ) : (
                 commissions.map((c) => (
-                  <tr key={c.id} className="border-b border-[#1F2933] last:border-0">
-                    <td className="px-3 py-3 text-white/50">{dateTime(c.created_at)}</td>
+                  <tr key={c.id} className="border-b border-adm-line last:border-0">
+                    <td className="px-3 py-3 text-adm-fg/50">{dateTime(c.created_at)}</td>
                     <td className="px-3 py-3">
-                      <p className="text-white">{c.affiliate_name}</p>
-                      <p className="text-[11px] text-[#2190ff]">{c.affiliate_code}</p>
+                      <p className="text-adm-fg">{c.affiliate_name}</p>
+                      <p className="text-[11px] text-adm-accent">{c.affiliate_code}</p>
                     </td>
-                    <td className="px-3 py-3 text-white/70">{c.referred_name}</td>
-                    <td className="px-3 py-3 text-white/70">
+                    <td className="px-3 py-3 text-adm-fg/70">{c.referred_name}</td>
+                    <td className="px-3 py-3 text-adm-fg/70">
                       <p>{money(c.deposit_amount)}</p>
-                      <p className="text-[11px] text-white/40">
+                      <p className="text-[11px] text-adm-fg/40">
                         {c.cpa_amount > 0 ? "depósito" : "receita das operações"}
                       </p>
                     </td>
-                    <td className="px-3 py-3 text-[11px] text-white/50">
+                    <td className="px-3 py-3 text-[11px] text-adm-fg/50">
                       {c.cpa_amount > 0 ? `CPA ${money(c.cpa_amount)}` : `RevShare ${c.commission_percent}%`}
                     </td>
-                    <td className="px-3 py-3 font-medium text-[#2190ff]">{money(c.commission_amount)}</td>
+                    <td className="px-3 py-3 font-medium text-adm-accent">{money(c.commission_amount)}</td>
                   </tr>
                 ))
               )}
@@ -604,15 +604,15 @@ function StatCard({
   return (
     <div className={`${cardClass} p-4`}>
       <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#2190ff]/20">
-          <Icon className="h-5 w-5 text-[#2190ff]" />
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-adm-accent/20">
+          <Icon className="h-5 w-5 text-adm-accent" />
         </span>
         <div className="min-w-0">
-          <p className="text-[11px] text-white/40">{label}</p>
-          <p className="truncate text-lg font-bold text-white">{value}</p>
+          <p className="text-[11px] text-adm-fg/40">{label}</p>
+          <p className="truncate text-lg font-bold text-adm-fg">{value}</p>
         </div>
       </div>
-      {hint && <p className="mt-2 text-[11px] text-white/30">{hint}</p>}
+      {hint && <p className="mt-2 text-[11px] text-adm-fg/30">{hint}</p>}
     </div>
   )
 }
@@ -663,7 +663,7 @@ function SettingsPanel({ settings, onSaved }: { settings: AdminSettings; onSaved
           role="status"
           aria-live="polite"
           className={`rounded-lg px-3 py-2.5 text-sm ${
-            message.type === "ok" ? "bg-[#2190ff]/10 text-[#2190ff]" : "bg-red-500/10 text-red-400"
+            message.type === "ok" ? "bg-adm-accent/10 text-adm-accent" : "bg-red-500/10 text-red-400"
           }`}
         >
           {message.text}
@@ -672,8 +672,8 @@ function SettingsPanel({ settings, onSaved }: { settings: AdminSettings; onSaved
 
       <section className={`${cardClass} p-5`}>
         <div className="mb-4 flex items-center gap-2">
-          <Target className="h-4 w-4 text-[#2190ff]" />
-          <p className="text-sm font-semibold text-white">Valores padrão de comissão</p>
+          <Target className="h-4 w-4 text-adm-accent" />
+          <p className="text-sm font-semibold text-adm-fg">Valores padrão de comissão</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <NumberField label="RevShare padrão (%)" value={form.default_revshare_percent} onChange={(v) => set("default_revshare_percent", v)} hint="Aplicado a novos afiliados" />
@@ -685,8 +685,8 @@ function SettingsPanel({ settings, onSaved }: { settings: AdminSettings; onSaved
 
       <section className={`${cardClass} p-5`}>
         <div className="mb-4 flex items-center gap-2">
-          <Wallet className="h-4 w-4 text-[#2190ff]" />
-          <p className="text-sm font-semibold text-white">Regras de saque</p>
+          <Wallet className="h-4 w-4 text-adm-accent" />
+          <p className="text-sm font-semibold text-adm-fg">Regras de saque</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <NumberField label="Saque mínimo (R$)" value={form.min_withdrawal} onChange={(v) => set("min_withdrawal", v)} />
@@ -696,13 +696,13 @@ function SettingsPanel({ settings, onSaved }: { settings: AdminSettings; onSaved
 
       <section className={`${cardClass} p-5`}>
         <div className="mb-4 flex items-center gap-2">
-          <Wallet className="h-4 w-4 text-[#2190ff]" />
-          <p className="text-sm font-semibold text-white">Exibição no painel do afiliado</p>
+          <Wallet className="h-4 w-4 text-adm-accent" />
+          <p className="text-sm font-semibold text-adm-fg">Exibição no painel do afiliado</p>
         </div>
         <div className="flex flex-col gap-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="flex flex-col gap-1.5">
-              <span className="text-sm text-white/70">Moeda exibida</span>
+              <span className="text-sm text-adm-fg/70">Moeda exibida</span>
               <select
                 className={`${inputClass} w-full`}
                 value={form.display_currency}
@@ -711,7 +711,7 @@ function SettingsPanel({ settings, onSaved }: { settings: AdminSettings; onSaved
                 <option value="BRL">Real (R$)</option>
                 <option value="USD">Dólar ($)</option>
               </select>
-              <span className="text-[11px] text-white/30">Afeta todos os valores do painel do afiliado</span>
+              <span className="text-[11px] text-adm-fg/30">Afeta todos os valores do painel do afiliado</span>
             </label>
             <NumberField
               label="Cotação do dólar (1 USD em R$)"
@@ -726,7 +726,7 @@ function SettingsPanel({ settings, onSaved }: { settings: AdminSettings; onSaved
           </div>
 
           {form.display_currency === "USD" && (
-            <p className="rounded-lg bg-[#0a0e17] px-3 py-2.5 text-[11px] text-white/40">
+            <p className="rounded-lg bg-adm-bg px-3 py-2.5 text-[11px] text-adm-fg/40">
               {"Exemplo: um saldo de R$ 1.000,00 aparece como " +
                 (form.usd_rate > 0
                   ? "$ " +
@@ -740,14 +740,14 @@ function SettingsPanel({ settings, onSaved }: { settings: AdminSettings; onSaved
           )}
 
           <label className="flex flex-col gap-1.5">
-            <span className="text-sm text-white/70">Data do próximo pagamento</span>
+            <span className="text-sm text-adm-fg/70">Data do próximo pagamento</span>
             <input
               type="date"
               className={`${inputClass} w-full [color-scheme:dark]`}
               value={form.next_payment_date ?? ""}
               onChange={(e) => set("next_payment_date", e.target.value || null)}
             />
-            <span className="text-[11px] text-white/30">
+            <span className="text-[11px] text-adm-fg/30">
               Deixe em branco para o painel calcular automaticamente a próxima janela (dias 10-12 e 25-27).
             </span>
           </label>
@@ -755,7 +755,7 @@ function SettingsPanel({ settings, onSaved }: { settings: AdminSettings; onSaved
             <button
               type="button"
               onClick={() => set("next_payment_date", null)}
-              className="self-start text-[11px] text-[#2190ff] hover:underline"
+              className="self-start text-[11px] text-adm-accent hover:underline"
             >
               Limpar data e voltar ao cálculo automático
             </button>
@@ -765,8 +765,8 @@ function SettingsPanel({ settings, onSaved }: { settings: AdminSettings; onSaved
 
       <section className={`${cardClass} p-5`}>
         <div className="mb-4 flex items-center gap-2">
-          <Settings2 className="h-4 w-4 text-[#2190ff]" />
-          <p className="text-sm font-semibold text-white">Programa</p>
+          <Settings2 className="h-4 w-4 text-adm-accent" />
+          <p className="text-sm font-semibold text-adm-fg">Programa</p>
         </div>
         <div className="flex flex-col gap-3">
           <Toggle
@@ -789,7 +789,7 @@ function SettingsPanel({ settings, onSaved }: { settings: AdminSettings; onSaved
           type="button"
           onClick={save}
           disabled={saving}
-          className="flex h-11 items-center gap-2 rounded-lg bg-[#2190ff] px-6 text-sm font-medium text-white disabled:opacity-40"
+          className="flex h-11 items-center gap-2 rounded-lg bg-adm-accent px-6 text-sm font-medium text-adm-fg disabled:opacity-40"
         >
           {saving && <Loader2 className="h-4 w-4 animate-spin" />}
           Salvar configurações
@@ -798,13 +798,13 @@ function SettingsPanel({ settings, onSaved }: { settings: AdminSettings; onSaved
           type="button"
           onClick={applyToAll}
           disabled={applying}
-          className="flex h-11 items-center gap-2 rounded-lg border border-[#1F2933] px-6 text-sm text-white/70 hover:bg-[#121826] hover:text-white disabled:opacity-40"
+          className="flex h-11 items-center gap-2 rounded-lg border border-adm-line px-6 text-sm text-adm-fg/70 hover:bg-adm-elevated hover:text-adm-fg disabled:opacity-40"
         >
           {applying && <Loader2 className="h-4 w-4 animate-spin" />}
           Aplicar padrão a todos os afiliados
         </button>
       </div>
-      <p className="text-[11px] text-white/30">
+      <p className="text-[11px] text-adm-fg/30">
         {settings.updated_at ? `Última atualização em ${dateTime(settings.updated_at)}.` : ""} Aplicar o padrão sobrescreve
         os valores individuais de CPA e RevShare de todos os afiliados.
       </p>
@@ -825,14 +825,14 @@ function NumberField({
 }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-sm text-white/70">{label}</span>
+      <span className="text-sm text-adm-fg/70">{label}</span>
       <input
         className={`${inputClass} w-full`}
         value={String(value)}
         onChange={(e) => onChange(Number(e.target.value))}
         inputMode="decimal"
       />
-      {hint && <span className="text-[11px] text-white/30">{hint}</span>}
+      {hint && <span className="text-[11px] text-adm-fg/30">{hint}</span>}
     </label>
   )
 }
@@ -849,10 +849,10 @@ function Toggle({
   onChange: (value: boolean) => void
 }) {
   return (
-    <div className="flex items-start justify-between gap-4 rounded-lg bg-[#0a0e17] p-4">
+    <div className="flex items-start justify-between gap-4 rounded-lg bg-adm-bg p-4">
       <div className="min-w-0">
-        <p className="text-sm text-white">{label}</p>
-        {hint && <p className="text-[11px] text-white/40">{hint}</p>}
+        <p className="text-sm text-adm-fg">{label}</p>
+        {hint && <p className="text-[11px] text-adm-fg/40">{hint}</p>}
       </div>
       <button
         type="button"
@@ -860,7 +860,7 @@ function Toggle({
         aria-checked={checked}
         aria-label={label}
         onClick={() => onChange(!checked)}
-        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${checked ? "bg-[#2190ff]" : "bg-[#1F2933]"}`}
+        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${checked ? "bg-adm-accent" : "bg-adm-elevated"}`}
       >
         <span
           className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${checked ? "left-[22px]" : "left-0.5"}`}

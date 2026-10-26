@@ -41,6 +41,7 @@ import { AdminAssets } from "@/components/admin/sections/admin-assets"
 import { AdminManipulation } from "@/components/admin/sections/admin-manipulation"
 import { AdminPromotions } from "@/components/admin/sections/admin-promotions"
 import { AdminSupport } from "@/components/admin/sections/admin-support"
+import { AdminDepositSettings } from "@/components/admin/sections/admin-deposit-settings"
 
 // A autorizacao do painel e feita por cookie HttpOnly assinado, enviado automaticamente
 // pelo navegador em requisicoes same-origin. Nenhum segredo trafega pelo bundle.
@@ -269,7 +270,7 @@ export default function AdminDashboardClient() {
 
   // Utility functions
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value || 0)
+    return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value || 0)
   }
 
   const formatDate = (date: string) => {
@@ -286,14 +287,14 @@ export default function AdminDashboardClient() {
     switch (status) {
       case "approved":
       case "completed":
-        return "bg-blue-500/20 text-blue-500"
+        return "bg-adm-accent/20 text-adm-accent"
       case "pending":
         return "bg-yellow-500/20 text-yellow-500"
       case "rejected":
       case "failed":
         return "bg-red-500/20 text-red-500"
       default:
-        return "bg-gray-500/20 text-gray-500"
+        return "bg-adm-muted/20 text-adm-muted"
     }
   }
 
@@ -974,11 +975,11 @@ export default function AdminDashboardClient() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0B0F14]">
+    <div className="min-h-screen bg-adm-bg">
       {/* Mobile Header */}
-      <div className="lg:hidden flex items-center justify-between p-4 border-b border-[#1E2633]">
+      <div className="lg:hidden flex items-center justify-between p-4 border-b border-adm-line">
         <button onClick={() => setSidebarOpen(true)}>
-          <Menu className="w-6 h-6 text-white" />
+          <Menu className="w-6 h-6 text-adm-fg" />
         </button>
         <Image
           src="/images/kryptobit-logo.png"
@@ -996,7 +997,7 @@ export default function AdminDashboardClient() {
       {/* Mobile Sidebar */}
       {sidebarOpen && (
         <div className="lg:hidden fixed inset-0 z-50 bg-black/50" onClick={() => setSidebarOpen(false)}>
-          <div className="w-64 h-full bg-[#0B0F14] border-r border-[#1E2633] p-4" onClick={(e) => e.stopPropagation()}>
+          <div className="w-64 h-full bg-adm-bg border-r border-adm-line p-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-8">
               <Image
           src="/images/kryptobit-logo.png"
@@ -1007,7 +1008,7 @@ export default function AdminDashboardClient() {
           className="h-auto w-[130px]"
         />
               <button onClick={() => setSidebarOpen(false)}>
-                <X className="w-6 h-6 text-white" />
+                <X className="w-6 h-6 text-adm-fg" />
               </button>
             </div>
             <nav className="space-y-2">
@@ -1019,7 +1020,7 @@ export default function AdminDashboardClient() {
                     setSidebarOpen(false)
                   }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg ${
-                    activeTab === item.id ? "bg-blue-500/20 text-blue-500" : "text-gray-400 hover:bg-[#1A1F2E]"
+                    activeTab === item.id ? "bg-adm-accent/20 text-adm-accent" : "text-adm-muted hover:bg-adm-elevated"
                   }`}
                 >
                   <item.icon className="w-5 h-5" />
@@ -1038,45 +1039,64 @@ export default function AdminDashboardClient() {
 
       <div className="flex">
         {/* Desktop Sidebar */}
-        <div className="hidden lg:flex lg:flex-col w-64 min-h-screen border-r border-[#1E2633] p-4">
-          <div className="mb-8">
+        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-adm-line bg-adm-surface lg:flex">
+          <div className="flex flex-col gap-3 border-b border-adm-line px-5 py-6">
             <Image
               src="/images/kryptobit-logo.png"
               alt="Kryptobit"
-              width={180}
-              height={48}
+              width={150}
+              height={40}
               priority
-              className="h-auto w-[180px]"
+              className="h-auto w-[150px]"
             />
-            <p className="text-gray-400 text-sm mt-2">Painel Admin</p>
+            <span className="w-fit rounded-md border border-adm-line bg-adm-bg px-2 py-0.5 text-[11px] font-semibold uppercase tracking-widest text-adm-muted">
+              Painel Admin
+            </span>
           </div>
-          <nav className="space-y-2 flex-1">
-            {menuItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id as any)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg ${
-                  activeTab === item.id ? "bg-blue-500/20 text-blue-500" : "text-gray-400 hover:bg-[#1A1F2E]"
-                }`}
-              >
-                <item.icon className="w-5 h-5" />
-                {item.label}
-                {item.id === "kyc" && stats?.pendingKyc ? (
-                  <span className="ml-auto px-2 py-0.5 bg-yellow-500/20 text-yellow-500 text-xs rounded">
-                    {stats.pendingKyc}
+          <nav aria-label="Navegação do painel" className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-4">
+            {menuItems.map((item) => {
+              const active = activeTab === item.id
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id as any)}
+                  aria-current={active ? "page" : undefined}
+                  className={`group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    active
+                      ? "bg-adm-elevated text-adm-fg"
+                      : "text-adm-muted hover:bg-adm-elevated/60 hover:text-adm-fg"
+                  }`}
+                >
+                  <span
+                    className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors ${
+                      active ? "bg-adm-accent text-adm-on-accent" : "bg-adm-bg text-adm-muted group-hover:text-adm-fg"
+                    }`}
+                  >
+                    <item.icon className="h-4 w-4" />
                   </span>
-                ) : null}
-              </button>
-            ))}
+                  {item.label}
+                  {item.id === "kyc" && stats?.pendingKyc ? (
+                    <span className="ml-auto rounded-full bg-yellow-500/15 px-2 py-0.5 text-[11px] font-semibold text-yellow-400">
+                      {stats.pendingKyc}
+                    </span>
+                  ) : null}
+                </button>
+              )
+            })}
           </nav>
-          <button onClick={handleLogout} className="flex items-center gap-2 text-red-500 hover:text-red-400 mt-auto">
-            <LogOut className="w-5 h-5" />
-            Sair
-          </button>
-        </div>
+          <div className="border-t border-adm-line p-3">
+            <button
+              onClick={handleLogout}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-adm-muted transition-colors hover:bg-adm-down/10 hover:text-adm-down"
+            >
+              <LogOut className="h-4 w-4" />
+              Sair
+            </button>
+          </div>
+        </aside>
 
         {/* Main Content */}
-        <div className="flex-1 p-4 lg:p-8 overflow-auto">
+        <div className="min-w-0 flex-1 overflow-auto p-4 lg:p-8">
           {error && <div className="mb-4 p-4 bg-red-500/20 border border-red-500 rounded-lg text-red-500">{error}</div>}
 
           {/* Dashboard Tab */}
@@ -1086,18 +1106,18 @@ export default function AdminDashboardClient() {
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="relative flex h-2.5 w-2.5">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#2190ff] opacity-60" />
-                      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#2190ff]" />
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-adm-accent opacity-60" />
+                      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-adm-accent" />
                     </span>
-                    <h1 className="text-2xl font-bold tracking-tight text-white">Dashboard</h1>
+                    <h1 className="text-2xl font-bold tracking-tight text-adm-fg">Dashboard</h1>
                   </div>
-                  <p className="mt-1 text-sm text-gray-400">Visão geral da operação em tempo real.</p>
+                  <p className="mt-1 text-sm text-adm-muted">Visão geral da operação em tempo real.</p>
                 </div>
                 <Button
                   onClick={fetchStats}
                   variant="outline"
                   size="sm"
-                  className="border-[#1b2333] bg-[#0e1521] text-gray-300 hover:bg-[#141c2b] hover:text-white"
+                  className="border-adm-line bg-adm-surface text-adm-fg/80 hover:bg-adm-elevated hover:text-adm-fg"
                 >
                   <RefreshCw className={`w-4 h-4 mr-2 ${statsLoading ? "animate-spin" : ""}`} />
                   Atualizar
@@ -1105,7 +1125,7 @@ export default function AdminDashboardClient() {
               </div>
 
               {statsLoading ? (
-                <div className="text-center text-gray-400 py-8">Carregando...</div>
+                <div className="text-center text-adm-muted py-8">Carregando...</div>
               ) : stats ? (
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                   <StatCard icon={Users} label="Usuários" value={stats.totalUsers} color="blue" />
@@ -1154,8 +1174,8 @@ export default function AdminDashboardClient() {
             <div>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
                 <div>
-                  <h1 className="text-2xl font-bold text-white">Usuários</h1>
-                  <p className="text-gray-400">
+                  <h1 className="text-2xl font-bold text-adm-fg">Usuários</h1>
+                  <p className="text-adm-muted">
                     {filteredUsers.length}
                     {filteredUsers.length !== users.length ? ` de ${users.length}` : ""} usuários
                     {userDaysFilter !== "all" ? ` · últimos ${userDaysFilter} dias` : " cadastrados"}
@@ -1163,28 +1183,28 @@ export default function AdminDashboardClient() {
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                   <div className="relative flex-1 sm:w-64">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-adm-muted" />
                     <Input
                       placeholder="Buscar..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-9 bg-[#1A1F2E] border-[#2A3142] text-white"
+                      className="pl-9 bg-adm-surface border-adm-line text-adm-fg"
                     />
                   </div>
                   <Button
                     onClick={fetchUsers}
                     variant="outline"
                     size="icon"
-                    className="border-[#2A3142] bg-transparent"
+                    className="border-adm-line bg-transparent"
                   >
-                    <RefreshCw className="w-4 h-4 text-gray-300" />
+                    <RefreshCw className="w-4 h-4 text-adm-fg/80" />
                   </Button>
                 </div>
               </div>
 
               {/* Filtro por período */}
               <div className="mb-5 flex flex-wrap items-center gap-2">
-                <span className="text-xs font-medium text-gray-500">Período:</span>
+                <span className="text-xs font-medium text-adm-muted">Período:</span>
                 {([
                   { label: "Hoje", value: 1 },
                   { label: "7 dias", value: 7 },
@@ -1199,8 +1219,8 @@ export default function AdminDashboardClient() {
                       onClick={() => setUserDaysFilter(opt.value)}
                       className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
                         active
-                          ? "bg-blue-500 text-white"
-                          : "border border-[#2A3142] bg-[#11161f] text-gray-400 hover:bg-[#171d28] hover:text-gray-200"
+                          ? "bg-adm-accent text-adm-fg"
+                          : "border border-adm-line bg-adm-surface text-adm-muted hover:bg-adm-elevated hover:text-adm-fg/90"
                       }`}
                     >
                       {opt.label}
@@ -1212,53 +1232,53 @@ export default function AdminDashboardClient() {
               <UsersChart refreshKey={statsRefreshKey} />
 
               {usersLoading ? (
-                <div className="text-center text-gray-400 py-8">Carregando...</div>
+                <div className="text-center text-adm-muted py-8">Carregando...</div>
               ) : filteredUsers.length === 0 ? (
-                <div className="text-center text-gray-400 py-8">Nenhum usuário encontrado</div>
+                <div className="text-center text-adm-muted py-8">Nenhum usuário encontrado</div>
               ) : (
                 <div className="space-y-3">
                   {filteredUsers.map((user) => (
-                    <div key={user.id} className="bg-[#1A1F2E] rounded-xl p-4 border border-[#2A3142]">
+                    <div key={user.id} className="bg-adm-surface rounded-xl p-4 border border-adm-line">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <p className="text-white font-medium truncate">{user.email}</p>
+                            <p className="text-adm-fg font-medium truncate">{user.email}</p>
                             {user.is_blocked && (
                               <span className="px-2 py-0.5 bg-red-500/20 text-red-500 text-xs rounded">Bloqueado</span>
                             )}
   {user.is_verified && (
-  <span className="px-2 py-0.5 bg-blue-500/20 text-blue-500 text-xs rounded">
+  <span className="px-2 py-0.5 bg-adm-accent/20 text-adm-accent text-xs rounded">
   Verificado
   </span>
   )}
   {user.is_affiliate && (
-  <span className="px-2 py-0.5 bg-blue-500/20 text-blue-500 text-xs rounded">
+  <span className="px-2 py-0.5 bg-adm-accent/20 text-adm-accent text-xs rounded">
   Afiliado
   </span>
   )}
   </div>
-                          <p className="text-gray-400 text-sm">{user.full_name || "Sem nome"}</p>
-                          <p className="text-gray-500 text-xs">{formatDate(user.created_at)}</p>
+                          <p className="text-adm-muted text-sm">{user.full_name || "Sem nome"}</p>
+                          <p className="text-adm-muted text-xs">{formatDate(user.created_at)}</p>
                         </div>
                         <div className="flex items-center gap-4">
                           <div className="text-right">
-                            <p className="text-blue-500 font-bold">{formatCurrency(user.balance_real)}</p>
-                            <p className="text-gray-500 text-xs">Demo: {formatCurrency(user.balance_demo)}</p>
+                            <p className="text-adm-accent font-bold">{formatCurrency(user.balance_real)}</p>
+                            <p className="text-adm-muted text-xs">Demo: {formatCurrency(user.balance_demo)}</p>
                             {user.rollover && user.rollover.remaining > 0 && (
-                              <p className="text-blue-400 text-xs mt-1 flex items-center justify-end gap-1">
+                              <p className="text-adm-accent-soft text-xs mt-1 flex items-center justify-end gap-1">
                                 <Repeat className="w-3 h-3" />
                                 Rollover: falta {formatCurrency(user.rollover.remaining)}
                               </p>
                             )}
                             {user.rollover && user.rollover.remaining <= 0 && (
-                              <p className="text-blue-400 text-xs mt-1">Rollover concluído</p>
+                              <p className="text-adm-accent-soft text-xs mt-1">Rollover concluído</p>
                             )}
                           </div>
                           <Button
                             onClick={() => openRolloverModal(user)}
                             size="sm"
                             variant="outline"
-                            className="border-[#2A3142] text-blue-400 hover:text-blue-300"
+                            className="border-adm-line text-adm-accent-soft hover:text-adm-accent-soft"
                           >
                             <Repeat className="w-4 h-4" />
                             <span className="ml-1 hidden sm:inline">Rollover</span>
@@ -1267,9 +1287,9 @@ export default function AdminDashboardClient() {
                             onClick={() => openEditModal(user)}
                             size="sm"
                             variant="outline"
-                            className="border-[#2A3142]"
+                            className="border-adm-line"
                           >
-                            <Edit className="w-4 h-4 text-gray-300" />
+                            <Edit className="w-4 h-4 text-adm-fg/80" />
                           </Button>
                         </div>
                       </div>
@@ -1285,14 +1305,14 @@ export default function AdminDashboardClient() {
             <div>
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h1 className="text-2xl font-bold text-white">Depósitos</h1>
-                  <p className="text-gray-400">{deposits.length} depósitos</p>
+                  <h1 className="text-2xl font-bold text-adm-fg">Depósitos</h1>
+                  <p className="text-adm-muted">{deposits.length} depósitos</p>
                 </div>
                 <Button
                   onClick={fetchDeposits}
                   variant="outline"
                   size="sm"
-                  className="border-[#2A3142] text-gray-300 bg-transparent"
+                  className="border-adm-line text-adm-fg/80 bg-transparent"
                 >
                   <RefreshCw className="w-4 h-4 mr-2" />
                   Atualizar
@@ -1302,43 +1322,49 @@ export default function AdminDashboardClient() {
               <DepositsChart refreshKey={statsRefreshKey} />
 
               {depositsLoading ? (
-                <div className="text-center text-gray-400 py-8">Carregando...</div>
+                <div className="text-center text-adm-muted py-8">Carregando...</div>
               ) : deposits.length === 0 ? (
-                <div className="text-center text-gray-400 py-8">Nenhum depósito encontrado</div>
+                <div className="text-center text-adm-muted py-8">Nenhum depósito encontrado</div>
               ) : (
                 <div className="space-y-3">
                   {deposits.map((deposit) => (
-                    <div key={deposit.id} className="bg-[#1A1F2E] rounded-xl p-4 border border-[#2A3142]">
+                    <div key={deposit.id} className="bg-adm-surface rounded-xl p-4 border border-adm-line">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <p className="text-white font-medium">{deposit.user_email || "Usuário"}</p>
+                            <p className="text-adm-fg font-medium">{deposit.user_email || "Usuário"}</p>
                             <span className={`px-2 py-0.5 text-xs rounded ${
                               deposit.method === "crypto" ? "bg-yellow-500/20 text-yellow-500" :
-                              deposit.method === "card" ? "bg-blue-500/20 text-blue-500" :
-                              "bg-blue-500/20 text-blue-500"
+                              deposit.method === "card" ? "bg-adm-accent/20 text-adm-accent" :
+                              "bg-adm-accent/20 text-adm-accent"
                             }`}>
                               {deposit.method === "crypto" ? "USDT" : deposit.method === "card" ? "Cartao" : "PIX"}
                             </span>
                           </div>
-                          <p className="text-gray-400 text-sm">{deposit.user_name || ""}</p>
-                          <p className="text-gray-500 text-xs">{formatDate(deposit.created_at)}</p>
+                          <p className="text-adm-muted text-sm">{deposit.user_name || ""}</p>
+                          <p className="text-adm-muted text-xs">{formatDate(deposit.created_at)}</p>
                           
                           {/* Show crypto details */}
                           {deposit.method === "crypto" && deposit.payment_details && (
-                            <div className="mt-2 p-2 rounded-lg bg-[#0B0F14] text-xs">
+                            <div className="mt-2 p-2 rounded-lg bg-adm-bg text-xs">
                               <p className="text-yellow-400">
-                                <span className="text-gray-500">Valor USD:</span> ${deposit.payment_details.amount_usd}
+                                <span className="text-adm-muted">Valor USD:</span> ${deposit.payment_details.amount_usd}
                               </p>
                               <p className="text-cyan-400 break-all">
-                                <span className="text-gray-500">TX Hash:</span> {deposit.payment_details.tx_hash || deposit.external_id}
+                                <span className="text-adm-muted">TX Hash:</span> {deposit.payment_details.tx_hash || deposit.external_id}
                               </p>
                             </div>
                           )}
                         </div>
                         <div className="flex items-center gap-4">
                           <div className="text-right">
-                            <p className="text-white font-bold">{formatCurrency(deposit.amount)}</p>
+                            <p className="text-adm-fg font-bold">{formatCurrency(deposit.amount)}</p>
+                            {deposit.payment_details?.amount_brl ? (
+                              <p className="font-mono text-xs text-adm-muted">
+                                {`Pago R$ ${Number(deposit.payment_details.amount_brl).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                                {deposit.payment_details.fx_rate ? ` · ${Number(deposit.payment_details.fx_rate).toFixed(4)}` : ""}
+                              </p>
+                            ) : null}
                             <span className={`px-2 py-0.5 text-xs rounded ${getStatusColor(deposit.status)}`}>
                               {deposit.status}
                             </span>
@@ -1348,7 +1374,7 @@ export default function AdminDashboardClient() {
                               <Button
                                 onClick={() => handleApproveDeposit(deposit)}
                                 size="sm"
-                                className="bg-blue-500 hover:bg-blue-600"
+                                className="bg-adm-accent hover:bg-adm-accent-strong"
                               >
                                 <Check className="w-4 h-4" />
                               </Button>
@@ -1371,14 +1397,14 @@ export default function AdminDashboardClient() {
             <div>
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h1 className="text-2xl font-bold text-white">Saques</h1>
-                  <p className="text-gray-400">{withdrawals.length} saques</p>
+                  <h1 className="text-2xl font-bold text-adm-fg">Saques</h1>
+                  <p className="text-adm-muted">{withdrawals.length} saques</p>
                 </div>
                 <Button
                   onClick={fetchWithdrawals}
                   variant="outline"
                   size="sm"
-                  className="border-[#2A3142] text-gray-300 bg-transparent"
+                  className="border-adm-line text-adm-fg/80 bg-transparent"
                 >
                   <RefreshCw className="w-4 h-4 mr-2" />
                   Atualizar
@@ -1386,27 +1412,27 @@ export default function AdminDashboardClient() {
               </div>
 
               {withdrawalsLoading ? (
-                <div className="text-center text-gray-400 py-8">Carregando...</div>
+                <div className="text-center text-adm-muted py-8">Carregando...</div>
               ) : withdrawals.length === 0 ? (
-                <div className="text-center text-gray-400 py-8">Nenhum saque encontrado</div>
+                <div className="text-center text-adm-muted py-8">Nenhum saque encontrado</div>
               ) : (
                 <div className="space-y-3">
                   {withdrawals.map((withdrawal) => (
-                    <div key={withdrawal.id} className="bg-[#1A1F2E] rounded-xl p-4 border border-[#2A3142]">
+                    <div key={withdrawal.id} className="bg-adm-surface rounded-xl p-4 border border-adm-line">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="flex-1">
-                          <p className="text-white font-medium">{withdrawal.user_email || "Usuário"}</p>
-                          <p className="text-gray-400 text-sm">{withdrawal.user_name || ""}</p>
-                          <p className="text-gray-500 text-xs">{formatDate(withdrawal.created_at)}</p>
+                          <p className="text-adm-fg font-medium">{withdrawal.user_email || "Usuário"}</p>
+                          <p className="text-adm-muted text-sm">{withdrawal.user_name || ""}</p>
+                          <p className="text-adm-muted text-xs">{formatDate(withdrawal.created_at)}</p>
 
                           {withdrawal.payment_details?.pix_key && (
-                            <div className="mt-2 p-2 rounded-lg bg-[#0B0F14]">
+                            <div className="mt-2 p-2 rounded-lg bg-adm-bg">
                               <p className="text-cyan-400 text-xs">
-                                <span className="text-gray-500">Chave PIX:</span> {withdrawal.payment_details.pix_key}
+                                <span className="text-adm-muted">Chave PIX:</span> {withdrawal.payment_details.pix_key}
                               </p>
                               {withdrawal.payment_details.pix_key_type && (
                                 <p className="text-cyan-400 text-xs">
-                                  <span className="text-gray-500">Tipo:</span>{" "}
+                                  <span className="text-adm-muted">Tipo:</span>{" "}
                                   {withdrawal.payment_details.pix_key_type === "cpf"
                                     ? "CPF"
                                     : withdrawal.payment_details.pix_key_type === "email"
@@ -1421,7 +1447,7 @@ export default function AdminDashboardClient() {
                         </div>
                         <div className="flex items-center gap-4">
                           <div className="text-right">
-                            <p className="text-white font-bold">{formatCurrency(withdrawal.amount)}</p>
+                            <p className="text-adm-fg font-bold">{formatCurrency(withdrawal.amount)}</p>
                             <span className={`px-2 py-0.5 text-xs rounded ${getStatusColor(withdrawal.status)}`}>
                               {withdrawal.status}
                             </span>
@@ -1431,7 +1457,7 @@ export default function AdminDashboardClient() {
                               <Button
                                 onClick={() => handleApproveWithdrawal(withdrawal)}
                                 size="sm"
-                                className="bg-blue-500 hover:bg-blue-600"
+                                className="bg-adm-accent hover:bg-adm-accent-strong"
                               >
                                 <Check className="w-4 h-4" />
                               </Button>
@@ -1458,14 +1484,14 @@ export default function AdminDashboardClient() {
             <div>
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h1 className="text-2xl font-bold text-white">Verificação KYC</h1>
-                  <p className="text-gray-400">{kycRequests.length} solicitações</p>
+                  <h1 className="text-2xl font-bold text-adm-fg">Verificação KYC</h1>
+                  <p className="text-adm-muted">{kycRequests.length} solicitações</p>
                 </div>
                 <Button
                   onClick={fetchKyc}
                   variant="outline"
                   size="sm"
-                  className="border-[#2A3142] text-gray-300 bg-transparent"
+                  className="border-adm-line text-adm-fg/80 bg-transparent"
                 >
                   <RefreshCw className="w-4 h-4 mr-2" />
                   Atualizar
@@ -1473,19 +1499,19 @@ export default function AdminDashboardClient() {
               </div>
 
               {kycLoading ? (
-                <div className="text-center text-gray-400 py-8">Carregando...</div>
+                <div className="text-center text-adm-muted py-8">Carregando...</div>
               ) : kycRequests.length === 0 ? (
-                <div className="text-center text-gray-400 py-8">Nenhuma solicitação de KYC</div>
+                <div className="text-center text-adm-muted py-8">Nenhuma solicitação de KYC</div>
               ) : (
                 <div className="space-y-4">
                   {kycRequests.map((kyc) => (
-                    <div key={kyc.id} className="bg-[#1A1F2E] rounded-xl p-4 border border-[#2A3142]">
+                    <div key={kyc.id} className="bg-adm-surface rounded-xl p-4 border border-adm-line">
                       <div className="flex flex-col gap-4">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                           <div>
-                            <p className="text-white font-medium">{kyc.user_email || "Usuário"}</p>
-                            <p className="text-gray-400 text-sm">{kyc.user_name || ""}</p>
-                            <p className="text-gray-500 text-xs">{formatDate(kyc.created_at)}</p>
+                            <p className="text-adm-fg font-medium">{kyc.user_email || "Usuário"}</p>
+                            <p className="text-adm-muted text-sm">{kyc.user_name || ""}</p>
+                            <p className="text-adm-muted text-xs">{formatDate(kyc.created_at)}</p>
                           </div>
                           <span className={`px-3 py-1 text-sm rounded ${getStatusColor(kyc.status)}`}>
                             {kyc.status === "pending"
@@ -1499,44 +1525,44 @@ export default function AdminDashboardClient() {
                         {/* Document Images - Clickable buttons */}
                         <div className="grid grid-cols-3 gap-2">
                           <div>
-                            <p className="text-gray-400 text-xs mb-1">Frente</p>
+                            <p className="text-adm-muted text-xs mb-1">Frente</p>
                             <button
                               onClick={() => openDocument(kyc.document_front_url, "Documento - Frente")}
                               disabled={!kyc.document_front_url || kycLoading || loading}
-                              className="w-full aspect-video bg-[#0B0F14] rounded-lg border border-[#2A3142] flex items-center justify-center hover:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="w-full aspect-video bg-adm-bg rounded-lg border border-adm-line flex items-center justify-center hover:border-adm-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               {kyc.document_front_url ? (
-                                <Eye className="h-5 w-5 text-blue-500" />
+                                <Eye className="h-5 w-5 text-adm-accent" />
                               ) : (
-                                <span className="text-gray-500 text-xs">Não enviado</span>
+                                <span className="text-adm-muted text-xs">Não enviado</span>
                               )}
                             </button>
                           </div>
                           <div>
-                            <p className="text-gray-400 text-xs mb-1">Verso</p>
+                            <p className="text-adm-muted text-xs mb-1">Verso</p>
                             <button
                               onClick={() => openDocument(kyc.document_back_url, "Documento - Verso")}
                               disabled={!kyc.document_back_url || kycLoading || loading}
-                              className="w-full aspect-video bg-[#0B0F14] rounded-lg border border-[#2A3142] flex items-center justify-center hover:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="w-full aspect-video bg-adm-bg rounded-lg border border-adm-line flex items-center justify-center hover:border-adm-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               {kyc.document_back_url ? (
-                                <Eye className="h-5 w-5 text-blue-500" />
+                                <Eye className="h-5 w-5 text-adm-accent" />
                               ) : (
-                                <span className="text-gray-500 text-xs">Não enviado</span>
+                                <span className="text-adm-muted text-xs">Não enviado</span>
                               )}
                             </button>
                           </div>
                           <div>
-                            <p className="text-gray-400 text-xs mb-1">Selfie</p>
+                            <p className="text-adm-muted text-xs mb-1">Selfie</p>
                             <button
                               onClick={() => openDocument(kyc.selfie_with_document_url, "Selfie com Documento")}
                               disabled={!kyc.selfie_with_document_url || kycLoading || loading}
-                              className="w-full aspect-video bg-[#0B0F14] rounded-lg border border-[#2A3142] flex items-center justify-center hover:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="w-full aspect-video bg-adm-bg rounded-lg border border-adm-line flex items-center justify-center hover:border-adm-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               {kyc.selfie_with_document_url ? (
-                                <Eye className="h-5 w-5 text-blue-500" />
+                                <Eye className="h-5 w-5 text-adm-accent" />
                               ) : (
-                                <span className="text-gray-500 text-xs">Não enviado</span>
+                                <span className="text-adm-muted text-xs">Não enviado</span>
                               )}
                             </button>
                           </div>
@@ -1546,9 +1572,9 @@ export default function AdminDashboardClient() {
 
                         {/* Success animation */}
                         {kycSuccess === kyc.id && (
-                          <div className="flex items-center justify-center py-4 bg-blue-500/20 rounded-lg border border-blue-500/50 animate-pulse">
-                            <Check className="w-6 h-6 text-blue-500 mr-2" />
-                            <span className="text-blue-500 font-medium">Aprovado com sucesso!</span>
+                          <div className="flex items-center justify-center py-4 bg-adm-accent/20 rounded-lg border border-adm-accent/50 animate-pulse">
+                            <Check className="w-6 h-6 text-adm-accent mr-2" />
+                            <span className="text-adm-accent font-medium">Aprovado com sucesso!</span>
                           </div>
                         )}
 
@@ -1560,7 +1586,7 @@ export default function AdminDashboardClient() {
                                   placeholder="Motivo da rejeição..."
                                   value={rejectReason}
                                   onChange={(e) => setRejectReason(e.target.value)}
-                                  className="bg-[#0B0F14] border-[#2A3142] text-white"
+                                  className="bg-adm-bg border-adm-line text-adm-fg"
                                 />
                                 <div className="flex gap-2">
                                   <Button
@@ -1570,7 +1596,7 @@ export default function AdminDashboardClient() {
                                     }}
                                     variant="outline"
                                     size="sm"
-                                    className="flex-1 border-[#2A3142]"
+                                    className="flex-1 border-adm-line"
                                     disabled={processingKycId === kyc.id}
                                   >
                                     Cancelar
@@ -1598,7 +1624,7 @@ export default function AdminDashboardClient() {
                                 <Button
                                   onClick={() => handleKycAction("approve", kyc.id, kyc.user_id)}
                                   size="sm"
-                                  className="flex-1 bg-blue-500 hover:bg-blue-600"
+                                  className="flex-1 bg-adm-accent hover:bg-adm-accent-strong"
                                   disabled={processingKycId === kyc.id}
                                 >
                                   {processingKycId === kyc.id ? (
@@ -1641,12 +1667,12 @@ export default function AdminDashboardClient() {
                 >
                   <div className="relative max-w-4xl w-full max-h-[90vh]">
                     <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-4 bg-gradient-to-b from-black/80 to-transparent z-10">
-                      <h3 className="text-white font-medium">{imageModal.title}</h3>
+                      <h3 className="text-adm-fg font-medium">{imageModal.title}</h3>
                       <button
                         onClick={() => setImageModal({ open: false, url: "", title: "" })}
                         className="p-2 bg-white/10 rounded-full hover:bg-white/20"
                       >
-                        <X className="h-5 w-5 text-white" />
+                        <X className="h-5 w-5 text-adm-fg" />
                       </button>
                     </div>
                     <div className="flex items-center justify-center min-h-[300px]">
@@ -1683,11 +1709,11 @@ export default function AdminDashboardClient() {
             <div className="space-y-4">
               <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
-                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <h2 className="text-xl font-bold text-adm-fg flex items-center gap-2">
                     <Bot className="w-5 h-5 text-primary" />
                     Robo IA
                   </h2>
-                  <p className="text-sm text-gray-400 mt-1">
+                  <p className="text-sm text-adm-muted mt-1">
                     Usuarios com a IA ativa, resultados e controle de assertividade.
                   </p>
                 </div>
@@ -1696,7 +1722,7 @@ export default function AdminDashboardClient() {
                   size="sm"
                   onClick={fetchIaUsers}
                   disabled={iaLoading}
-                  className="border-[#2A3142] text-gray-300"
+                  className="border-adm-line text-adm-fg/80"
                 >
                   <RefreshCw className={`w-4 h-4 mr-2 ${iaLoading ? "animate-spin" : ""}`} />
                   Atualizar
@@ -1705,24 +1731,24 @@ export default function AdminDashboardClient() {
 
               {/* Resumo */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="bg-[#1A1F2E] rounded-xl p-4 border border-[#2A3142]">
-                  <p className="text-xs text-gray-400">IAs ativas</p>
-                  <p className="text-lg font-bold text-white">{iaUsers.length}</p>
+                <div className="bg-adm-surface rounded-xl p-4 border border-adm-line">
+                  <p className="text-xs text-adm-muted">IAs ativas</p>
+                  <p className="text-lg font-bold text-adm-fg">{iaUsers.length}</p>
                 </div>
-                <div className="bg-[#1A1F2E] rounded-xl p-4 border border-[#2A3142]">
-                  <p className="text-xs text-gray-400">Total investido</p>
-                  <p className="text-lg font-bold text-white">
+                <div className="bg-adm-surface rounded-xl p-4 border border-adm-line">
+                  <p className="text-xs text-adm-muted">Total investido</p>
+                  <p className="text-lg font-bold text-adm-fg">
                     {formatCurrency(iaUsers.reduce((s, u) => s + Number(u.amount || 0), 0))}
                   </p>
                 </div>
-                <div className="bg-[#1A1F2E] rounded-xl p-4 border border-[#2A3142]">
-                  <p className="text-xs text-gray-400">Rendimento gerado</p>
-                  <p className="text-lg font-bold text-blue-500">
+                <div className="bg-adm-surface rounded-xl p-4 border border-adm-line">
+                  <p className="text-xs text-adm-muted">Rendimento gerado</p>
+                  <p className="text-lg font-bold text-adm-accent">
                     {formatCurrency(iaUsers.reduce((s, u) => s + Number(u.totalCredited || 0), 0))}
                   </p>
                 </div>
-                <div className="bg-[#1A1F2E] rounded-xl p-4 border border-[#2A3142]">
-                  <p className="text-xs text-gray-400">Resultado hoje</p>
+                <div className="bg-adm-surface rounded-xl p-4 border border-adm-line">
+                  <p className="text-xs text-adm-muted">Resultado hoje</p>
                   {(() => {
                     const sum = iaUsers.reduce(
                       (s, u) =>
@@ -1730,7 +1756,7 @@ export default function AdminDashboardClient() {
                       0,
                     )
                     return (
-                      <p className={`text-lg font-bold ${sum < 0 ? "text-red-400" : "text-blue-500"}`}>
+                      <p className={`text-lg font-bold ${sum < 0 ? "text-red-400" : "text-adm-accent"}`}>
                         {formatCurrency(sum)}
                       </p>
                     )
@@ -1739,9 +1765,9 @@ export default function AdminDashboardClient() {
               </div>
 
               {iaLoading ? (
-                <div className="text-center py-10 text-gray-400">Carregando...</div>
+                <div className="text-center py-10 text-adm-muted">Carregando...</div>
               ) : iaUsers.length === 0 ? (
-                <div className="text-center py-10 text-gray-400 bg-[#1A1F2E] rounded-xl border border-[#2A3142]">
+                <div className="text-center py-10 text-adm-muted bg-adm-surface rounded-xl border border-adm-line">
                   Nenhum usuario com a IA ativa no momento.
                 </div>
               ) : (
@@ -1776,20 +1802,20 @@ export default function AdminDashboardClient() {
                         ? { label: "Sem rendimento", cls: "bg-red-500/20 text-red-400" }
                         : negative
                           ? { label: "Perdendo hoje", cls: "bg-red-500/20 text-red-400" }
-                          : { label: "Ganhando", cls: "bg-blue-500/10 text-blue-400" }
-                    const valueColor = (n: number) => (n < 0 ? "text-red-400" : "text-blue-500")
+                          : { label: "Ganhando", cls: "bg-adm-accent/10 text-adm-accent-soft" }
+                    const valueColor = (n: number) => (n < 0 ? "text-red-400" : "text-adm-accent")
                     return (
                       <div
                         key={u.userId}
-                        className="bg-[#1A1F2E] rounded-xl p-4 border border-[#2A3142]"
+                        className="bg-adm-surface rounded-xl p-4 border border-adm-line"
                       >
                         <div className="flex items-start justify-between gap-4 flex-wrap">
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <p className="font-semibold text-white truncate">{u.user_name}</p>
+                              <p className="font-semibold text-adm-fg truncate">{u.user_name}</p>
                               <span
                                 className={`text-[11px] px-2 py-0.5 rounded-full ${
-                                  u.paused ? "bg-gray-500/20 text-gray-400" : "bg-blue-500/20 text-blue-500"
+                                  u.paused ? "bg-adm-muted/20 text-adm-muted" : "bg-adm-accent/20 text-adm-accent"
                                 }`}
                               >
                                 {u.paused ? "Pausada" : "Operando"}
@@ -1808,22 +1834,22 @@ export default function AdminDashboardClient() {
                                 </span>
                               ) : null}
                             </div>
-                            <p className="text-xs text-gray-400 truncate">{u.user_email}</p>
-                            <p className="text-[11px] text-gray-500 mt-1">
+                            <p className="text-xs text-adm-muted truncate">{u.user_email}</p>
+                            <p className="text-[11px] text-adm-muted mt-1">
                               Plano {formatCurrency(u.amount)} · {u.daily}% ao dia
                               {u.activatedAt ? ` · desde ${formatDate(u.activatedAt)}` : ""}
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="text-xs text-gray-400">Saldo na carteira</p>
-                            <p className="font-bold text-white">{formatCurrency(u.balance_real)}</p>
+                            <p className="text-xs text-adm-muted">Saldo na carteira</p>
+                            <p className="font-bold text-adm-fg">{formatCurrency(u.balance_real)}</p>
                           </div>
                         </div>
 
                         {/* Progresso da meta de hoje */}
                         <div className="mt-4">
                           <div className="flex items-center justify-between text-[11px] mb-1">
-                            <span className="text-gray-400">
+                            <span className="text-adm-muted">
                               {lossOn ? "Progresso do prejuizo de hoje" : "Progresso da meta de hoje"}
                             </span>
                             <span
@@ -1832,64 +1858,64 @@ export default function AdminDashboardClient() {
                                   ? "text-primary font-semibold"
                                   : negative
                                     ? "text-red-400"
-                                    : "text-gray-300"
+                                    : "text-adm-fg/80"
                               }
                             >
                               {formatCurrency(today)} / {lossOn ? `-${formatCurrency(lossTarget)}` : formatCurrency(meta)}{" "}
                               ({lossOn ? progress : pctOfMeta}%)
                             </span>
                           </div>
-                          <div className="h-2 rounded-full bg-[#0B0F14] overflow-hidden">
+                          <div className="h-2 rounded-full bg-adm-bg overflow-hidden">
                             <div
                               className={`h-full rounded-full transition-all ${
-                                lossOn || negative ? "bg-red-500" : metaReached ? "bg-primary" : "bg-blue-500"
+                                lossOn || negative ? "bg-red-500" : metaReached ? "bg-primary" : "bg-adm-accent"
                               }`}
                               style={{ width: `${negative && !lossOn ? 100 : progress}%`, opacity: negative && !lossOn ? 0.35 : 1 }}
                             />
                           </div>
-                          <p className="text-[10px] text-gray-500 mt-1">
+                          <p className="text-[10px] text-adm-muted mt-1">
                             {lossOn ? "Falta perder hoje" : "Falta hoje"}: {formatCurrency(remaining)}
                           </p>
                         </div>
 
                         {/* Resultados detalhados */}
                         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-4">
-                          <div className="bg-[#0B0F14] rounded-lg p-3">
-                            <p className="text-[11px] text-gray-400">Rendimento total</p>
+                          <div className="bg-adm-bg rounded-lg p-3">
+                            <p className="text-[11px] text-adm-muted">Rendimento total</p>
                             <p className={`font-semibold ${valueColor(Number(u.totalCredited || 0))}`}>
                               {formatCurrency(u.totalCredited)}
                             </p>
                           </div>
-                          <div className="bg-[#0B0F14] rounded-lg p-3">
-                            <p className="text-[11px] text-gray-400">Resultado hoje</p>
+                          <div className="bg-adm-bg rounded-lg p-3">
+                            <p className="text-[11px] text-adm-muted">Resultado hoje</p>
                             <p className={`font-semibold ${valueColor(today)}`}>{formatCurrency(today)}</p>
                           </div>
-                          <div className="bg-[#0B0F14] rounded-lg p-3">
-                            <p className="text-[11px] text-gray-400">Entradas hoje</p>
-                            <p className="font-semibold text-white">{Number(u.tradesToday || 0)}</p>
-                            <p className="text-[10px] text-gray-500">{Number(u.tradesTotal || 0)} no total</p>
+                          <div className="bg-adm-bg rounded-lg p-3">
+                            <p className="text-[11px] text-adm-muted">Entradas hoje</p>
+                            <p className="font-semibold text-adm-fg">{Number(u.tradesToday || 0)}</p>
+                            <p className="text-[10px] text-adm-muted">{Number(u.tradesTotal || 0)} no total</p>
                           </div>
-                          <div className="bg-[#0B0F14] rounded-lg p-3">
-                            <p className="text-[11px] text-gray-400">Meta diaria</p>
-                            <p className="font-semibold text-white">{formatCurrency(meta)}</p>
+                          <div className="bg-adm-bg rounded-lg p-3">
+                            <p className="text-[11px] text-adm-muted">Meta diaria</p>
+                            <p className="font-semibold text-adm-fg">{formatCurrency(meta)}</p>
                             {u.metaOverride != null ? (
                               <p className="text-[10px] text-primary">personalizada</p>
                             ) : (
-                              <p className="text-[10px] text-gray-500">padrao do plano</p>
+                              <p className="text-[10px] text-adm-muted">padrao do plano</p>
                             )}
                           </div>
-                          <div className="bg-[#0B0F14] rounded-lg p-3">
-                            <p className="text-[11px] text-gray-400">Assertividade</p>
+                          <div className="bg-adm-bg rounded-lg p-3">
+                            <p className="text-[11px] text-adm-muted">Assertividade</p>
                             <p className="font-semibold text-primary">{u.assertiveness}%</p>
                           </div>
                         </div>
 
                         {/* Controle do ganho de hoje */}
-                        <div className="mt-4 border-t border-[#2A3142] pt-4">
-                          <p className="text-xs font-semibold text-white mb-2">Controlar resultado de hoje</p>
+                        <div className="mt-4 border-t border-adm-line pt-4">
+                          <p className="text-xs font-semibold text-adm-fg mb-2">Controlar resultado de hoje</p>
                           <div className="flex items-end gap-3 flex-wrap">
                             <div className="flex-1 min-w-[140px]">
-                              <label className="text-[11px] text-gray-400 block mb-1">
+                              <label className="text-[11px] text-adm-muted block mb-1">
                                 Resultado de hoje (R$) — use valor negativo para perda
                               </label>
                               <Input
@@ -1901,7 +1927,7 @@ export default function AdminDashboardClient() {
                                 onChange={(e) =>
                                   setIaCreditDraft((prev) => ({ ...prev, [u.userId]: e.target.value }))
                                 }
-                                className="w-full bg-[#0B0F14] border-[#2A3142] text-white h-11 text-base"
+                                className="w-full bg-adm-bg border-adm-line text-adm-fg h-11 text-base"
                               />
                             </div>
                             <Button
@@ -1918,7 +1944,7 @@ export default function AdminDashboardClient() {
                               size="sm"
                               variant="outline"
                               onClick={() => setIaCreditDraft((prev) => ({ ...prev, [u.userId]: String(meta) }))}
-                              className="border-[#2A3142] text-gray-300 h-9"
+                              className="border-adm-line text-adm-fg/80 h-9"
                             >
                               Bater meta ({formatCurrency(meta)})
                             </Button>
@@ -1926,12 +1952,12 @@ export default function AdminDashboardClient() {
                               size="sm"
                               variant="outline"
                               onClick={() => setIaCreditDraft((prev) => ({ ...prev, [u.userId]: "0" }))}
-                              className="border-[#2A3142] text-gray-300 h-9"
+                              className="border-adm-line text-adm-fg/80 h-9"
                             >
                               Zerar hoje
                             </Button>
                           </div>
-                          <p className="text-[10px] text-gray-500 mt-2">
+                          <p className="text-[10px] text-adm-muted mt-2">
                             A diferenca vira uma entrada real (min. R$ 1,00) no historico da tela de Trade e entra
                             (ou sai) do saldo real. Depois disso a IA nao abre novas entradas hoje; mudar a meta ou
                             o modo prejuizo libera a IA de novo.
@@ -1940,21 +1966,21 @@ export default function AdminDashboardClient() {
 
                         {/* Modo prejuizo: usuario perde dinheiro no dia */}
                         <div
-                          className={`mt-4 border-t border-[#2A3142] pt-4 -mx-4 px-4 ${
+                          className={`mt-4 border-t border-adm-line pt-4 -mx-4 px-4 ${
                             lossOn ? "bg-red-500/5" : ""
                           }`}
                         >
                           <div className="flex items-center justify-between gap-2 mb-1">
-                            <p className="text-xs font-semibold text-white">Modo prejuizo (perder no dia)</p>
+                            <p className="text-xs font-semibold text-adm-fg">Modo prejuizo (perder no dia)</p>
                             <span
                               className={`text-[11px] px-2 py-0.5 rounded-full ${
-                                lossOn ? "bg-red-500/20 text-red-400" : "bg-gray-500/20 text-gray-400"
+                                lossOn ? "bg-red-500/20 text-red-400" : "bg-adm-muted/20 text-adm-muted"
                               }`}
                             >
                               {lossOn ? "Ativo" : "Desligado"}
                             </span>
                           </div>
-                          <p className="text-[10px] text-gray-500 mb-3">
+                          <p className="text-[10px] text-adm-muted mb-3">
                             Ligado, em vez de render o saldo do usuario cai aos poucos ate a meta do dia. As entradas do
                             dia fecham no vermelho no historico da tela de Trade.
                           </p>
@@ -1964,8 +1990,8 @@ export default function AdminDashboardClient() {
                             disabled={iaLossSavingId === u.userId}
                             className={
                               lossOn
-                                ? "w-full bg-blue-600 hover:bg-blue-600/90 text-white h-11"
-                                : "w-full bg-red-600 hover:bg-red-600/90 text-white h-11"
+                                ? "w-full bg-adm-accent hover:bg-adm-accent-strong/90 text-adm-fg h-11"
+                                : "w-full bg-red-600 hover:bg-red-600/90 text-adm-fg h-11"
                             }
                           >
                             {iaLossSavingId === u.userId
@@ -1980,22 +2006,22 @@ export default function AdminDashboardClient() {
                               negativo.
                             </p>
                           ) : (
-                            <p className="text-[10px] text-gray-500 mt-2">
+                            <p className="text-[10px] text-adm-muted mt-2">
                               Usa a meta do plano como valor do prejuizo. O saldo nunca fica negativo.
                             </p>
                           )}
                         </div>
 
                         {/* Acoes: ligar/desligar rendimento, pausar, detalhes */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-4 border-t border-[#2A3142] pt-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-4 border-t border-adm-line pt-4">
                           <Button
                             size="sm"
                             onClick={() => handleToggleEarning(u.userId, earningOff)}
                             disabled={iaEarningSavingId === u.userId}
                             className={
                               earningOff
-                                ? "bg-blue-600 hover:bg-blue-600/90 text-white h-11"
-                                : "bg-red-600 hover:bg-red-600/90 text-white h-11"
+                                ? "bg-adm-accent hover:bg-adm-accent-strong/90 text-adm-fg h-11"
+                                : "bg-red-600 hover:bg-red-600/90 text-adm-fg h-11"
                             }
                           >
                             {iaEarningSavingId === u.userId
@@ -2009,7 +2035,7 @@ export default function AdminDashboardClient() {
                             variant="outline"
                             onClick={() => handleTogglePause(u.userId, !u.paused)}
                             disabled={iaPauseSavingId === u.userId}
-                            className="border-[#2A3142] text-gray-300 h-11"
+                            className="border-adm-line text-adm-fg/80 h-11"
                           >
                             {iaPauseSavingId === u.userId ? "..." : u.paused ? "Retomar IA" : "Pausar IA"}
                           </Button>
@@ -2017,7 +2043,7 @@ export default function AdminDashboardClient() {
                             size="sm"
                             variant="outline"
                             onClick={() => openIaDetail(u.userId)}
-                            className="border-[#2A3142] text-gray-300 h-11"
+                            className="border-adm-line text-adm-fg/80 h-11"
                           >
                             <Eye className="w-4 h-4 mr-1" />
                             Detalhes
@@ -2041,11 +2067,11 @@ export default function AdminDashboardClient() {
               }}
             >
               <div
-                className="bg-[#1A1F2E] w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl border border-[#2A3142] max-h-[90vh] overflow-y-auto"
+                className="bg-adm-surface w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl border border-adm-line max-h-[90vh] overflow-y-auto"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="flex items-center justify-between p-4 border-b border-[#2A3142] sticky top-0 bg-[#1A1F2E]">
-                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <div className="flex items-center justify-between p-4 border-b border-adm-line sticky top-0 bg-adm-surface">
+                  <h3 className="text-base font-bold text-adm-fg flex items-center gap-2">
                     <Bot className="w-5 h-5 text-primary" />
                     Detalhes da IA
                   </h3>
@@ -2054,7 +2080,7 @@ export default function AdminDashboardClient() {
                       setIaDetail(null)
                       setIaDetailLoading(false)
                     }}
-                    className="text-gray-400 hover:text-white"
+                    className="text-adm-muted hover:text-adm-fg"
                     aria-label="Fechar"
                   >
                     <X className="w-5 h-5" />
@@ -2062,48 +2088,48 @@ export default function AdminDashboardClient() {
                 </div>
 
                 {iaDetailLoading || !iaDetail ? (
-                  <div className="p-10 text-center text-gray-400">Carregando detalhes...</div>
+                  <div className="p-10 text-center text-adm-muted">Carregando detalhes...</div>
                 ) : (
                   <div className="p-4 space-y-4">
                     {/* Identificacao */}
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="font-semibold text-white">{iaDetail.user_name}</p>
+                        <p className="font-semibold text-adm-fg">{iaDetail.user_name}</p>
                         <span
                           className={`text-[11px] px-2 py-0.5 rounded-full ${
-                            iaDetail.paused ? "bg-gray-500/20 text-gray-400" : "bg-blue-500/20 text-blue-500"
+                            iaDetail.paused ? "bg-adm-muted/20 text-adm-muted" : "bg-adm-accent/20 text-adm-accent"
                           }`}
                         >
                           {iaDetail.paused ? "Pausada" : "Operando"}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-400">{iaDetail.user_email}</p>
-                      {iaDetail.phone ? <p className="text-xs text-gray-500">{iaDetail.phone}</p> : null}
+                      <p className="text-xs text-adm-muted">{iaDetail.user_email}</p>
+                      {iaDetail.phone ? <p className="text-xs text-adm-muted">{iaDetail.phone}</p> : null}
                       {iaDetail.member_since ? (
-                        <p className="text-[11px] text-gray-500 mt-1">Cliente desde {formatDate(iaDetail.member_since)}</p>
+                        <p className="text-[11px] text-adm-muted mt-1">Cliente desde {formatDate(iaDetail.member_since)}</p>
                       ) : null}
                     </div>
 
                     {/* Plano e datas */}
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-[#0B0F14] rounded-lg p-3">
-                        <p className="text-[11px] text-gray-400">Plano investido</p>
-                        <p className="font-semibold text-white">{formatCurrency(iaDetail.amount)}</p>
-                        <p className="text-[11px] text-gray-500">{iaDetail.daily}% ao dia</p>
+                      <div className="bg-adm-bg rounded-lg p-3">
+                        <p className="text-[11px] text-adm-muted">Plano investido</p>
+                        <p className="font-semibold text-adm-fg">{formatCurrency(iaDetail.amount)}</p>
+                        <p className="text-[11px] text-adm-muted">{iaDetail.daily}% ao dia</p>
                       </div>
-                      <div className="bg-[#0B0F14] rounded-lg p-3">
-                        <p className="text-[11px] text-gray-400">Saldo na carteira</p>
-                        <p className="font-semibold text-white">{formatCurrency(iaDetail.balance_real)}</p>
+                      <div className="bg-adm-bg rounded-lg p-3">
+                        <p className="text-[11px] text-adm-muted">Saldo na carteira</p>
+                        <p className="font-semibold text-adm-fg">{formatCurrency(iaDetail.balance_real)}</p>
                       </div>
-                      <div className="bg-[#0B0F14] rounded-lg p-3">
-                        <p className="text-[11px] text-gray-400">Ativada em</p>
-                        <p className="font-medium text-white text-sm">
+                      <div className="bg-adm-bg rounded-lg p-3">
+                        <p className="text-[11px] text-adm-muted">Ativada em</p>
+                        <p className="font-medium text-adm-fg text-sm">
                           {iaDetail.activatedAt ? formatDate(iaDetail.activatedAt) : "-"}
                         </p>
                       </div>
-                      <div className="bg-[#0B0F14] rounded-lg p-3">
-                        <p className="text-[11px] text-gray-400">Ultimo acerto</p>
-                        <p className="font-medium text-white text-sm">
+                      <div className="bg-adm-bg rounded-lg p-3">
+                        <p className="text-[11px] text-adm-muted">Ultimo acerto</p>
+                        <p className="font-medium text-adm-fg text-sm">
                           {iaDetail.lastSettleAt ? formatDate(iaDetail.lastSettleAt) : "-"}
                         </p>
                       </div>
@@ -2111,34 +2137,34 @@ export default function AdminDashboardClient() {
 
                     {/* Resultados */}
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-[#0B0F14] rounded-lg p-3">
-                        <p className="text-[11px] text-gray-400">Rendimento total</p>
-                        <p className="font-semibold text-blue-500">{formatCurrency(iaDetail.totalCredited)}</p>
+                      <div className="bg-adm-bg rounded-lg p-3">
+                        <p className="text-[11px] text-adm-muted">Rendimento total</p>
+                        <p className="font-semibold text-adm-accent">{formatCurrency(iaDetail.totalCredited)}</p>
                       </div>
-                      <div className="bg-[#0B0F14] rounded-lg p-3">
-                        <p className="text-[11px] text-gray-400">Creditado hoje</p>
-                        <p className="font-semibold text-blue-500">{formatCurrency(iaDetail.creditedToday)}</p>
+                      <div className="bg-adm-bg rounded-lg p-3">
+                        <p className="text-[11px] text-adm-muted">Creditado hoje</p>
+                        <p className="font-semibold text-adm-accent">{formatCurrency(iaDetail.creditedToday)}</p>
                       </div>
-                      <div className="bg-[#0B0F14] rounded-lg p-3">
-                        <p className="text-[11px] text-gray-400">Meta diaria</p>
-                        <p className="font-semibold text-white">{formatCurrency(iaDetail.dailyMeta)}</p>
+                      <div className="bg-adm-bg rounded-lg p-3">
+                        <p className="text-[11px] text-adm-muted">Meta diaria</p>
+                        <p className="font-semibold text-adm-fg">{formatCurrency(iaDetail.dailyMeta)}</p>
                       </div>
-                      <div className="bg-[#0B0F14] rounded-lg p-3">
-                        <p className="text-[11px] text-gray-400">Assertividade</p>
+                      <div className="bg-adm-bg rounded-lg p-3">
+                        <p className="text-[11px] text-adm-muted">Assertividade</p>
                         <p className="font-semibold text-primary">{iaDetail.assertiveness}%</p>
                       </div>
                     </div>
 
                     {/* Historico de movimentacoes */}
                     <div>
-                      <p className="text-sm font-semibold text-white mb-2">
+                      <p className="text-sm font-semibold text-adm-fg mb-2">
                         Historico da IA{" "}
-                        <span className="text-xs text-gray-500 font-normal">
+                        <span className="text-xs text-adm-muted font-normal">
                           ({iaDetail.yieldCount} rendimentos)
                         </span>
                       </p>
                       {iaDetail.transactions.length === 0 ? (
-                        <p className="text-xs text-gray-500 bg-[#0B0F14] rounded-lg p-3">
+                        <p className="text-xs text-adm-muted bg-adm-bg rounded-lg p-3">
                           Nenhuma movimentacao registrada ainda.
                         </p>
                       ) : (
@@ -2154,15 +2180,15 @@ export default function AdminDashboardClient() {
                             return (
                               <div
                                 key={t.id}
-                                className="flex items-center justify-between bg-[#0B0F14] rounded-lg p-3 gap-3"
+                                className="flex items-center justify-between bg-adm-bg rounded-lg p-3 gap-3"
                               >
                                 <div className="min-w-0">
-                                  <p className="text-sm text-white">{label}</p>
-                                  <p className="text-[11px] text-gray-500">{formatDate(t.created_at)}</p>
+                                  <p className="text-sm text-adm-fg">{label}</p>
+                                  <p className="text-[11px] text-adm-muted">{formatDate(t.created_at)}</p>
                                 </div>
                                 <p
                                   className={`text-sm font-semibold shrink-0 ${
-                                    isPositive ? "text-blue-500" : "text-red-500"
+                                    isPositive ? "text-adm-accent" : "text-red-500"
                                   }`}
                                 >
                                   {isPositive ? "+" : ""}
@@ -2198,28 +2224,30 @@ export default function AdminDashboardClient() {
           {/* Settings Tab */}
           {activeTab === "settings" && (
             <div className="space-y-6">
-              <h2 className="text-xl font-bold text-white">Configuracoes da Plataforma</h2>
+              <h2 className="text-xl font-bold text-adm-fg">Configuracoes da Plataforma</h2>
+
+              <AdminDepositSettings />
               
-              <div className="bg-[#1A1F2E] rounded-xl p-6 border border-[#2A3142]">
-                <h3 className="text-lg font-semibold text-white mb-4">Metodos de Deposito</h3>
+              <div className="bg-adm-surface rounded-xl p-6 border border-adm-line">
+                <h3 className="text-lg font-semibold text-adm-fg mb-4">Metodos de Deposito</h3>
                 
                 <div className="space-y-4">
                   {/* Card Deposit Toggle */}
-                  <div className="flex items-center justify-between p-4 bg-[#0B0F14] rounded-lg">
+                  <div className="flex items-center justify-between p-4 bg-adm-bg rounded-lg">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                        <CreditCard className="w-5 h-5 text-blue-500" />
+                      <div className="w-10 h-10 rounded-lg bg-adm-accent/20 flex items-center justify-center">
+                        <CreditCard className="w-5 h-5 text-adm-accent" />
                       </div>
                       <div>
-                        <p className="text-white font-medium">Deposito via Cartao</p>
-                        <p className="text-gray-400 text-sm">Permitir depositos usando cartao de credito/debito</p>
+                        <p className="text-adm-fg font-medium">Deposito via Cartao</p>
+                        <p className="text-adm-muted text-sm">Permitir depositos usando cartao de credito/debito</p>
                       </div>
                     </div>
                     <button
                       onClick={toggleCardDeposit}
                       disabled={settingsLoading}
                       className={`relative w-14 h-7 rounded-full transition-colors ${
-                        cardDepositEnabled ? "bg-blue-500" : "bg-gray-600"
+                        cardDepositEnabled ? "bg-adm-accent" : "bg-adm-line"
                       } ${settingsLoading ? "opacity-50" : ""}`}
                     >
                       <span
@@ -2231,37 +2259,37 @@ export default function AdminDashboardClient() {
                   </div>
 
                   {/* PIX Always Enabled */}
-                  <div className="flex items-center justify-between p-4 bg-[#0B0F14] rounded-lg opacity-60">
+                  <div className="flex items-center justify-between p-4 bg-adm-bg rounded-lg opacity-60">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                        <DollarSign className="w-5 h-5 text-blue-500" />
+                      <div className="w-10 h-10 rounded-lg bg-adm-accent/20 flex items-center justify-center">
+                        <DollarSign className="w-5 h-5 text-adm-accent" />
                       </div>
                       <div>
-                        <p className="text-white font-medium">Deposito via PIX</p>
-                        <p className="text-gray-400 text-sm">Sempre habilitado</p>
+                        <p className="text-adm-fg font-medium">Deposito via PIX</p>
+                        <p className="text-adm-muted text-sm">Sempre habilitado</p>
                       </div>
                     </div>
-                    <div className="w-14 h-7 rounded-full bg-blue-500 relative">
+                    <div className="w-14 h-7 rounded-full bg-adm-accent relative">
                       <span className="absolute top-1 right-1 w-5 h-5 rounded-full bg-white" />
                     </div>
                   </div>
 
                   {/* Crypto Deposit Toggle */}
-                  <div className="flex items-center justify-between p-4 bg-[#0B0F14] rounded-lg">
+                  <div className="flex items-center justify-between p-4 bg-adm-bg rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center">
                         <span className="text-yellow-500 font-bold text-sm">USDT</span>
                       </div>
                       <div>
-                        <p className="text-white font-medium">Deposito via Cripto (USDT)</p>
-                        <p className="text-gray-400 text-sm">Permitir depositos usando USDT na rede Ethereum (minimo $20)</p>
+                        <p className="text-adm-fg font-medium">Deposito via Cripto (USDT)</p>
+                        <p className="text-adm-muted text-sm">Permitir depositos usando USDT na rede Ethereum (minimo $20)</p>
                       </div>
                     </div>
                     <button
                       onClick={toggleCryptoDeposit}
                       disabled={settingsLoading}
                       className={`relative w-14 h-7 rounded-full transition-colors ${
-                        cryptoDepositEnabled ? "bg-blue-500" : "bg-gray-600"
+                        cryptoDepositEnabled ? "bg-adm-accent" : "bg-adm-line"
                       } ${settingsLoading ? "opacity-50" : ""}`}
                     >
                       <span
@@ -2273,25 +2301,25 @@ export default function AdminDashboardClient() {
                   </div>
                 </div>
 
-                <p className="text-gray-500 text-xs mt-4">
+                <p className="text-adm-muted text-xs mt-4">
                   As alteracoes sao aplicadas imediatamente para todos os usuarios.
                 </p>
               </div>
 
               {/* Rollover de deposito e prazo de saque */}
-              <div className="bg-[#1A1F2E] rounded-xl p-6 border border-[#2A3142]">
-                <h3 className="text-lg font-semibold text-white mb-4">Rollover e Saques</h3>
+              <div className="bg-adm-surface rounded-xl p-6 border border-adm-line">
+                <h3 className="text-lg font-semibold text-adm-fg mb-4">Rollover e Saques</h3>
 
                 <div className="space-y-4">
                   {/* Liga/desliga o rollover de deposito */}
-                  <div className="flex items-center justify-between gap-4 p-4 bg-[#0B0F14] rounded-lg">
+                  <div className="flex items-center justify-between gap-4 p-4 bg-adm-bg rounded-lg">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center shrink-0">
-                        <Repeat className="w-5 h-5 text-blue-500" />
+                      <div className="w-10 h-10 rounded-lg bg-adm-accent/20 flex items-center justify-center shrink-0">
+                        <Repeat className="w-5 h-5 text-adm-accent" />
                       </div>
                       <div>
-                        <p className="text-white font-medium">Rollover de Deposito</p>
-                        <p className="text-gray-400 text-sm">
+                        <p className="text-adm-fg font-medium">Rollover de Deposito</p>
+                        <p className="text-adm-muted text-sm">
                           Exigir volume negociado antes de liberar o valor depositado para saque
                         </p>
                       </div>
@@ -2303,7 +2331,7 @@ export default function AdminDashboardClient() {
                       aria-checked={depositRolloverEnabled}
                       aria-label="Ativar rollover de deposito"
                       className={`relative w-14 h-7 rounded-full transition-colors shrink-0 ${
-                        depositRolloverEnabled ? "bg-blue-500" : "bg-gray-600"
+                        depositRolloverEnabled ? "bg-adm-accent" : "bg-adm-line"
                       } ${savingRollover ? "opacity-50" : ""}`}
                     >
                       <span
@@ -2315,8 +2343,8 @@ export default function AdminDashboardClient() {
                   </div>
 
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="p-4 bg-[#0B0F14] rounded-lg">
-                      <label htmlFor="rollover-multiplier" className="text-white font-medium text-sm">
+                    <div className="p-4 bg-adm-bg rounded-lg">
+                      <label htmlFor="rollover-multiplier" className="text-adm-fg font-medium text-sm">
                         Multiplicador do rollover
                       </label>
                       <div className="flex items-center gap-2 mt-2">
@@ -2327,17 +2355,17 @@ export default function AdminDashboardClient() {
                           value={depositRolloverMultiplier}
                           onChange={(e) => setDepositRolloverMultiplier(e.target.value)}
                           disabled={savingRollover}
-                          className="bg-[#1A1F2E] border-[#2A3142] text-white"
+                          className="bg-adm-surface border-adm-line text-adm-fg"
                         />
-                        <span className="text-gray-400 text-sm shrink-0">x o deposito</span>
+                        <span className="text-adm-muted text-sm shrink-0">x o deposito</span>
                       </div>
-                      <p className="text-gray-500 text-xs mt-2">
+                      <p className="text-adm-muted text-xs mt-2">
                         {"Com 2x, um deposito de R$ 100 exige R$ 200 em operacoes reais."}
                       </p>
                     </div>
 
-                    <div className="p-4 bg-[#0B0F14] rounded-lg">
-                      <label htmlFor="withdrawal-hours" className="text-white font-medium text-sm">
+                    <div className="p-4 bg-adm-bg rounded-lg">
+                      <label htmlFor="withdrawal-hours" className="text-adm-fg font-medium text-sm">
                         Prazo de processamento do saque
                       </label>
                       <div className="flex items-center gap-2 mt-2">
@@ -2348,11 +2376,11 @@ export default function AdminDashboardClient() {
                           value={withdrawalHours}
                           onChange={(e) => setWithdrawalHours(e.target.value)}
                           disabled={savingRollover}
-                          className="bg-[#1A1F2E] border-[#2A3142] text-white"
+                          className="bg-adm-surface border-adm-line text-adm-fg"
                         />
-                        <span className="text-gray-400 text-sm shrink-0">horas</span>
+                        <span className="text-adm-muted text-sm shrink-0">horas</span>
                       </div>
-                      <p className="text-gray-500 text-xs mt-2">
+                      <p className="text-adm-muted text-xs mt-2">
                         Prazo exibido ao usuario na tela de saque.
                       </p>
                     </div>
@@ -2362,14 +2390,14 @@ export default function AdminDashboardClient() {
                     <Button
                       onClick={saveRolloverSettings}
                       disabled={savingRollover}
-                      className="bg-blue-500 hover:bg-blue-600 text-white"
+                      className="bg-adm-accent hover:bg-adm-accent-strong text-adm-fg"
                     >
                       {savingRollover ? "Salvando..." : "Salvar"}
                     </Button>
                     {rolloverMsg && (
                       <p
                         role="status"
-                        className={`text-sm ${rolloverMsg.type === "ok" ? "text-blue-400" : "text-red-400"}`}
+                        className={`text-sm ${rolloverMsg.type === "ok" ? "text-adm-accent-soft" : "text-red-400"}`}
                       >
                         {rolloverMsg.text}
                       </p>
@@ -2377,7 +2405,7 @@ export default function AdminDashboardClient() {
                   </div>
                 </div>
 
-                <p className="text-gray-500 text-xs mt-4">
+                <p className="text-adm-muted text-xs mt-4">
                   O multiplicador vale para depositos novos: quem ja depositou mantem a regra do
                   momento do deposito.
                 </p>
@@ -2390,15 +2418,15 @@ export default function AdminDashboardClient() {
       {/* Edit User Modal */}
       {rolloverUser && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-[#1A1F2E] rounded-xl p-6 w-full max-w-md border border-[#2A3142]">
+          <div className="bg-adm-surface rounded-xl p-6 w-full max-w-md border border-adm-line">
             <div className="flex items-center gap-2 mb-1">
-              <Repeat className="w-5 h-5 text-blue-400" />
-              <h2 className="text-xl font-bold text-white">Aplicar Rollover</h2>
+              <Repeat className="w-5 h-5 text-adm-accent-soft" />
+              <h2 className="text-xl font-bold text-adm-fg">Aplicar Rollover</h2>
             </div>
-            <p className="text-gray-400 text-sm mb-4">{rolloverUser.email}</p>
+            <p className="text-adm-muted text-sm mb-4">{rolloverUser.email}</p>
 
-            <div className="rounded-lg bg-blue-500/10 border border-blue-500/20 p-3 mb-4">
-              <p className="text-blue-300 text-xs leading-relaxed">
+            <div className="rounded-lg bg-adm-accent/10 border border-adm-accent/20 p-3 mb-4">
+              <p className="text-adm-accent-soft text-xs leading-relaxed">
                 Trava o valor abaixo até o usuário negociar o volume exigido em entradas. Use para quem
                 depositou antes do rollover ser ativado.
               </p>
@@ -2406,7 +2434,7 @@ export default function AdminDashboardClient() {
 
             <div className="space-y-4">
               <div>
-                <label className="text-gray-400 text-sm">Valor a travar (R$)</label>
+                <label className="text-adm-muted text-sm">Valor a travar (R$)</label>
                 <Input
                   type="number"
                   step="0.01"
@@ -2414,13 +2442,13 @@ export default function AdminDashboardClient() {
                   onChange={(e) =>
                     setRolloverForm({ ...rolloverForm, baseAmount: Number.parseFloat(e.target.value) || 0 })
                   }
-                  className="bg-[#0B0F14] border-[#2A3142] text-white"
+                  className="bg-adm-bg border-adm-line text-adm-fg"
                 />
-                <p className="text-gray-500 text-xs mt-1">Saldo real atual: {formatCurrency(rolloverUser.balance_real)}</p>
+                <p className="text-adm-muted text-xs mt-1">Saldo real atual: {formatCurrency(rolloverUser.balance_real)}</p>
               </div>
 
               <div>
-                <label className="text-gray-400 text-sm">Multiplicador (x)</label>
+                <label className="text-adm-muted text-sm">Multiplicador (x)</label>
                 <Input
                   type="number"
                   step="0.1"
@@ -2429,22 +2457,22 @@ export default function AdminDashboardClient() {
                   onChange={(e) =>
                     setRolloverForm({ ...rolloverForm, multiplier: Number.parseFloat(e.target.value) || 0 })
                   }
-                  className="bg-[#0B0F14] border-[#2A3142] text-white"
+                  className="bg-adm-bg border-adm-line text-adm-fg"
                 />
               </div>
 
-              <div className="rounded-lg bg-[#0B0F14] border border-[#2A3142] p-3">
+              <div className="rounded-lg bg-adm-bg border border-adm-line p-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400 text-sm">Volume exigido em entradas</span>
-                  <span className="text-white font-bold">
+                  <span className="text-adm-muted text-sm">Volume exigido em entradas</span>
+                  <span className="text-adm-fg font-bold">
                     {formatCurrency((Number(rolloverForm.baseAmount) || 0) * (Number(rolloverForm.multiplier) || 0))}
                   </span>
                 </div>
               </div>
 
               {rolloverSuccess && (
-                <div className="rounded-lg bg-blue-500/10 border border-blue-500/20 p-3">
-                  <p className="text-blue-400 text-sm">{rolloverSuccess}</p>
+                <div className="rounded-lg bg-adm-accent/10 border border-adm-accent/20 p-3">
+                  <p className="text-adm-accent-soft text-sm">{rolloverSuccess}</p>
                 </div>
               )}
             </div>
@@ -2453,7 +2481,7 @@ export default function AdminDashboardClient() {
               <Button
                 onClick={() => setRolloverUser(null)}
                 variant="outline"
-                className="flex-1 border-[#2A3142] text-gray-300"
+                className="flex-1 border-adm-line text-adm-fg/80"
               >
                 {rolloverSuccess ? "Fechar" : "Cancelar"}
               </Button>
@@ -2461,7 +2489,7 @@ export default function AdminDashboardClient() {
                 <Button
                   onClick={handleApplyRollover}
                   disabled={rolloverSaving}
-                  className="flex-1 bg-blue-500 hover:bg-blue-600"
+                  className="flex-1 bg-adm-accent hover:bg-adm-accent-strong"
                 >
                   {rolloverSaving ? "Aplicando..." : "Aplicar Rollover"}
                 </Button>
@@ -2473,53 +2501,53 @@ export default function AdminDashboardClient() {
 
       {editingUser && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-[#1A1F2E] rounded-xl p-6 w-full max-w-md border border-[#2A3142]">
-            <h2 className="text-xl font-bold text-white mb-4">Editar Usuário</h2>
-            <p className="text-gray-400 text-sm mb-4">{editingUser.email}</p>
+          <div className="bg-adm-surface rounded-xl p-6 w-full max-w-md border border-adm-line">
+            <h2 className="text-xl font-bold text-adm-fg mb-4">Editar Usuário</h2>
+            <p className="text-adm-muted text-sm mb-4">{editingUser.email}</p>
 
             <div className="space-y-4">
               <div>
-                <label className="text-gray-400 text-sm">Nome</label>
+                <label className="text-adm-muted text-sm">Nome</label>
                 <Input
                   value={editForm.full_name}
                   onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
-                  className="bg-[#0B0F14] border-[#2A3142] text-white"
+                  className="bg-adm-bg border-adm-line text-adm-fg"
                 />
               </div>
 
               <div>
-                <label className="text-gray-400 text-sm">Telefone</label>
+                <label className="text-adm-muted text-sm">Telefone</label>
                 <Input
                   value={editForm.phone}
                   onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                  className="bg-[#0B0F14] border-[#2A3142] text-white"
+                  className="bg-adm-bg border-adm-line text-adm-fg"
                 />
               </div>
 
               <div>
-                <label className="text-gray-400 text-sm">Saldo Real (R$)</label>
+                <label className="text-adm-muted text-sm">Saldo Real (R$)</label>
                 <Input
                   type="number"
                   step="0.01"
                   value={editForm.balance_real}
                   onChange={(e) => setEditForm({ ...editForm, balance_real: Number.parseFloat(e.target.value) || 0 })}
-                  className="bg-[#0B0F14] border-[#2A3142] text-white"
+                  className="bg-adm-bg border-adm-line text-adm-fg"
                 />
               </div>
 
               <div>
-                <label className="text-gray-400 text-sm">Saldo Demo (R$)</label>
+                <label className="text-adm-muted text-sm">Saldo Demo (R$)</label>
                 <Input
                   type="number"
                   step="0.01"
                   value={editForm.balance_demo}
                   onChange={(e) => setEditForm({ ...editForm, balance_demo: Number.parseFloat(e.target.value) || 0 })}
-                  className="bg-[#0B0F14] border-[#2A3142] text-white"
+                  className="bg-adm-bg border-adm-line text-adm-fg"
                 />
               </div>
 
               <div className="flex items-center gap-4">
-                <label className="flex items-center gap-2 text-gray-400">
+                <label className="flex items-center gap-2 text-adm-muted">
                   <input
                     type="checkbox"
                     checked={editForm.is_verified}
@@ -2528,7 +2556,7 @@ export default function AdminDashboardClient() {
                   />
                   Verificado
                 </label>
-                <label className="flex items-center gap-2 text-gray-400">
+                <label className="flex items-center gap-2 text-adm-muted">
                   <input
                     type="checkbox"
                     checked={editForm.is_blocked}
@@ -2537,7 +2565,7 @@ export default function AdminDashboardClient() {
                   />
                   Bloqueado
                 </label>
-                <label className="flex items-center gap-2 text-blue-400">
+                <label className="flex items-center gap-2 text-adm-accent-soft">
                   <input
                     type="checkbox"
                     checked={editForm.is_affiliate}
@@ -2553,11 +2581,11 @@ export default function AdminDashboardClient() {
               <Button
                 onClick={() => setEditingUser(null)}
                 variant="outline"
-                className="flex-1 border-[#2A3142] text-gray-300"
+                className="flex-1 border-adm-line text-adm-fg/80"
               >
                 Cancelar
               </Button>
-              <Button onClick={handleSaveUser} disabled={saving} className="flex-1 bg-blue-500 hover:bg-blue-600">
+              <Button onClick={handleSaveUser} disabled={saving} className="flex-1 bg-adm-accent hover:bg-adm-accent-strong">
                 {saving ? "Salvando..." : "Salvar"}
               </Button>
             </div>
@@ -2592,7 +2620,7 @@ function StatCard({
   const accent = accents[color] || "#4da6ff"
 
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0c121c] p-5 transition-all duration-300 hover:border-white/[0.12] hover:-translate-y-0.5">
+    <div className="group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-adm-bg p-5 transition-all duration-300 hover:border-white/[0.12] hover:-translate-y-0.5">
       {/* glow radial sutil no hover */}
       <div
         className="pointer-events-none absolute -right-10 -top-16 h-36 w-36 rounded-full opacity-[0.12] blur-3xl transition-opacity duration-300 group-hover:opacity-25"
@@ -2605,7 +2633,7 @@ function StatCard({
       />
       <div className="relative">
         <div className="mb-4 flex items-center justify-between">
-          <span className="text-[13px] font-medium uppercase tracking-wider text-gray-500">{label}</span>
+          <span className="text-[13px] font-medium uppercase tracking-wider text-adm-muted">{label}</span>
           <div
             className="flex h-10 w-10 items-center justify-center rounded-xl ring-1 transition-transform duration-300 group-hover:scale-110"
             style={{ background: `${accent}14`, color: accent, boxShadow: `0 0 0 1px ${accent}26, 0 4px 16px ${accent}1f` }}
@@ -2613,7 +2641,7 @@ function StatCard({
             <Icon className="h-5 w-5" />
           </div>
         </div>
-        <p className="text-[26px] font-bold leading-none tracking-tight text-white tabular-nums">{value}</p>
+        <p className="text-[26px] font-bold leading-none tracking-tight text-adm-fg tabular-nums">{value}</p>
         {badge && (
           <p className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-yellow-500/10 px-2 py-0.5 text-xs font-medium text-yellow-500">
             <span className="h-1.5 w-1.5 rounded-full bg-yellow-500" />

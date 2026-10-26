@@ -54,7 +54,7 @@ const sessionFetcher = (url: string) => fetch(url, { cache: "no-store" }).then((
 function Brand() {
   return (
     <div className="flex items-center gap-1 text-lg font-extrabold tracking-tight">
-      Krypto<span className="text-[#2190FF]">bit</span>
+      Krypto<span className="text-adm-accent">bit</span>
       <span className="ml-2 rounded bg-term-line px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-term-muted">ADMIN</span>
     </div>
   )

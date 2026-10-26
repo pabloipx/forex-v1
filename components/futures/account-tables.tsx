@@ -151,7 +151,7 @@ function TpSlDialog({
         <span className="text-term-muted">{kind === "tp" ? "Lucro estimado" : "Perda estimada"}</span>
         <span className={cn("font-semibold tabular-nums", positive ? "text-long" : "text-short")}>
           {sign}
-          {formatUsd(Math.abs(pnl))} BRL · {sign}
+          {formatUsd(Math.abs(pnl))} USD · {sign}
           {Math.abs(roi).toFixed(2)}%
         </span>
       </p>
@@ -534,7 +534,7 @@ export function AccountTables({ state, account, marks, derivs, liveSymbol, liveP
                 <tr>
                   <Th>Contrato</Th>
                   <Th right>Qtd</Th>
-                  <Th right>Valor (BRL)</Th>
+                  <Th right>Valor (USD)</Th>
                   <Th right>Preço entrada</Th>
                   <Th right>Preço marca</Th>
                   <Th right>Preço liq.</Th>
@@ -607,7 +607,7 @@ export function AccountTables({ state, account, marks, derivs, liveSymbol, liveP
                   <Th>Contrato</Th>
                   <Th right>Taxa</Th>
                   <Th right>Preço marca</Th>
-                  <Th right>Valor (BRL)</Th>
+                  <Th right>Valor (USD)</Th>
                   <Th right>Horário</Th>
                 </tr>
               </thead>

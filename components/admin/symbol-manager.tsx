@@ -50,18 +50,18 @@ export function SymbolManager({ symbols, onUpdate }: SymbolManagerProps) {
   }
 
   return (
-    <Card className="border-zinc-800 bg-zinc-900">
+    <Card className="border-adm-line bg-adm-surface">
       <CardHeader>
-        <CardTitle className="text-white">OTC Symbols</CardTitle>
+        <CardTitle className="text-adm-fg">OTC Symbols</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {symbols.map((symbol) => (
-          <div key={symbol.id} className="bg-zinc-800 rounded-lg p-4">
+          <div key={symbol.id} className="bg-adm-elevated rounded-lg p-4">
             <div className="flex justify-between items-start">
               <div className="space-y-1">
-                <div className="font-semibold text-white">{symbol.name}</div>
-                <div className="text-sm text-zinc-400">{symbol.symbol}</div>
-                <div className="text-sm text-zinc-400">Base: {symbol.base_price.toFixed(5)}</div>
+                <div className="font-semibold text-adm-fg">{symbol.name}</div>
+                <div className="text-sm text-adm-muted">{symbol.symbol}</div>
+                <div className="text-sm text-adm-muted">Base: {symbol.base_price.toFixed(5)}</div>
               </div>
 
               <div className="flex gap-2">
@@ -71,8 +71,8 @@ export function SymbolManager({ symbols, onUpdate }: SymbolManagerProps) {
                   onClick={() => handleToggleActive(symbol.id, symbol.is_active)}
                   className={
                     symbol.is_active
-                      ? "bg-blue-600 hover:bg-blue-700"
-                      : "border-zinc-700 hover:bg-zinc-700 bg-transparent"
+                      ? "bg-adm-accent hover:bg-adm-accent-strong"
+                      : "border-adm-line hover:bg-adm-line bg-transparent"
                   }
                 >
                   {symbol.is_active ? "Active" : "Inactive"}
@@ -82,23 +82,23 @@ export function SymbolManager({ symbols, onUpdate }: SymbolManagerProps) {
 
             {editing === symbol.id ? (
               <div className="mt-4 space-y-2">
-                <Label className="text-zinc-300">Volatility</Label>
+                <Label className="text-adm-fg/80">Volatility</Label>
                 <Input
                   type="number"
                   step="0.0001"
                   value={volatility}
                   onChange={(e) => setVolatility(Number(e.target.value))}
-                  className="bg-zinc-700 border-zinc-600 text-white"
+                  className="bg-adm-line border-adm-line text-adm-fg"
                 />
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={() => handleUpdateVolatility(symbol.id)} className="bg-blue-600">
+                  <Button size="sm" onClick={() => handleUpdateVolatility(symbol.id)} className="bg-adm-accent">
                     Save
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => setEditing(null)}
-                    className="border-zinc-700 bg-transparent"
+                    className="border-adm-line bg-transparent"
                   >
                     Cancel
                   </Button>
@@ -106,7 +106,7 @@ export function SymbolManager({ symbols, onUpdate }: SymbolManagerProps) {
               </div>
             ) : (
               <div className="mt-2 flex justify-between items-center">
-                <span className="text-sm text-zinc-400">Volatility: {symbol.volatility.toFixed(4)}</span>
+                <span className="text-sm text-adm-muted">Volatility: {symbol.volatility.toFixed(4)}</span>
                 <Button
                   size="sm"
                   variant="ghost"
@@ -114,7 +114,7 @@ export function SymbolManager({ symbols, onUpdate }: SymbolManagerProps) {
                     setEditing(symbol.id)
                     setVolatility(symbol.volatility)
                   }}
-                  className="text-zinc-400 hover:text-white hover:bg-zinc-700"
+                  className="text-adm-muted hover:text-adm-fg hover:bg-adm-line"
                 >
                   Edit
                 </Button>

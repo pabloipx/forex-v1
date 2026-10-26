@@ -121,7 +121,7 @@ function PnlHint({ kind, side, pnl, roi }: { kind: "tp" | "sl"; side: "long" | "
       </span>
       <span className={cn("font-semibold tabular-nums", positive ? "text-long" : "text-short")}>
         {sign}
-        {formatUsd(Math.abs(pnl))} BRL · {sign}
+        {formatUsd(Math.abs(pnl))} USD · {sign}
         {Math.abs(roi).toFixed(2)}%
       </span>
     </p>
@@ -431,7 +431,7 @@ export function OrderPanel({
       ? "Saldo zerado. Deposite para abrir posições."
       : "Saldo demo zerado."
     : insufficientLong || insufficientShort
-      ? `Saldo insuficiente: custo ${formatUsd(insufficientLong ? costLong : costShort)} BRL, disponível ${formatUsd(balance)} BRL.`
+      ? `Saldo insuficiente: custo ${formatUsd(insufficientLong ? costLong : costShort)} USD, disponível ${formatUsd(balance)} USD.`
       : null
 
   const isBuy = side === "buy"
@@ -439,7 +439,7 @@ export function OrderPanel({
   const sideReason = noBalance
     ? blockedReason
     : (isBuy ? insufficientLong : insufficientShort)
-      ? `Saldo insuficiente: custo ${formatUsd(isBuy ? costLong : costShort)} BRL, disponível ${formatUsd(balance)} BRL.`
+      ? `Saldo insuficiente: custo ${formatUsd(isBuy ? costLong : costShort)} USD, disponível ${formatUsd(balance)} USD.`
       : null
   const liq = isBuy ? liqLong : liqShort
 
@@ -565,7 +565,7 @@ export function OrderPanel({
             Saldo disponível
           </span>
           <span className="flex items-center gap-1.5 font-semibold tabular-nums text-term-text">
-            {authenticated ? formatUsd(balance) : "--"} BRL
+            {authenticated ? formatUsd(balance) : "--"} USD
             {authenticated && account === "real" && (
               <Link
                 href="/deposit"
@@ -655,7 +655,7 @@ export function OrderPanel({
                   setQtyMode(next)
                 }}
                 options={[
-                  ["usdt", "BRL"],
+                  ["usdt", "USD"],
                   ["base", market.qtyUnit],
                 ]}
                 className="text-sm"
@@ -721,14 +721,14 @@ export function OrderPanel({
             {hasQty
               ? qtyMode === "usdt"
                 ? `≈ ${qtyNum.toFixed(market.qtyDecimals)} ${market.qtyUnit}`
-                : `≈ ${formatUsd(notional)} BRL`
-              : "-- BRL"}
+                : `≈ ${formatUsd(notional)} USD`
+              : "-- USD"}
           </p>
         ) : (
         <div className="flex flex-col gap-1">
           <Field
             label="Valor da ordem"
-            unit="BRL"
+            unit="USD"
             value={valueFieldValue}
             onChange={(v) => {
               setQtyMode("usdt")
@@ -737,7 +737,7 @@ export function OrderPanel({
             }}
           />
           <p className="text-right text-xs tabular-nums text-term-muted">
-            {hasQty ? `≈ ${qtyNum.toFixed(market.qtyDecimals)} ${market.qtyUnit}` : "-- BRL"}
+            {hasQty ? `≈ ${qtyNum.toFixed(market.qtyDecimals)} ${market.qtyUnit}` : "-- USD"}
           </p>
         </div>
         )}
@@ -748,7 +748,7 @@ export function OrderPanel({
           </Row>
           <Row label="Custo">
             <span className={isBuy ? "text-long" : "text-short"}>
-              {formatUsd(isBuy ? costLong : costShort)} BRL
+              {formatUsd(isBuy ? costLong : costShort)} USD
             </span>
           </Row>
           <Row label="Preço de liquidação">{formatPrice(liq, market.priceDecimals)}</Row>

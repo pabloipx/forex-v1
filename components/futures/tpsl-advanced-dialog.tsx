@@ -345,7 +345,7 @@ function TargetSection({
             className="h-11 w-full min-w-0 bg-transparent text-sm font-semibold tabular-nums text-term-text outline-none placeholder:font-normal placeholder:text-term-muted disabled:cursor-not-allowed"
           />
           <span aria-hidden className="shrink-0 text-sm font-semibold text-term-muted">
-            {mode === "change" ? "%" : "BRL"}
+            {mode === "change" ? "%" : "USD"}
           </span>
         </label>
       </div>
@@ -406,7 +406,7 @@ function TargetSection({
               . P&L estimado:{" "}
               <span className={cn("font-semibold tabular-nums", estimate.pnl >= 0 ? "text-long" : "text-short")}>
                 {estimate.pnl >= 0 ? "+" : "−"}
-                {formatUsd(Math.abs(estimate.pnl))} BRL
+                {formatUsd(Math.abs(estimate.pnl))} USD
               </span>
               .
             </>

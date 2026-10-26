@@ -27,10 +27,10 @@ const TABS: Array<{ id: Tab; label: string }> = [
   { id: "historico", label: "Histórico" },
 ]
 
-const card = "rounded-lg bg-[#0a0e17] border border-[#1F2933] p-4"
-const label = "text-white/40 text-[11px] uppercase tracking-wide"
+const card = "rounded-lg bg-adm-bg border border-adm-line p-4"
+const label = "text-adm-fg/40 text-[11px] uppercase tracking-wide"
 const input =
-  "w-full h-10 rounded-lg bg-[#0a0e17] border border-[#1F2933] px-3 text-sm text-white outline-none focus:border-[#2190ff]"
+  "w-full h-10 rounded-lg bg-adm-bg border border-adm-line px-3 text-sm text-adm-fg outline-none focus:border-adm-accent"
 
 export function AffiliateDrawer({
   affiliate,
@@ -133,18 +133,18 @@ export function AffiliateDrawer({
     <div className="fixed inset-0 z-50 flex justify-end">
       <button type="button" aria-label="Fechar" onClick={onClose} className="absolute inset-0 bg-black/70" />
 
-      <aside className="relative flex h-full w-full max-w-[720px] flex-col bg-[#121826] shadow-2xl">
-        <header className="flex items-start justify-between gap-4 border-b border-[#1F2933] p-5">
+      <aside className="relative flex h-full w-full max-w-[720px] flex-col bg-adm-surface shadow-2xl">
+        <header className="flex items-start justify-between gap-4 border-b border-adm-line p-5">
           <div className="min-w-0">
-            <p className="truncate text-lg font-semibold text-white">{data.name}</p>
-            <p className="truncate text-sm text-white/40">
-              {data.email} · código <span className="text-[#2190ff]">{data.code}</span>
+            <p className="truncate text-lg font-semibold text-adm-fg">{data.name}</p>
+            <p className="truncate text-sm text-adm-fg/40">
+              {data.email} · código <span className="text-adm-accent">{data.code}</span>
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <span
                 className={`rounded-md px-2 py-0.5 text-[11px] font-medium ${
                   data.status === "active"
-                    ? "bg-[#2190ff]/15 text-[#2190ff]"
+                    ? "bg-adm-accent/15 text-adm-accent"
                     : data.status === "blocked"
                       ? "bg-red-500/15 text-red-400"
                       : "bg-yellow-500/15 text-yellow-400"
@@ -152,23 +152,23 @@ export function AffiliateDrawer({
               >
                 {data.status === "active" ? "Ativo" : data.status === "blocked" ? "Bloqueado" : "Pendente"}
               </span>
-              <span className="rounded-md bg-[#2190ff]/15 px-2 py-0.5 text-[11px] font-medium text-[#2190ff]">
+              <span className="rounded-md bg-adm-accent/15 px-2 py-0.5 text-[11px] font-medium text-adm-accent">
                 {MODEL_LABEL[data.terms.model]}
               </span>
-              <span className="text-[11px] text-white/40">Desde {dateOnly(data.created_at)}</span>
+              <span className="text-[11px] text-adm-fg/40">Desde {dateOnly(data.created_at)}</span>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Fechar painel"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#1F2933] text-white/60 hover:bg-[#0a0e17] hover:text-white"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-adm-line text-adm-fg/60 hover:bg-adm-bg hover:text-adm-fg"
           >
             <X className="h-4 w-4" />
           </button>
         </header>
 
-        <nav className="flex gap-1 overflow-x-auto border-b border-[#1F2933] px-3">
+        <nav className="flex gap-1 overflow-x-auto border-b border-adm-line px-3">
           {TABS.map((t) => (
             <button
               key={t.id}
@@ -176,8 +176,8 @@ export function AffiliateDrawer({
               onClick={() => setTab(t.id)}
               className={`shrink-0 border-b-2 px-3 py-3 text-sm transition-colors ${
                 tab === t.id
-                  ? "border-[#2190ff] text-white"
-                  : "border-transparent text-white/40 hover:text-white/70"
+                  ? "border-adm-accent text-adm-fg"
+                  : "border-transparent text-adm-fg/40 hover:text-adm-fg/70"
               }`}
             >
               {t.label}
@@ -192,7 +192,7 @@ export function AffiliateDrawer({
             className={`border-b px-5 py-3 text-sm ${
               error
                 ? "border-red-500/20 bg-red-500/10 text-red-400"
-                : "border-[#2190ff]/20 bg-[#2190ff]/10 text-[#2190ff]"
+                : "border-adm-accent/20 bg-adm-accent/10 text-adm-accent"
             }`}
           >
             {error || ok}
@@ -201,7 +201,7 @@ export function AffiliateDrawer({
 
         <div className="flex-1 overflow-y-auto p-5">
           {loading && tab !== "termos" ? (
-            <p className="flex items-center gap-2 text-sm text-white/50">
+            <p className="flex items-center gap-2 text-sm text-adm-fg/50">
               <Loader2 className="h-4 w-4 animate-spin" /> Carregando dados
             </p>
           ) : (
@@ -216,7 +216,7 @@ export function AffiliateDrawer({
                   </div>
 
                   <div className={card}>
-                    <p className="mb-3 text-sm font-medium text-white">Composição das comissões</p>
+                    <p className="mb-3 text-sm font-medium text-adm-fg">Composição das comissões</p>
                     <dl className="grid grid-cols-2 gap-4">
                       <Item label="RevShare acumulado" value={money(data.revshare_earned)} />
                       <Item label="CPA acumulado" value={money(data.cpa_earned)} />
@@ -226,7 +226,7 @@ export function AffiliateDrawer({
                   </div>
 
                   <div className={card}>
-                    <p className="mb-3 text-sm font-medium text-white">Desempenho dos referidos</p>
+                    <p className="mb-3 text-sm font-medium text-adm-fg">Desempenho dos referidos</p>
                     <dl className="grid grid-cols-2 gap-4">
                       <Item label="Depositantes" value={`${compact(data.depositors)} / ${compact(data.referrals)}`} />
                       <Item label="Depósitos" value={`${compact(data.deposit_count)} · ${money(data.deposit_total)}`} />
@@ -238,7 +238,7 @@ export function AffiliateDrawer({
                   </div>
 
                   <div className={card}>
-                    <p className="mb-3 text-sm font-medium text-white">Ajustar saldo manualmente</p>
+                    <p className="mb-3 text-sm font-medium text-adm-fg">Ajustar saldo manualmente</p>
                     <div className="flex flex-col gap-3 sm:flex-row">
                       <input
                         className={input}
@@ -257,12 +257,12 @@ export function AffiliateDrawer({
                         type="button"
                         onClick={adjustBalance}
                         disabled={saving || !delta}
-                        className="h-10 shrink-0 rounded-lg bg-[#2190ff] px-5 text-sm font-medium text-white disabled:opacity-40"
+                        className="h-10 shrink-0 rounded-lg bg-adm-accent px-5 text-sm font-medium text-adm-fg disabled:opacity-40"
                       >
                         Aplicar
                       </button>
                     </div>
-                    <p className="mt-2 text-[11px] text-white/30">
+                    <p className="mt-2 text-[11px] text-adm-fg/30">
                       Créditos somam ao total ganho. Todo ajuste fica registrado no histórico.
                     </p>
                   </div>
@@ -273,7 +273,7 @@ export function AffiliateDrawer({
                         type="button"
                         onClick={() => changeStatus("active")}
                         disabled={saving}
-                        className="flex h-10 items-center gap-2 rounded-lg bg-[#2190ff] px-4 text-sm font-medium text-white disabled:opacity-40"
+                        className="flex h-10 items-center gap-2 rounded-lg bg-adm-accent px-4 text-sm font-medium text-adm-fg disabled:opacity-40"
                       >
                         <Check className="h-4 w-4" /> Ativar afiliado
                       </button>
@@ -283,7 +283,7 @@ export function AffiliateDrawer({
                         type="button"
                         onClick={() => changeStatus("blocked")}
                         disabled={saving}
-                        className="flex h-10 items-center gap-2 rounded-lg bg-red-500 px-4 text-sm font-medium text-white disabled:opacity-40"
+                        className="flex h-10 items-center gap-2 rounded-lg bg-red-500 px-4 text-sm font-medium text-adm-fg disabled:opacity-40"
                       >
                         <Ban className="h-4 w-4" /> Bloquear
                       </button>
@@ -295,7 +295,7 @@ export function AffiliateDrawer({
               {tab === "termos" && (
                 <div className="flex flex-col gap-5">
                   <div className={card}>
-                    <p className="mb-3 text-sm font-medium text-white">Modelo de comissão</p>
+                    <p className="mb-3 text-sm font-medium text-adm-fg">Modelo de comissão</p>
                     <div className="grid grid-cols-3 gap-2">
                       {(["revshare", "cpa", "hybrid"] as CommissionModel[]).map((m) => (
                         <button
@@ -304,15 +304,15 @@ export function AffiliateDrawer({
                           onClick={() => setModel(m)}
                           className={`h-10 rounded-lg border text-sm transition-colors ${
                             model === m
-                              ? "border-[#2190ff] bg-[#2190ff]/15 text-[#2190ff]"
-                              : "border-[#1F2933] text-white/50 hover:text-white"
+                              ? "border-adm-accent bg-adm-accent/15 text-adm-accent"
+                              : "border-adm-line text-adm-fg/50 hover:text-adm-fg"
                           }`}
                         >
                           {MODEL_LABEL[m]}
                         </button>
                       ))}
                     </div>
-                    <p className="mt-3 text-[11px] leading-relaxed text-white/40">
+                    <p className="mt-3 text-[11px] leading-relaxed text-adm-fg/40">
                       {model === "revshare" && "Percentual sobre todos os depósitos dos referidos."}
                       {model === "cpa" && "Valor fixo pago uma única vez por referido que atingir o depósito mínimo."}
                       {model === "hybrid" && "CPA no primeiro depósito qualificado somado ao RevShare de todos os depósitos."}
@@ -350,7 +350,7 @@ export function AffiliateDrawer({
                     type="button"
                     onClick={saveTerms}
                     disabled={saving}
-                    className="flex h-11 items-center justify-center gap-2 rounded-lg bg-[#2190ff] text-sm font-medium text-white disabled:opacity-40"
+                    className="flex h-11 items-center justify-center gap-2 rounded-lg bg-adm-accent text-sm font-medium text-adm-fg disabled:opacity-40"
                   >
                     {saving && <Loader2 className="h-4 w-4 animate-spin" />}
                     Salvar termos
@@ -363,8 +363,8 @@ export function AffiliateDrawer({
                   head={["Usuário", "Cadastro", "Depósitos", "Volume", "Receita"]}
                   rows={(detail?.referral_list ?? []).map((r) => [
                     <div key="u" className="min-w-0">
-                      <p className="truncate text-white">{r.name}</p>
-                      <p className="truncate text-[11px] text-white/40">{r.email}</p>
+                      <p className="truncate text-adm-fg">{r.name}</p>
+                      <p className="truncate text-[11px] text-adm-fg/40">{r.email}</p>
                     </div>,
                     dateOnly(r.created_at),
                     `${r.deposit_count}× · ${money(r.deposit_total)}`,
@@ -383,7 +383,7 @@ export function AffiliateDrawer({
                     c.referred_name,
                     money(c.deposit_amount),
                     c.cpa_amount > 0 ? `CPA ${money(c.cpa_amount)}` : `Rev ${c.commission_percent}%`,
-                    <span key="v" className="text-[#2190ff]">
+                    <span key="v" className="text-adm-accent">
                       {money(c.commission_amount)}
                     </span>,
                   ])}
@@ -437,9 +437,9 @@ function Metric({
 }) {
   return (
     <div className={card}>
-      <Icon className="h-4 w-4 text-[#2190ff]" />
+      <Icon className="h-4 w-4 text-adm-accent" />
       <p className={`mt-2 ${label}`}>{text}</p>
-      <p className="mt-0.5 text-base font-semibold text-white">{value}</p>
+      <p className="mt-0.5 text-base font-semibold text-adm-fg">{value}</p>
     </div>
   )
 }
@@ -448,7 +448,7 @@ function Item({ label: text, value }: { label: string; value: string }) {
   return (
     <div>
       <dt className={label}>{text}</dt>
-      <dd className="mt-0.5 text-sm font-medium text-white">{value}</dd>
+      <dd className="mt-0.5 text-sm font-medium text-adm-fg">{value}</dd>
     </div>
   )
 }
@@ -456,9 +456,9 @@ function Item({ label: text, value }: { label: string; value: string }) {
 function Field({ label: text, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-sm text-white/70">{text}</span>
+      <span className="text-sm text-adm-fg/70">{text}</span>
       {children}
-      {hint && <span className="text-[11px] text-white/30">{hint}</span>}
+      {hint && <span className="text-[11px] text-adm-fg/30">{hint}</span>}
     </label>
   )
 }
@@ -467,7 +467,7 @@ export function StatusPill({ status }: { status: string }) {
   const s = String(status).toLowerCase()
   const style =
     s === "approved" || s === "completed"
-      ? "bg-[#2190ff]/15 text-[#2190ff]"
+      ? "bg-adm-accent/15 text-adm-accent"
       : s === "rejected"
         ? "bg-red-500/15 text-red-400"
         : "bg-yellow-500/15 text-yellow-400"
@@ -485,15 +485,15 @@ function Table({
   empty: string
 }) {
   if (rows.length === 0) {
-    return <p className="text-sm text-white/40">{empty}</p>
+    return <p className="text-sm text-adm-fg/40">{empty}</p>
   }
   return (
-    <div className="overflow-x-auto rounded-lg border border-[#1F2933]">
+    <div className="overflow-x-auto rounded-lg border border-adm-line">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-[#1F2933] bg-[#0a0e17]">
+          <tr className="border-b border-adm-line bg-adm-bg">
             {head.map((h) => (
-              <th key={h} className="px-3 py-2.5 text-left text-[11px] font-medium uppercase tracking-wide text-white/40">
+              <th key={h} className="px-3 py-2.5 text-left text-[11px] font-medium uppercase tracking-wide text-adm-fg/40">
                 {h}
               </th>
             ))}
@@ -501,9 +501,9 @@ function Table({
         </thead>
         <tbody>
           {rows.map((row, i) => (
-            <tr key={i} className="border-b border-[#1F2933] last:border-0">
+            <tr key={i} className="border-b border-adm-line last:border-0">
               {row.map((cell, j) => (
-                <td key={j} className="px-3 py-2.5 align-top text-white/70">
+                <td key={j} className="px-3 py-2.5 align-top text-adm-fg/70">
                   {cell}
                 </td>
               ))}

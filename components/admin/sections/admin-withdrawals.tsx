@@ -101,7 +101,7 @@ export function AdminWithdrawals({ onUpdate }: AdminWithdrawalsProps) {
     switch (normalizeStatus(status)) {
       case "completed":
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400">
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-adm-accent/20 text-adm-accent-soft">
             <CheckCircle className="w-3 h-3" />
             Pago
           </span>
@@ -127,20 +127,20 @@ export function AdminWithdrawals({ onUpdate }: AdminWithdrawalsProps) {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Saques</h1>
-          <p className="text-gray-400 mt-1">Gerencie as solicitações de saque</p>
+          <h1 className="text-2xl font-bold text-adm-fg">Saques</h1>
+          <p className="text-adm-muted mt-1">Gerencie as solicitações de saque</p>
         </div>
       </div>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4 mb-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-adm-muted" />
           <Input
             placeholder="Buscar por email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 bg-[#0D1117] border-[#1E2430] text-white placeholder:text-gray-500"
+            className="pl-10 bg-adm-surface border-adm-line text-adm-fg placeholder:text-adm-muted"
           />
         </div>
         <div className="flex gap-2">
@@ -152,8 +152,8 @@ export function AdminWithdrawals({ onUpdate }: AdminWithdrawalsProps) {
               size="sm"
               className={
                 filter === f
-                  ? "bg-[#2190ff] hover:bg-[#0b5ed7]"
-                  : "border-[#2A3142] bg-transparent text-gray-300 hover:bg-[#1E2430]"
+                  ? "bg-adm-accent hover:bg-adm-accent-strong"
+                  : "border-adm-line bg-transparent text-adm-fg/80 hover:bg-adm-elevated"
               }
             >
               {f === "all" ? "Todos" : f === "pending" ? "Pendentes" : f === "completed" ? "Pagos" : "Rejeitados"}
@@ -163,58 +163,58 @@ export function AdminWithdrawals({ onUpdate }: AdminWithdrawalsProps) {
       </div>
 
       {/* Withdrawals Table */}
-      <div className="bg-[#0D1117] border border-[#1E2430] rounded-xl overflow-hidden">
+      <div className="bg-adm-surface border border-adm-line rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[#1E2430]">
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+              <tr className="border-b border-adm-line">
+                <th className="text-left text-xs font-medium text-adm-muted uppercase tracking-wider px-4 py-3">
                   Usuário
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                <th className="text-left text-xs font-medium text-adm-muted uppercase tracking-wider px-4 py-3">
                   Valor
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                <th className="text-left text-xs font-medium text-adm-muted uppercase tracking-wider px-4 py-3">
                   Chave PIX
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                <th className="text-left text-xs font-medium text-adm-muted uppercase tracking-wider px-4 py-3">
                   Status
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">Data</th>
-                <th className="text-right text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                <th className="text-left text-xs font-medium text-adm-muted uppercase tracking-wider px-4 py-3">Data</th>
+                <th className="text-right text-xs font-medium text-adm-muted uppercase tracking-wider px-4 py-3">
                   Ações
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1E2430]">
+            <tbody className="divide-y divide-adm-line">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                  <td colSpan={6} className="px-4 py-8 text-center text-adm-muted">
                     Carregando...
                   </td>
                 </tr>
               ) : filteredWithdrawals.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                  <td colSpan={6} className="px-4 py-8 text-center text-adm-muted">
                     Nenhum saque encontrado
                   </td>
                 </tr>
               ) : (
                 filteredWithdrawals.map((withdrawal) => (
-                  <tr key={withdrawal.id} className="hover:bg-[#1E2430]/50">
+                  <tr key={withdrawal.id} className="hover:bg-adm-elevated/50">
                     <td className="px-4 py-3">
-                      <span className="text-white">{withdrawal.user_email}</span>
+                      <span className="text-adm-fg">{withdrawal.user_email}</span>
                     </td>
                     <td className="px-4 py-3">
                       <span className="text-red-500 font-medium">{formatCurrency(withdrawal.amount)}</span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-gray-400 text-sm font-mono">
+                      <span className="text-adm-muted text-sm font-mono">
                         {withdrawal.payment_details?.pix_key || "N/A"}
                       </span>
                     </td>
                     <td className="px-4 py-3">{getStatusBadge(withdrawal.status)}</td>
-                    <td className="px-4 py-3 text-gray-400 text-sm">
+                    <td className="px-4 py-3 text-adm-muted text-sm">
                       {new Date(withdrawal.created_at).toLocaleString("pt-BR")}
                     </td>
                     <td className="px-4 py-3 text-right">
@@ -225,7 +225,7 @@ export function AdminWithdrawals({ onUpdate }: AdminWithdrawalsProps) {
                               updateWithdrawalStatus(withdrawal.id, "completed", withdrawal.user_id, withdrawal.amount)
                             }
                             size="sm"
-                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                            className="bg-adm-accent hover:bg-adm-accent-strong text-adm-fg"
                           >
                             Pagar
                           </Button>

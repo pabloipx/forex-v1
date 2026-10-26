@@ -77,6 +77,29 @@ export async function POST(request: Request) {
       await upsertSetting(adminClient, "deposit_rollover_multiplier", String(Math.round(multiplier * 100) / 100))
     }
 
+    // Deposito minimo/maximo em dolar (o saldo da corretora e em USD; o PIX converte na hora).
+    const minUsd = body.deposit_min_usd !== undefined ? Number(body.deposit_min_usd) : undefined
+    const maxUsd = body.deposit_max_usd !== undefined ? Number(body.deposit_max_usd) : undefined
+    if (minUsd !== undefined && (!Number.isFinite(minUsd) || minUsd < 1 || minUsd > 100000)) {
+      return NextResponse.json({ error: "O deposito minimo deve ficar entre US$ 1 e US$ 100.000." }, { status: 400 })
+    }
+    if (maxUsd !== undefined && (!Number.isFinite(maxUsd) || maxUsd < 1 || maxUsd > 1000000)) {
+      return NextResponse.json({ error: "O deposito maximo deve ficar entre US$ 1 e US$ 1.000.000." }, { status: 400 })
+    }
+    if (minUsd !== undefined && maxUsd !== undefined && minUsd > maxUsd) {
+      return NextResponse.json({ error: "O deposito minimo nao pode ser maior que o maximo." }, { status: 400 })
+    }
+    if (minUsd !== undefined) await upsertSetting(adminClient, "deposit_min_usd", String(Math.round(minUsd * 100) / 100))
+    if (maxUsd !== undefined) await upsertSetting(adminClient, "deposit_max_usd", String(Math.round(maxUsd * 100) / 100))
+
+    if (body.pix_fx_spread_percent !== undefined) {
+      const spread = Number(body.pix_fx_spread_percent)
+      if (!Number.isFinite(spread) || spread < 0 || spread > 20) {
+        return NextResponse.json({ error: "O spread cambial deve ficar entre 0% e 20%." }, { status: 400 })
+      }
+      await upsertSetting(adminClient, "pix_fx_spread_percent", String(Math.round(spread * 100) / 100))
+    }
+
     // Prazo de processamento de saque, apenas informativo para o usuario.
     if (body.withdrawal_processing_hours !== undefined) {
       const hours = Number(body.withdrawal_processing_hours)

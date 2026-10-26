@@ -75,8 +75,12 @@ export async function POST(request: NextRequest) {
 
   // O hash assinado com o Client Secret prova a origem. Se ele nao bater, nao creditamos pelo
   // corpo: reconfirmamos direto na SuitPay antes.
+  // O PIX e cobrado em reais, mas `deposit.amount` guarda o credito em dolar. A comparacao tem que
+  // ser contra o BRL efetivamente cobrado (payment_details.amount_brl), com fallback para os
+  // depositos antigos, que eram gravados direto em reais.
   const paidValue = Number(body.value)
-  const hashValid = verifyWebhookHash(raw) && Number.isFinite(paidValue) && paidValue + 0.009 >= Number(deposit.amount)
+  const expectedBrl = Number(deposit.payment_details?.amount_brl ?? deposit.amount)
+  const hashValid = verifyWebhookHash(raw) && Number.isFinite(paidValue) && paidValue + 0.009 >= expectedBrl
 
   let confirmed = hashValid
   if (!confirmed) {

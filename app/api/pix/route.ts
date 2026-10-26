@@ -3,6 +3,7 @@ import { createPixCharge, getTransactionStatus, isSuitpayConfigured, SUITPAY_REQ
 import { createAdminClient } from "@/lib/supabase/admin"
 import { approveDeposit, isPaidStatus } from "@/lib/deposits"
 import { validatePromoCode } from "@/lib/promo-codes"
+import { effectiveRate, getDepositSettings, getUsdBrlRate, usdToBrl } from "@/lib/fx"
 
 // Valida CPF pelos digitos verificadores. A AmploPay rejeita CPF matematicamente invalido com
 // "Documento invalido" (GATEWAY_INVALID_DATA), entao barramos antes de chamar o provedor.
@@ -81,14 +82,37 @@ export async function POST(request: NextRequest) {
     const supabaseAdmin = createAdminClient()
 
     const body = await request.json()
-    const { amount, promoCode, cpf } = body
+    const { amountUsd, promoCode, cpf } = body
 
-    const numericAmount =
-      typeof amount === "string" ? Number.parseFloat(amount.replace(/[^\d.,]/g, "").replace(",", ".")) : Number(amount)
+    // O cliente escolhe quanto quer em DOLAR no saldo. O valor em reais e sempre calculado aqui,
+    // com a cotacao ao vivo: nunca aceitamos o valor em BRL vindo da tela.
+    const usdAmount = Math.round(Number(amountUsd) * 100) / 100
+    const depositSettings = await getDepositSettings(supabaseAdmin)
 
-    if (isNaN(numericAmount) || numericAmount < 50) {
-      return NextResponse.json({ error: "Valor minimo: R$ 50,00" }, { status: 400 })
+    if (!Number.isFinite(usdAmount) || usdAmount < depositSettings.minDepositUsd) {
+      return NextResponse.json(
+        { error: `Deposito minimo: US$ ${depositSettings.minDepositUsd.toFixed(2)}` },
+        { status: 400 },
+      )
     }
+    if (usdAmount > depositSettings.maxDepositUsd) {
+      return NextResponse.json(
+        { error: `Deposito maximo: US$ ${depositSettings.maxDepositUsd.toFixed(2)}` },
+        { status: 400 },
+      )
+    }
+
+    let fxQuote
+    try {
+      fxQuote = await getUsdBrlRate()
+    } catch (fxError) {
+      return NextResponse.json(
+        { error: fxError instanceof Error ? fxError.message : "Cotacao indisponivel" },
+        { status: 503 },
+      )
+    }
+    const appliedRate = effectiveRate(fxQuote.rate, depositSettings.fxSpreadPercent)
+    const brlAmount = usdToBrl(usdAmount, appliedRate)
 
     // CPF informado pelo lead na tela de deposito. A cobranca PIX e gerada com ESTE documento.
     // Validamos os digitos verificadores AQUI tambem: a AmploPay recusa CPF matematicamente
@@ -113,7 +137,7 @@ export async function POST(request: NextRequest) {
     // Codigo invalido nao derruba o deposito — apenas nao gera bonus.
     let validatedPromoCode: string | null = null
     if (typeof promoCode === "string" && promoCode.trim()) {
-      const validation = await validatePromoCode(supabaseAdmin, promoCode, user.id, numericAmount)
+      const validation = await validatePromoCode(supabaseAdmin, promoCode, user.id, usdAmount)
       if (validation.valid) {
         validatedPromoCode = validation.promo.code
       } else {
@@ -126,11 +150,23 @@ export async function POST(request: NextRequest) {
       .from("deposits")
       .insert({
         user_id: user.id,
-        amount: numericAmount,
+        // `amount` e o que entra no saldo (em dolar). O BRL cobrado fica em payment_details.
+        amount: usdAmount,
+        currency: "USD",
         method: "pix",
         status: "pending",
         external_id: identifier,
         promo_code: validatedPromoCode,
+        payment_details: {
+          type: "pix",
+          amount_usd: usdAmount,
+          amount_brl: brlAmount,
+          fx_rate: appliedRate,
+          market_rate: fxQuote.rate,
+          spread_percent: depositSettings.fxSpreadPercent,
+          rate_source: fxQuote.source,
+          quoted_at: new Date().toISOString(),
+        },
       })
       .select()
       .single()
@@ -145,7 +181,7 @@ export async function POST(request: NextRequest) {
       // sanitizados: o gateway recusa a cobranca inteira se qualquer campo estiver malformado.
       const charge = await createPixCharge({
         requestNumber: identifier,
-        amount: numericAmount,
+        amount: brlAmount,
         client: {
           name: sanitizeName(profile?.full_name),
           email: sanitizeEmail(profile?.email, user.id),
@@ -192,7 +228,9 @@ export async function POST(request: NextRequest) {
         qr_code: pixResponse.copyPaste,
         qr_code_base64: pixResponse.qrCode,
         copy_paste: pixResponse.copyPaste,
-        amount: numericAmount,
+        amount_usd: usdAmount,
+        amount_brl: brlAmount,
+        fx_rate: appliedRate,
       })
     } catch (pixError: any) {
       console.error("[PIX] SuitPay error:", pixError)

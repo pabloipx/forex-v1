@@ -19,63 +19,63 @@ interface StatsCardsProps {
 export function StatsCards({ stats }: StatsCardsProps) {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      <Card className="border-zinc-800 bg-zinc-900">
+      <Card className="border-adm-line bg-adm-surface">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-zinc-400">Total Users</CardTitle>
+          <CardTitle className="text-sm font-medium text-adm-muted">Total Users</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-white">{stats.totalUsers}</div>
+          <div className="text-2xl font-bold text-adm-fg">{stats.totalUsers}</div>
         </CardContent>
       </Card>
 
-      <Card className="border-zinc-800 bg-zinc-900">
+      <Card className="border-adm-line bg-adm-surface">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-zinc-400">Total Trades</CardTitle>
+          <CardTitle className="text-sm font-medium text-adm-muted">Total Trades</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-white">{stats.totalTrades}</div>
-          <p className="text-xs text-zinc-500 mt-1">{stats.activeTrades} active</p>
+          <div className="text-2xl font-bold text-adm-fg">{stats.totalTrades}</div>
+          <p className="text-xs text-adm-muted mt-1">{stats.activeTrades} active</p>
         </CardContent>
       </Card>
 
-      <Card className="border-zinc-800 bg-zinc-900">
+      <Card className="border-adm-line bg-adm-surface">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-zinc-400">Trading Volume</CardTitle>
+          <CardTitle className="text-sm font-medium text-adm-muted">Trading Volume</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-white">${stats.totalVolume.toFixed(2)}</div>
+          <div className="text-2xl font-bold text-adm-fg">${stats.totalVolume.toFixed(2)}</div>
         </CardContent>
       </Card>
 
-      <Card className="border-zinc-800 bg-zinc-900">
+      <Card className="border-adm-line bg-adm-surface">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-zinc-400">Win Rate</CardTitle>
+          <CardTitle className="text-sm font-medium text-adm-muted">Win Rate</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-white">{stats.winRate.toFixed(1)}%</div>
-          <p className="text-xs text-zinc-500 mt-1">
+          <div className="text-2xl font-bold text-adm-fg">{stats.winRate.toFixed(1)}%</div>
+          <p className="text-xs text-adm-muted mt-1">
             {stats.wins}W / {stats.losses}L
           </p>
         </CardContent>
       </Card>
 
-      <Card className="border-zinc-800 bg-zinc-900">
+      <Card className="border-adm-line bg-adm-surface">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-zinc-400">Total P&L</CardTitle>
+          <CardTitle className="text-sm font-medium text-adm-muted">Total P&L</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className={`text-2xl font-bold ${stats.totalProfit >= 0 ? "text-blue-500" : "text-red-500"}`}>
+          <div className={`text-2xl font-bold ${stats.totalProfit >= 0 ? "text-adm-accent" : "text-red-500"}`}>
             ${stats.totalProfit.toFixed(2)}
           </div>
         </CardContent>
       </Card>
 
-      <Card className="border-zinc-800 bg-zinc-900">
+      <Card className="border-adm-line bg-adm-surface">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-zinc-400">System Balance</CardTitle>
+          <CardTitle className="text-sm font-medium text-adm-muted">System Balance</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-white">${stats.totalBalance.toFixed(2)}</div>
+          <div className="text-2xl font-bold text-adm-fg">${stats.totalBalance.toFixed(2)}</div>
         </CardContent>
       </Card>
     </div>

@@ -174,14 +174,14 @@ export function AdminUsers() {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-white">Usuários</h1>
-          <p className="text-gray-400 text-sm mt-1">Gerencie os usuários ({users.length} total)</p>
+          <h1 className="text-xl md:text-2xl font-bold text-adm-fg">Usuários</h1>
+          <p className="text-adm-muted text-sm mt-1">Gerencie os usuários ({users.length} total)</p>
         </div>
         <Button
           onClick={loadUsers}
           variant="outline"
           size="sm"
-          className="border-[#2A3142] bg-transparent text-gray-300 hover:text-white w-full sm:w-auto"
+          className="border-adm-line bg-transparent text-adm-fg/80 hover:text-adm-fg w-full sm:w-auto"
         >
           <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
           Atualizar
@@ -199,52 +199,52 @@ export function AdminUsers() {
       )}
 
       <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-adm-muted" />
         <Input
           placeholder="Buscar por email, nome ou telefone..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="pl-10 bg-[#0D1117] border-[#1E2430] text-white placeholder:text-gray-500"
+          className="pl-10 bg-adm-surface border-adm-line text-adm-fg placeholder:text-adm-muted"
         />
       </div>
 
       {/* Mobile Cards View */}
       <div className="block md:hidden space-y-3">
         {loading ? (
-          <div className="text-center text-gray-500 py-8">Carregando...</div>
+          <div className="text-center text-adm-muted py-8">Carregando...</div>
         ) : filteredUsers.length === 0 ? (
-          <div className="text-center text-gray-500 py-8">
+          <div className="text-center text-adm-muted py-8">
             {error ? "Erro ao carregar" : "Nenhum usuário encontrado"}
           </div>
         ) : (
           filteredUsers.map((user) => (
-            <div key={user.id} className="bg-[#0D1117] border border-[#1E2430] rounded-xl p-4">
+            <div key={user.id} className="bg-adm-surface border border-adm-line rounded-xl p-4">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1 min-w-0">
-                  <div className="text-white font-medium truncate">{user.full_name || "Sem nome"}</div>
-                  <div className="text-gray-500 text-sm truncate">{user.email}</div>
+                  <div className="text-adm-fg font-medium truncate">{user.full_name || "Sem nome"}</div>
+                  <div className="text-adm-muted text-sm truncate">{user.email}</div>
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white -mr-2">
+                    <Button variant="ghost" size="sm" className="text-adm-muted hover:text-adm-fg -mr-2">
                       <MoreVertical className="w-4 h-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-[#1E2430] border-[#2A3142]">
+                  <DropdownMenuContent align="end" className="bg-adm-elevated border-adm-line">
                     <DropdownMenuItem
                       onClick={() => openEditModal(user)}
-                      className="text-gray-300 hover:text-white hover:bg-[#2A3142]"
+                      className="text-adm-fg/80 hover:text-adm-fg hover:bg-adm-elevated"
                     >
                       <Edit className="w-4 h-4 mr-2" />
                       Editar
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator className="bg-[#2A3142]" />
+                    <DropdownMenuSeparator className="bg-adm-elevated" />
                     <DropdownMenuItem
                       onClick={() => toggleBlockUser(user)}
                       className={
                         user.is_blocked
-                          ? "text-blue-400 hover:text-blue-300 hover:bg-[#2A3142]"
-                          : "text-red-400 hover:text-red-300 hover:bg-[#2A3142]"
+                          ? "text-adm-accent-soft hover:text-adm-accent-soft hover:bg-adm-elevated"
+                          : "text-red-400 hover:text-red-300 hover:bg-adm-elevated"
                       }
                     >
                       {user.is_blocked ? (
@@ -264,20 +264,20 @@ export function AdminUsers() {
               </div>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <span className="text-gray-500">Real:</span>
-                  <span className="text-blue-500 font-semibold ml-1">{formatCurrency(user.balance_real)}</span>
+                  <span className="text-adm-muted">Real:</span>
+                  <span className="text-adm-accent font-semibold ml-1">{formatCurrency(user.balance_real)}</span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Demo:</span>
-                  <span className="text-gray-400 ml-1">{formatCurrency(user.balance_demo)}</span>
+                  <span className="text-adm-muted">Demo:</span>
+                  <span className="text-adm-muted ml-1">{formatCurrency(user.balance_demo)}</span>
                 </div>
               </div>
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#1E2430]">
-                <span className="text-gray-500 text-xs">{new Date(user.created_at).toLocaleDateString("pt-BR")}</span>
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-adm-line">
+                <span className="text-adm-muted text-xs">{new Date(user.created_at).toLocaleDateString("pt-BR")}</span>
                 {user.is_blocked ? (
                   <span className="px-2 py-0.5 rounded-full text-xs bg-red-500/20 text-red-400">Bloqueado</span>
                 ) : (
-                  <span className="px-2 py-0.5 rounded-full text-xs bg-blue-500/20 text-blue-400">Ativo</span>
+                  <span className="px-2 py-0.5 rounded-full text-xs bg-adm-accent/20 text-adm-accent-soft">Ativo</span>
                 )}
               </div>
             </div>
@@ -286,59 +286,59 @@ export function AdminUsers() {
       </div>
 
       {/* Desktop Table View */}
-      <div className="hidden md:block bg-[#0D1117] border border-[#1E2430] rounded-xl overflow-hidden">
+      <div className="hidden md:block bg-adm-surface border border-adm-line rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[#1E2430]">
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+              <tr className="border-b border-adm-line">
+                <th className="text-left text-xs font-medium text-adm-muted uppercase tracking-wider px-4 py-3">
                   Usuário
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                <th className="text-left text-xs font-medium text-adm-muted uppercase tracking-wider px-4 py-3">
                   Saldo Real
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                <th className="text-left text-xs font-medium text-adm-muted uppercase tracking-wider px-4 py-3">
                   Saldo Demo
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                <th className="text-left text-xs font-medium text-adm-muted uppercase tracking-wider px-4 py-3">
                   Status
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                <th className="text-left text-xs font-medium text-adm-muted uppercase tracking-wider px-4 py-3">
                   Cadastro
                 </th>
-                <th className="text-right text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                <th className="text-right text-xs font-medium text-adm-muted uppercase tracking-wider px-4 py-3">
                   Ações
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1E2430]">
+            <tbody className="divide-y divide-adm-line">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                  <td colSpan={6} className="px-4 py-8 text-center text-adm-muted">
                     Carregando...
                   </td>
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                  <td colSpan={6} className="px-4 py-8 text-center text-adm-muted">
                     {error ? "Erro ao carregar" : "Nenhum usuário encontrado"}
                   </td>
                 </tr>
               ) : (
                 filteredUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-[#1E2430]/50">
+                  <tr key={user.id} className="hover:bg-adm-elevated/50">
                     <td className="px-4 py-3">
                       <div>
-                        <div className="text-white font-medium">{user.full_name || "Sem nome"}</div>
-                        <div className="text-gray-500 text-sm">{user.email}</div>
-                        {user.phone && <div className="text-gray-600 text-xs">{user.phone}</div>}
+                        <div className="text-adm-fg font-medium">{user.full_name || "Sem nome"}</div>
+                        <div className="text-adm-muted text-sm">{user.email}</div>
+                        {user.phone && <div className="text-adm-muted text-xs">{user.phone}</div>}
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-blue-500 font-semibold">{formatCurrency(user.balance_real)}</span>
+                      <span className="text-adm-accent font-semibold">{formatCurrency(user.balance_real)}</span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-gray-400">{formatCurrency(user.balance_demo)}</span>
+                      <span className="text-adm-muted">{formatCurrency(user.balance_demo)}</span>
                     </td>
                     <td className="px-4 py-3">
                       {user.is_blocked ? (
@@ -346,36 +346,36 @@ export function AdminUsers() {
                           Bloqueado
                         </span>
                       ) : (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-adm-accent/20 text-adm-accent-soft">
                           Ativo
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-gray-400 text-sm">
+                    <td className="px-4 py-3 text-adm-muted text-sm">
                       {new Date(user.created_at).toLocaleDateString("pt-BR")}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                          <Button variant="ghost" size="sm" className="text-adm-muted hover:text-adm-fg">
                             <MoreVertical className="w-4 h-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-[#1E2430] border-[#2A3142]">
+                        <DropdownMenuContent align="end" className="bg-adm-elevated border-adm-line">
                           <DropdownMenuItem
                             onClick={() => openEditModal(user)}
-                            className="text-gray-300 hover:text-white hover:bg-[#2A3142]"
+                            className="text-adm-fg/80 hover:text-adm-fg hover:bg-adm-elevated"
                           >
                             <Edit className="w-4 h-4 mr-2" />
                             Editar Usuário
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator className="bg-[#2A3142]" />
+                          <DropdownMenuSeparator className="bg-adm-elevated" />
                           <DropdownMenuItem
                             onClick={() => toggleBlockUser(user)}
                             className={
                               user.is_blocked
-                                ? "text-blue-400 hover:text-blue-300 hover:bg-[#2A3142]"
-                                : "text-red-400 hover:text-red-300 hover:bg-[#2A3142]"
+                                ? "text-adm-accent-soft hover:text-adm-accent-soft hover:bg-adm-elevated"
+                                : "text-red-400 hover:text-red-300 hover:bg-adm-elevated"
                             }
                           >
                             {user.is_blocked ? (
@@ -404,69 +404,69 @@ export function AdminUsers() {
       {/* Edit User Modal */}
       {showEditModal && selectedUser && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#0D1117] border border-[#1E2430] rounded-xl p-4 md:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg md:text-xl font-bold text-white mb-4 md:mb-6">Editar Usuário</h3>
+          <div className="bg-adm-surface border border-adm-line rounded-xl p-4 md:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg md:text-xl font-bold text-adm-fg mb-4 md:mb-6">Editar Usuário</h3>
 
             <div className="space-y-4">
-              <div className="bg-[#1E2430]/50 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-400 mb-3">Informações Pessoais</h4>
+              <div className="bg-adm-elevated/50 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-adm-muted mb-3">Informações Pessoais</h4>
                 <div className="space-y-3">
                   <div>
-                    <Label className="text-gray-400 text-sm">Nome Completo</Label>
+                    <Label className="text-adm-muted text-sm">Nome Completo</Label>
                     <Input
                       value={editForm.full_name}
                       onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
-                      className="mt-1 bg-[#0D1117] border-[#2A3142] text-white"
+                      className="mt-1 bg-adm-surface border-adm-line text-adm-fg"
                     />
                   </div>
                   <div>
-                    <Label className="text-gray-400 text-sm">Telefone</Label>
+                    <Label className="text-adm-muted text-sm">Telefone</Label>
                     <Input
                       value={editForm.phone}
                       onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                      className="mt-1 bg-[#0D1117] border-[#2A3142] text-white"
+                      className="mt-1 bg-adm-surface border-adm-line text-adm-fg"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="bg-[#1E2430]/50 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2">
+              <div className="bg-adm-elevated/50 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-adm-muted mb-3 flex items-center gap-2">
                   <DollarSign className="w-4 h-4" />
                   Saldos
                 </h4>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label className="text-gray-400 text-sm">Saldo Real (R$)</Label>
+                    <Label className="text-adm-muted text-sm">Saldo Real (R$)</Label>
                     <Input
                       type="number"
                       step="0.01"
                       value={editForm.balance_real}
                       onChange={(e) => setEditForm({ ...editForm, balance_real: e.target.value })}
-                      className="mt-1 bg-[#0D1117] border-[#2A3142] text-blue-500 font-semibold"
+                      className="mt-1 bg-adm-surface border-adm-line text-adm-accent font-semibold"
                     />
                   </div>
                   <div>
-                    <Label className="text-gray-400 text-sm">Saldo Demo (R$)</Label>
+                    <Label className="text-adm-muted text-sm">Saldo Demo (R$)</Label>
                     <Input
                       type="number"
                       step="0.01"
                       value={editForm.balance_demo}
                       onChange={(e) => setEditForm({ ...editForm, balance_demo: e.target.value })}
-                      className="mt-1 bg-[#0D1117] border-[#2A3142] text-gray-400"
+                      className="mt-1 bg-adm-surface border-adm-line text-adm-muted"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="bg-[#1E2430]/50 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-400 mb-3">Status da Conta</h4>
+              <div className="bg-adm-elevated/50 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-adm-muted mb-3">Status da Conta</h4>
                 <div className="space-y-3">
                   <label className="flex items-center justify-between cursor-pointer">
-                    <span className="text-white text-sm">Conta Verificada</span>
+                    <span className="text-adm-fg text-sm">Conta Verificada</span>
                     <div
                       onClick={() => setEditForm({ ...editForm, is_verified: !editForm.is_verified })}
-                      className={`w-12 h-6 rounded-full transition-colors ${editForm.is_verified ? "bg-blue-600" : "bg-gray-600"}`}
+                      className={`w-12 h-6 rounded-full transition-colors ${editForm.is_verified ? "bg-adm-accent" : "bg-adm-line"}`}
                     >
                       <div
                         className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform mt-0.5 ${editForm.is_verified ? "translate-x-6 ml-0.5" : "translate-x-0.5"}`}
@@ -474,10 +474,10 @@ export function AdminUsers() {
                     </div>
                   </label>
                   <label className="flex items-center justify-between cursor-pointer">
-                    <span className="text-white text-sm">Conta Bloqueada</span>
+                    <span className="text-adm-fg text-sm">Conta Bloqueada</span>
                     <div
                       onClick={() => setEditForm({ ...editForm, is_blocked: !editForm.is_blocked })}
-                      className={`w-12 h-6 rounded-full transition-colors ${editForm.is_blocked ? "bg-red-600" : "bg-gray-600"}`}
+                      className={`w-12 h-6 rounded-full transition-colors ${editForm.is_blocked ? "bg-red-600" : "bg-adm-line"}`}
                     >
                       <div
                         className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform mt-0.5 ${editForm.is_blocked ? "translate-x-6 ml-0.5" : "translate-x-0.5"}`}
@@ -492,14 +492,14 @@ export function AdminUsers() {
               <Button
                 onClick={() => setShowEditModal(false)}
                 variant="outline"
-                className="flex-1 border-[#2A3142] bg-transparent text-gray-300 hover:text-white"
+                className="flex-1 border-adm-line bg-transparent text-adm-fg/80 hover:text-adm-fg"
               >
                 Cancelar
               </Button>
               <Button
                 onClick={handleSaveUser}
                 disabled={saving}
-                className="flex-1 bg-gradient-to-r from-[#2190ff] to-[#4da6ff] hover:from-[#0b5ed7] hover:to-[#2190ff] text-white"
+                className="flex-1 bg-gradient-to-r from-adm-accent to-adm-accent-strong hover:from-adm-accent-strong hover:to-adm-accent-strong text-adm-fg"
               >
                 {saving ? "Salvando..." : "Salvar"}
               </Button>

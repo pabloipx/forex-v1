@@ -93,61 +93,61 @@ export function AdminMarkets() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Mercados</h1>
-          <p className="text-gray-400 mt-1">Gerencie os ativos disponíveis para trading</p>
+          <h1 className="text-2xl font-bold text-adm-fg">Mercados</h1>
+          <p className="text-adm-muted mt-1">Gerencie os ativos disponíveis para trading</p>
         </div>
       </div>
 
       {/* Symbols Table */}
-      <div className="bg-[#0D1117] border border-[#1E2430] rounded-xl overflow-hidden">
+      <div className="bg-adm-surface border border-adm-line rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[#1E2430]">
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+              <tr className="border-b border-adm-line">
+                <th className="text-left text-xs font-medium text-adm-muted uppercase tracking-wider px-4 py-3">
                   Ativo
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                <th className="text-left text-xs font-medium text-adm-muted uppercase tracking-wider px-4 py-3">
                   Categoria
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                <th className="text-left text-xs font-medium text-adm-muted uppercase tracking-wider px-4 py-3">
                   Payout
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                <th className="text-left text-xs font-medium text-adm-muted uppercase tracking-wider px-4 py-3">
                   Volatilidade
                 </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                <th className="text-left text-xs font-medium text-adm-muted uppercase tracking-wider px-4 py-3">
                   Ativo
                 </th>
-                <th className="text-right text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                <th className="text-right text-xs font-medium text-adm-muted uppercase tracking-wider px-4 py-3">
                   Ações
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1E2430]">
+            <tbody className="divide-y divide-adm-line">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                  <td colSpan={6} className="px-4 py-8 text-center text-adm-muted">
                     Carregando...
                   </td>
                 </tr>
               ) : symbols.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                  <td colSpan={6} className="px-4 py-8 text-center text-adm-muted">
                     Nenhum ativo encontrado
                   </td>
                 </tr>
               ) : (
                 symbols.map((symbol) => (
-                  <tr key={symbol.id} className="hover:bg-[#1E2430]/50">
+                  <tr key={symbol.id} className="hover:bg-adm-elevated/50">
                     <td className="px-4 py-3">
                       <div>
-                        <div className="text-white font-medium">{symbol.symbol}</div>
-                        <div className="text-gray-500 text-sm">{symbol.name}</div>
+                        <div className="text-adm-fg font-medium">{symbol.symbol}</div>
+                        <div className="text-adm-muted text-sm">{symbol.name}</div>
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-gray-400 capitalize">{symbol.category}</span>
+                      <span className="text-adm-muted capitalize">{symbol.category}</span>
                     </td>
                     <td className="px-4 py-3">
                       {editingId === symbol.id ? (
@@ -157,10 +157,10 @@ export function AdminMarkets() {
                           onChange={(e) =>
                             setEditForm({ ...editForm, payout_percentage: Number.parseFloat(e.target.value) })
                           }
-                          className="w-20 h-8 bg-[#1E2430] border-[#2A3142] text-white"
+                          className="w-20 h-8 bg-adm-elevated border-adm-line text-adm-fg"
                         />
                       ) : (
-                        <span className="text-blue-500 font-medium">{symbol.payout_percentage}%</span>
+                        <span className="text-adm-accent font-medium">{symbol.payout_percentage}%</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
@@ -170,10 +170,10 @@ export function AdminMarkets() {
                           step="0.0001"
                           value={editForm.volatility || ""}
                           onChange={(e) => setEditForm({ ...editForm, volatility: Number.parseFloat(e.target.value) })}
-                          className="w-24 h-8 bg-[#1E2430] border-[#2A3142] text-white"
+                          className="w-24 h-8 bg-adm-elevated border-adm-line text-adm-fg"
                         />
                       ) : (
-                        <span className="text-gray-400">{symbol.volatility}</span>
+                        <span className="text-adm-muted">{symbol.volatility}</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
@@ -185,7 +185,7 @@ export function AdminMarkets() {
                     <td className="px-4 py-3 text-right">
                       {editingId === symbol.id ? (
                         <div className="flex justify-end gap-2">
-                          <Button onClick={saveEdit} size="sm" className="bg-blue-600 hover:bg-blue-700">
+                          <Button onClick={saveEdit} size="sm" className="bg-adm-accent hover:bg-adm-accent-strong">
                             <Save className="w-4 h-4" />
                           </Button>
                           <Button
@@ -195,7 +195,7 @@ export function AdminMarkets() {
                             }}
                             size="sm"
                             variant="outline"
-                            className="border-[#2A3142] bg-transparent text-gray-300"
+                            className="border-adm-line bg-transparent text-adm-fg/80"
                           >
                             <X className="w-4 h-4" />
                           </Button>
@@ -205,7 +205,7 @@ export function AdminMarkets() {
                           onClick={() => startEditing(symbol)}
                           size="sm"
                           variant="ghost"
-                          className="text-gray-400 hover:text-white"
+                          className="text-adm-muted hover:text-adm-fg"
                         >
                           <Edit2 className="w-4 h-4" />
                         </Button>
