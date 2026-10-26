@@ -25,6 +25,7 @@ import {
   updateUserProfile,
   updateMarket,
 } from "@/lib/admin/forex-admin"
+import { deleteLaunch, launchInputSchema, listLaunches, saveLaunch } from "@/lib/launches"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -39,6 +40,7 @@ const views = {
   adjustments: listAdjustments,
   withdrawals: listWithdrawals,
   deposits: listDeposits,
+  launches: () => listLaunches({ onlyVisible: false }),
 } as const
 
 export async function GET(request: NextRequest) {
@@ -124,6 +126,8 @@ const actionSchema = z.discriminatedUnion("action", [
     makerFee: z.number().min(-0.001).max(0.01).optional(),
     spreadBps: z.number().min(0).max(500).optional(),
   }),
+  z.object({ action: z.literal("save_launch"), launch: launchInputSchema }),
+  z.object({ action: z.literal("delete_launch"), id: z.string().uuid() }),
 ])
 
 export async function POST(request: NextRequest) {
@@ -162,6 +166,11 @@ export async function POST(request: NextRequest) {
         const { action: _action, symbol, ...patch } = a
         return NextResponse.json({ success: true, market: await updateMarket(symbol, patch) })
       }
+      case "save_launch":
+        return NextResponse.json({ success: true, launch: await saveLaunch(a.launch) })
+      case "delete_launch":
+        await deleteLaunch(a.id)
+        return NextResponse.json({ success: true })
     }
   } catch (e) {
     return errorResponse(e)

@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import useSWR from "swr"
 import { ChevronDown, Search, Star } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
@@ -27,30 +28,64 @@ interface TickerBarProps {
 type SelectorTab = MarketCategory | "fav" | "launch"
 const FAV_KEY = "kb:fav-markets"
 
-const UPCOMING_LAUNCHES = [{ symbol: "TSLCUSDT", name: "Tesla Coin", icon: "/images/tesla-coin.png" }]
+interface Launch {
+  id: string
+  symbol: string
+  name: string
+  description: string | null
+  icon_url: string | null
+  launch_at: string | null
+  initial_price_usd: number | null
+  status: "upcoming" | "live" | "ended"
+}
+
+const launchFetcher = (url: string) =>
+  fetch(url).then((r) => (r.ok ? r.json() : { data: [] })).then((j: { data: Launch[] }) => j.data)
+
+const LAUNCH_STATUS: Record<Launch["status"], string> = { upcoming: "Em breve", live: "Lançada", ended: "Encerrada" }
 
 function UpcomingLaunches() {
+  const { data, isLoading } = useSWR("/api/launches", launchFetcher, { revalidateOnFocus: false, dedupingInterval: 60_000 })
+
+  if (isLoading) return <p className="px-3 py-6 text-center text-xs text-term-muted">Carregando...</p>
+  if (!data?.length) return <p className="px-3 py-6 text-center text-xs text-term-muted">Nenhum lançamento previsto.</p>
+
   return (
     <ul className="max-h-80 overflow-y-auto pb-2">
-      {UPCOMING_LAUNCHES.map((coin) => (
-        <li
-          key={coin.symbol}
-          aria-disabled="true"
-          className="grid cursor-not-allowed grid-cols-[1fr_auto] items-center gap-x-4 py-2 pl-3 pr-3 text-sm"
-        >
-          <span className="flex min-w-0 items-center gap-2.5 pl-5">
-            <img src={coin.icon || "/placeholder.svg"} alt="" width={24} height={24} className="size-6 rounded-full" />
-            <span className="flex flex-col leading-tight">
+      {data.map((coin) => (
+        <li key={coin.id} aria-disabled="true" className="flex cursor-not-allowed flex-col gap-1.5 px-3 py-2.5 text-sm">
+          <span className="flex items-center gap-2.5 pl-5">
+            <img
+              src={coin.icon_url || "/placeholder.svg?height=28&width=28&query=coin"}
+              alt=""
+              width={28}
+              height={28}
+              className="size-7 shrink-0 rounded-full object-cover"
+            />
+            <span className="flex min-w-0 flex-1 flex-col leading-tight">
               <span className="font-semibold">{coin.name}</span>
-              <span className="text-[11px] text-term-muted">{coin.symbol}</span>
+              <span className="text-[11px] text-term-muted">
+                {coin.symbol}
+                {coin.initial_price_usd != null && ` · US$ ${coin.initial_price_usd.toLocaleString("pt-BR", { maximumFractionDigits: 6 })}`}
+              </span>
+            </span>
+            <span className="flex flex-col items-end gap-0.5">
+              <span className="rounded bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                {LAUNCH_STATUS[coin.status]}
+              </span>
+              {coin.launch_at && (
+                <span className="text-[10px] text-term-muted">
+                  {new Date(coin.launch_at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+                </span>
+              )}
             </span>
           </span>
-          <span className="rounded bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">Em breve</span>
+          {coin.description && (
+            <p className="pl-[3.25rem] text-xs leading-relaxed text-term-muted text-pretty">{coin.description}</p>
+          )}
         </li>
       ))}
-      <li className="px-3 pt-2 text-center text-[11px] text-term-muted">
-        Negociação liberada quando o lançamento abrir.
-      </li>
+      <li className="px-3 pt-2 text-center text-[11px] text-term-muted">Negociação liberada quando o lançamento abrir.</li>
     </ul>
   )
 }

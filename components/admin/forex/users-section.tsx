@@ -5,8 +5,9 @@ import { UserLogsDialog } from "./user-logs-dialog"
 import { UserDetailSheet } from "./user-detail-sheet"
 import { toast } from "sonner"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Badge, DataTable, ErrorNote, Panel, SmallButton, inputCls, td } from "./ui"
-import { adminAction, dateTime, refreshAdmin, signedUsd, usd, useAdminView } from "./use-admin"
+import useSWR from "swr"
+import { Badge, DataTable, ErrorNote, Panel, SmallButton, Stat, inputCls, td } from "./ui"
+import { adminAction, brl, dateTime, refreshAdmin, signedUsd, usd, useAdminView } from "./use-admin"
 import { cn } from "@/lib/utils"
 
 interface UserRow {
@@ -45,6 +46,30 @@ const kycLabel: Record<string, string> = {
   not_started: "Não enviado",
 }
 const money = (v: number | null | undefined) => `US$ ${usd(v)}`
+
+const fxFetcher = (url: string) =>
+  fetch(url, { cache: "no-store" }).then((r) => (r.ok ? (r.json() as Promise<{ market_rate: number }>) : null))
+
+function useUsdBrlRate() {
+  const { data } = useSWR("/api/fx/usd-brl", fxFetcher, { refreshInterval: 60_000, revalidateOnFocus: false })
+  return data?.market_rate ?? null
+}
+
+function BalanceSummary({ users, rate }: { users: UserRow[]; rate: number | null }) {
+  const totalUsd = users.reduce((sum, u) => sum + (u.balance_real || 0), 0)
+  const funded = users.filter((u) => u.balance_real > 0).length
+  return (
+    <div className="grid gap-3 sm:grid-cols-3">
+      <Stat label="Saldo total dos clientes (US$)" value={money(totalUsd)} tone="accent" hint={`${funded} com saldo`} />
+      <Stat
+        label="Equivalente em reais"
+        value={rate ? brl(totalUsd * rate) : "—"}
+        hint={rate ? "Pela cotação atual" : "Cotação indisponível"}
+      />
+      <Stat label="Cotação do dólar" value={rate ? brl(rate) : "—"} hint="1 US$ (comercial)" />
+    </div>
+  )
+}
 
 function AdjustDialog({ user, onClose }: { user: UserRow | null; onClose: () => void }) {
   const [direction, setDirection] = useState<"credit" | "debit">("credit")
@@ -220,6 +245,7 @@ export function UsersSection() {
   const [viewingDetail, setViewingDetail] = useState<UserRow | null>(null)
   const [blocking, setBlocking] = useState<UserRow | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
+  const rate = useUsdBrlRate()
 
   const toggleBlock = async (u: UserRow) => {
     if (!u.is_blocked) return setBlocking(u)
@@ -245,6 +271,7 @@ export function UsersSection() {
 
   return (
     <div className="flex flex-col gap-4">
+      <BalanceSummary users={data ?? []} rate={rate} />
       <input
         type="search"
         placeholder="Buscar por nome, e-mail ou telefone"
@@ -256,7 +283,7 @@ export function UsersSection() {
       <Panel title={`Usuários (${rows.length})`}>
         <ErrorNote error={error} />
         <DataTable
-          head={["Cliente", "Contato", "KYC", "Saldo (USD)", "Demo (USD)", "Posições", "Cadastro", "Status", "Ações"]}
+          head={["Cliente", "Contato", "KYC", "Saldo", "Demo (US$)", "Posições", "Cadastro", "Status", "Ações"]}
           empty={rows.length === 0 && "Nenhum usuário encontrado."}
         >
           {rows.map((u) => (
@@ -283,8 +310,13 @@ export function UsersSection() {
               <td className={td}>
                 <Badge tone={kycTone(u.kyc_status)}>{kycLabel[u.kyc_status] ?? u.kyc_status}</Badge>
               </td>
-              <td className={cn(td, "text-sm font-semibold", u.balance_real > 0 ? "text-term-text" : "text-term-muted")}>
-                {money(u.balance_real)}
+              <td className={td}>
+                <span className="flex flex-col">
+                  <span className={cn("text-sm font-semibold", u.balance_real > 0 ? "text-term-text" : "text-term-muted")}>
+                    {money(u.balance_real)}
+                  </span>
+                  <span className="text-term-muted">{rate ? brl(u.balance_real * rate) : "—"}</span>
+                </span>
               </td>
               <td className={cn(td, "text-term-muted")}>{money(u.balance_demo)}</td>
               <td className={cn(td, u.open_positions > 0 ? "text-term-text" : "text-term-muted")}>{u.open_positions}</td>

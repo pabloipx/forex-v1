@@ -15,6 +15,7 @@ import {
   Headset,
   LogOut,
   Menu,
+  Rocket,
   ShieldCheck,
   SlidersHorizontal,
   Users,
@@ -33,11 +34,13 @@ import { DepositsSection } from "./deposits-section"
 import { ManipulationSection } from "./manipulation-section"
 import { GatewaySection } from "./gateway-section"
 import { LimitsSection } from "./limits-section"
+import { LaunchesSection } from "./launches-section"
 
 const SECTIONS = [
   { id: "overview", label: "Visão geral", group: "Painel", icon: BarChart3, Component: OverviewSection },
   { id: "positions", label: "Posições e ordens", group: "Painel", icon: CandlestickChart, Component: PositionsSection },
   { id: "markets", label: "Mercados", group: "Mercado", icon: SlidersHorizontal, Component: MarketsSection },
+  { id: "launches", label: "Lançamentos", group: "Mercado", icon: Rocket, Component: LaunchesSection },
   { id: "manipulation", label: "Manipulação", group: "Mercado", icon: Zap, Component: ManipulationSection },
   { id: "users", label: "Usuários e saldos", group: "Clientes", icon: Users, Component: UsersSection },
   { id: "kyc", label: "KYC", group: "Clientes", icon: ShieldCheck, Component: KycSection },
