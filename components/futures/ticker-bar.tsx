@@ -24,8 +24,36 @@ interface TickerBarProps {
   onSelect: (symbol: string) => void
 }
 
-type SelectorTab = MarketCategory | "fav"
+type SelectorTab = MarketCategory | "fav" | "launch"
 const FAV_KEY = "kb:fav-markets"
+
+const UPCOMING_LAUNCHES = [{ symbol: "TSLCUSDT", name: "Tesla Coin", icon: "/images/tesla-coin.png" }]
+
+function UpcomingLaunches() {
+  return (
+    <ul className="max-h-80 overflow-y-auto pb-2">
+      {UPCOMING_LAUNCHES.map((coin) => (
+        <li
+          key={coin.symbol}
+          aria-disabled="true"
+          className="grid cursor-not-allowed grid-cols-[1fr_auto] items-center gap-x-4 py-2 pl-3 pr-3 text-sm"
+        >
+          <span className="flex min-w-0 items-center gap-2.5 pl-5">
+            <img src={coin.icon || "/placeholder.svg"} alt="" width={24} height={24} className="size-6 rounded-full" />
+            <span className="flex flex-col leading-tight">
+              <span className="font-semibold">{coin.name}</span>
+              <span className="text-[11px] text-term-muted">{coin.symbol}</span>
+            </span>
+          </span>
+          <span className="rounded bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">Em breve</span>
+        </li>
+      ))}
+      <li className="px-3 pt-2 text-center text-[11px] text-term-muted">
+        Negociação liberada quando o lançamento abrir.
+      </li>
+    </ul>
+  )
+}
 
 function useFavorites() {
   const [favs, setFavs] = useState<string[]>([])
@@ -101,7 +129,7 @@ function MarketSelector({ market, tickers, onSelect }: Pick<TickerBarProps, "mar
             />
           </label>
           {!query && (
-            <div role="tablist" className="mt-3 flex gap-4 text-sm">
+            <div role="tablist" className="-mx-3 mt-3 flex gap-4 overflow-x-auto whitespace-nowrap px-3 text-sm [scrollbar-width:none]">
               <button
                 role="tab"
                 aria-selected={category === "fav"}
@@ -128,9 +156,30 @@ function MarketSelector({ market, tickers, onSelect }: Pick<TickerBarProps, "mar
                   {CATEGORY_LABELS[c]}
                 </button>
               ))}
+              <button
+                role="tab"
+                aria-selected={category === "launch"}
+                onClick={() => setCategory("launch")}
+                className={cn(
+                  "border-b-2 pb-1 font-medium",
+                  category === "launch" ? "border-primary text-term-text" : "border-transparent text-term-muted",
+                )}
+              >
+                Lançamentos
+              </button>
             </div>
           )}
         </div>
+        {category === "launch" && !query ? (
+          <>
+            <div className="grid grid-cols-[1fr_auto] gap-x-4 px-3 py-1.5 text-[11px] text-term-muted">
+              <span>Moeda</span>
+              <span className="text-right">Status</span>
+            </div>
+            <UpcomingLaunches />
+          </>
+        ) : (
+        <>
         <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 px-3 py-1.5 text-[11px] text-term-muted">
           <span>Mercado</span>
           <span className="text-right">Preço</span>
@@ -183,6 +232,8 @@ function MarketSelector({ market, tickers, onSelect }: Pick<TickerBarProps, "mar
             )
           })}
         </ul>
+        </>
+        )}
       </PopoverContent>
     </Popover>
   )

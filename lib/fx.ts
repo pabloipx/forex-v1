@@ -140,6 +140,19 @@ export async function getDepositSettings(admin: SupabaseClient): Promise<Deposit
   }
 }
 
+export const DEFAULT_MIN_WITHDRAW_USD = 100
+
+/** Saque mínimo em dólar configurado no admin (`withdraw_min_usd`). */
+export async function getWithdrawMinUsd(admin: SupabaseClient): Promise<number> {
+  const { data } = await admin
+    .from("platform_settings")
+    .select("setting_value")
+    .eq("setting_key", "withdraw_min_usd")
+    .maybeSingle()
+  const v = parseSettingNumber(data?.setting_value)
+  return v && v > 0 ? v : DEFAULT_MIN_WITHDRAW_USD
+}
+
 export function effectiveRate(marketRate: number, spreadPercent: number): number {
   return Math.round(marketRate * (1 + spreadPercent / 100) * 10000) / 10000
 }

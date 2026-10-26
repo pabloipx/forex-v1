@@ -11,6 +11,7 @@ import {
   BarChart3,
   CandlestickChart,
   ExternalLink,
+  Gauge,
   Headset,
   LogOut,
   Menu,
@@ -31,6 +32,7 @@ import { WithdrawalsSection } from "./withdrawals-section"
 import { DepositsSection } from "./deposits-section"
 import { ManipulationSection } from "./manipulation-section"
 import { GatewaySection } from "./gateway-section"
+import { LimitsSection } from "./limits-section"
 
 const SECTIONS = [
   { id: "overview", label: "Visão geral", group: "Painel", icon: BarChart3, Component: OverviewSection },
@@ -42,6 +44,7 @@ const SECTIONS = [
   { id: "support", label: "Suporte", group: "Clientes", icon: Headset, Component: AdminSupport },
   { id: "deposits", label: "Depósitos", group: "Financeiro", icon: ArrowDownToLine, Component: DepositsSection },
   { id: "withdrawals", label: "Saques", group: "Financeiro", icon: ArrowUpFromLine, Component: WithdrawalsSection },
+  { id: "limits", label: "Limites", group: "Financeiro", icon: Gauge, Component: LimitsSection },
   { id: "gateway", label: "Gateway", group: "Financeiro", icon: Activity, Component: GatewaySection },
 ] as const
 

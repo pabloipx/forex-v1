@@ -35,8 +35,16 @@ interface Adjustment {
   created_at: string
 }
 
-const kycTone = (s: string) => (s === "approved" ? "up" : s === "rejected" ? "down" : "accent")
-const kycLabel: Record<string, string> = { approved: "Aprovado", rejected: "Rejeitado", pending: "Pendente", submitted: "Em análise" }
+const kycTone = (s: string) =>
+  s === "approved" ? "up" : s === "rejected" ? "down" : s === "pending" || s === "submitted" ? "accent" : "muted"
+const kycLabel: Record<string, string> = {
+  approved: "Aprovado",
+  rejected: "Rejeitado",
+  pending: "Pendente",
+  submitted: "Em análise",
+  not_started: "Não enviado",
+}
+const money = (v: number | null | undefined) => `US$ ${usd(v)}`
 
 function AdjustDialog({ user, onClose }: { user: UserRow | null; onClose: () => void }) {
   const [direction, setDirection] = useState<"credit" | "debit">("credit")
@@ -59,7 +67,7 @@ function AdjustDialog({ user, onClose }: { user: UserRow | null; onClose: () => 
         amount: direction === "credit" ? value : -value,
         note: note || null,
       })
-      toast.success(`Saldo atualizado: ${usd(res.balance)} USDT`)
+      toast.success(`Saldo atualizado: ${money(res.balance)}`)
       await refreshAdmin("users", "adjustments", "overview")
       setAmount("")
       setNote("")
@@ -92,14 +100,14 @@ function AdjustDialog({ user, onClose }: { user: UserRow | null; onClose: () => 
           </div>
           <div className="flex gap-1 rounded-md bg-term-bg p-1" role="radiogroup" aria-label="Conta">
             <button type="button" role="radio" aria-checked={!isDemo} className={seg(!isDemo)} onClick={() => setIsDemo(false)}>
-              Real ({usd(user?.balance_real)})
+              Saldo ({money(user?.balance_real)})
             </button>
             <button type="button" role="radio" aria-checked={isDemo} className={seg(isDemo)} onClick={() => setIsDemo(true)}>
-              Demo ({usd(user?.balance_demo)})
+              Demo ({money(user?.balance_demo)})
             </button>
           </div>
           <label className="flex flex-col gap-1.5 text-xs text-term-muted">
-            Valor (USDT)
+            Valor (US$)
             <input className={inputCls} inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0,00" required />
           </label>
           <label className="flex flex-col gap-1.5 text-xs text-term-muted">
@@ -248,7 +256,7 @@ export function UsersSection() {
       <Panel title={`Usuários (${rows.length})`}>
         <ErrorNote error={error} />
         <DataTable
-          head={["Cliente", "Telefone", "País", "KYC", "Saldo real", "Saldo demo", "Posições", "Cadastro", "Status", ""]}
+          head={["Cliente", "Contato", "KYC", "Saldo (USD)", "Demo (USD)", "Posições", "Cadastro", "Status", "Ações"]}
           empty={rows.length === 0 && "Nenhum usuário encontrado."}
         >
           {rows.map((u) => (
@@ -260,18 +268,26 @@ export function UsersSection() {
                   className="group flex flex-col rounded text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-term-accent"
                   aria-label={`Abrir detalhes de ${u.full_name || u.email}`}
                 >
-                  <span className="font-medium group-hover:text-term-accent group-hover:underline">{u.full_name || "—"}</span>
+                  <span className="text-sm font-medium group-hover:text-primary group-hover:underline">
+                    {u.full_name || "Sem nome"}
+                  </span>
                   <span className="text-term-muted">{u.email}</span>
                 </button>
               </td>
-              <td className={td}>{u.phone ?? "—"}</td>
-              <td className={cn(td, "font-sans")}>{u.country ?? "—"}</td>
+              <td className={td}>
+                <span className="flex flex-col">
+                  <span>{u.phone ?? "—"}</span>
+                  <span className="font-sans text-term-muted">{u.country ?? "—"}</span>
+                </span>
+              </td>
               <td className={td}>
                 <Badge tone={kycTone(u.kyc_status)}>{kycLabel[u.kyc_status] ?? u.kyc_status}</Badge>
               </td>
-              <td className={td}>{usd(u.balance_real)}</td>
-              <td className={cn(td, "text-term-muted")}>{usd(u.balance_demo)}</td>
-              <td className={td}>{u.open_positions}</td>
+              <td className={cn(td, "text-sm font-semibold", u.balance_real > 0 ? "text-term-text" : "text-term-muted")}>
+                {money(u.balance_real)}
+              </td>
+              <td className={cn(td, "text-term-muted")}>{money(u.balance_demo)}</td>
+              <td className={cn(td, u.open_positions > 0 ? "text-term-text" : "text-term-muted")}>{u.open_positions}</td>
               <td className={cn(td, "text-term-muted")}>{dateTime(u.created_at)}</td>
               <td className={td}>
                 {u.is_blocked ? (
@@ -315,8 +331,8 @@ export function UsersSection() {
               <td className={cn(td, "text-term-muted")}>{dateTime(a.created_at)}</td>
               <td className={cn(td, "font-sans")}>{a.email}</td>
               <td className={td}>{a.is_demo ? <Badge>demo</Badge> : <Badge tone="accent">real</Badge>}</td>
-              <td className={cn(td, a.amount >= 0 ? "text-long" : "text-short")}>{signedUsd(a.amount)}</td>
-              <td className={td}>{usd(a.balance_after)}</td>
+              <td className={cn(td, a.amount >= 0 ? "text-long" : "text-short")}>{`${signedUsd(a.amount)} US$`}</td>
+              <td className={td}>{money(a.balance_after)}</td>
               <td className={cn(td, "font-sans text-term-muted")}>{a.note ?? "—"}</td>
             </tr>
           ))}

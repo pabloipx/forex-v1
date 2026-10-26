@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { isSuitpayConfigured } from "@/lib/suitpay"
-import { getDepositSettings } from "@/lib/fx"
+import { getDepositSettings, getWithdrawMinUsd } from "@/lib/fx"
 
 const CRYPTO_WALLET = "0x4a46afb8Cd04C21FD1370ECbdC1C543352e55e60"
 const CRYPTO_MIN_USD = 20
@@ -36,12 +36,16 @@ export async function GET() {
 
     result.pix_enabled = result.pix_enabled && isSuitpayConfigured()
 
-    const depositSettings = await getDepositSettings(adminClient)
+    const [depositSettings, minWithdrawUsd] = await Promise.all([
+      getDepositSettings(adminClient),
+      getWithdrawMinUsd(adminClient),
+    ])
 
     return NextResponse.json({
       ...result,
       min_deposit_usd: depositSettings.minDepositUsd,
       max_deposit_usd: depositSettings.maxDepositUsd,
+      min_withdraw_usd: minWithdrawUsd,
     })
   } catch (error) {
     console.error("Error fetching deposit methods:", error)

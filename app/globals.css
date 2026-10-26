@@ -866,11 +866,35 @@ body {
    Painel administrativo — tipografia e base
    ======================================== */
 .admin-theme {
+  /* Paleta própria do painel: grafite azulado com mais contraste nos textos secundários */
+  --term-bg: #0b0e13;
+  --term-panel: #12161e;
+  --term-line: #222936;
+  --term-text: #eef1f6;
+  --term-muted: #98a2b5;
+  --term-field: #171c26;
+  --adm-bg: #0b0e13;
+  --adm-surface: #12161e;
+  --adm-elevated: #191f2a;
+  --adm-line: #222936;
+  --adm-fg: #eef1f6;
+  --adm-muted: #98a2b5;
+  color-scheme: dark;
   font-family: var(--font-admin-sans), system-ui, sans-serif;
   background-color: var(--adm-bg);
   color: var(--adm-fg);
-  letter-spacing: -0.005em;
+  font-size: 15px;
+  line-height: 1.5;
   font-variant-numeric: tabular-nums;
+  font-feature-settings: "ss02", "zero";
+}
+.admin-theme .text-xs {
+  font-size: 0.8125rem;
+}
+.admin-theme section.rounded-xl,
+.admin-theme article.rounded-xl {
+  box-shadow: 0 1px 0 0 color-mix(in srgb, var(--term-text) 4%, transparent) inset,
+    0 8px 24px -16px rgb(0 0 0 / 0.6);
 }
 .admin-theme .font-sans {
   font-family: var(--font-admin-sans), system-ui, sans-serif;
@@ -879,13 +903,14 @@ body {
   font-family: var(--font-admin-mono), ui-monospace, monospace;
 }
 .admin-theme :is(h1, h2, h3) {
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
+  font-weight: 600;
 }
 .admin-theme th {
-  font-size: 0.7rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   color: var(--adm-muted);
 }
 .admin-theme ::selection {
