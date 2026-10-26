@@ -45,10 +45,13 @@ export interface AdminKyc {
   id: string
   user_id: string
   email: string
+  full_name: string | null
+  phone: string | null
   document_type: string | null
   status: string
   review_notes: string | null
   created_at: string
+  reviewed_at: string | null
   files: { label: string; path: string | null }[]
 }
 
@@ -382,20 +385,29 @@ export async function listKyc(): Promise<AdminKyc[]> {
   if (testMode()) return []
   const { data, error } = await db()
     .from("kyc_submissions")
-    .select("id, user_id, status, document_type, document_front_path, document_back_path, selfie_path, review_notes, created_at")
+    .select(
+      "id, user_id, status, document_type, document_front_path, document_back_path, selfie_path, review_notes, created_at, reviewed_at",
+    )
     .neq("status", "draft")
     .order("created_at", { ascending: false })
-    .limit(200)
+    .limit(500)
   if (error) throw new TradingError("Não foi possível carregar o KYC", 500)
-  const emails = await emailMap((data ?? []).map((r) => r.user_id as string))
+  const ids = [...new Set((data ?? []).map((r) => r.user_id as string))]
+  const { data: profiles } = ids.length
+    ? await db().from("profiles").select("id, email, full_name, phone").in("id", ids)
+    : { data: [] as { id: string; email: string | null; full_name: string | null; phone: string | null }[] }
+  const byId = Object.fromEntries((profiles ?? []).map((p) => [p.id, p]))
   return (data ?? []).map((r) => ({
     id: r.id,
     user_id: r.user_id,
-    email: emails[r.user_id] ?? "—",
+    email: byId[r.user_id]?.email ?? "—",
+    full_name: byId[r.user_id]?.full_name ?? null,
+    phone: byId[r.user_id]?.phone ?? null,
     document_type: r.document_type,
     status: r.status ?? "pending",
     review_notes: r.review_notes ?? null,
     created_at: r.created_at,
+    reviewed_at: r.reviewed_at ?? null,
     files: [
       { label: "Frente", path: r.document_front_path },
       { label: "Verso", path: r.document_back_path },
