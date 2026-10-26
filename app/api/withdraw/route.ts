@@ -3,9 +3,7 @@ import { createAdminClient, createClient as createServerClient } from "@/lib/sup
 import { cancelActiveBonus, getActiveBonus, shouldCancelBonusOnWithdrawal } from "@/lib/promo-codes"
 import { getDepositRolloverSummary } from "@/lib/deposit-rollover"
 import { PROFILE_COLUMNS, profileCompletion, type ProfileFields } from "@/lib/profile-completeness"
-
-// Mesmo minimo exibido na tela de saque.
-const MIN_WITHDRAWAL = 100
+import { getWithdrawMinUsd } from "@/lib/fx"
 
 /**
  * Criacao de saque no servidor.
@@ -45,13 +43,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Valor invalido" }, { status: 400 })
     }
 
-    if (amount < MIN_WITHDRAWAL) {
-      return NextResponse.json(
-        { error: `O valor minimo para saque e R$ ${MIN_WITHDRAWAL.toFixed(2)}` },
-        { status: 400 },
-      )
-    }
-
     // Os mesmos dados exigidos na tela sao revalidados aqui, porque a tela pode ser contornada.
     if (method === "pix" && !pixKey) {
       return NextResponse.json({ error: "Informe a chave PIX" }, { status: 400 })
@@ -63,6 +54,14 @@ export async function POST(request: NextRequest) {
 
     // Chave de servico: o saldo e o saque sao gravados sem depender das policies do cliente.
     const supabase = createAdminClient()
+
+    const minWithdrawal = await getWithdrawMinUsd(supabase)
+    if (amount < minWithdrawal) {
+      return NextResponse.json(
+        { error: `O valor minimo para saque e US$ ${minWithdrawal.toFixed(2)}` },
+        { status: 400 },
+      )
+    }
 
     const { data: profileRow } = await supabase
       .from("profiles")

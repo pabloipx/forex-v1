@@ -9,10 +9,13 @@ import { AlertCircle, ArrowLeft, Check, CheckCircle2, Clock, Lock, ShieldCheck, 
 import { createClient } from "@/lib/supabase/client"
 import { PROFILE_COLUMNS, profileCompletion, type ProfileFields } from "@/lib/profile-completeness"
 import { cn } from "@/lib/utils"
+import useSWR from "swr"
 
 const QUICK_AMOUNTS = [100, 200, 500, 1000, 2000, 5000]
-const MIN_WITHDRAWAL = 100
+const DEFAULT_MIN_WITHDRAWAL = 100
 const USD_TO_BRL = 6.0
+
+const limitsFetcher = (url: string) => fetch(url).then((r) => r.json() as Promise<{ min_withdraw_usd?: number }>)
 
 type Method = "pix" | "crypto"
 type Crypto = "usdt" | "btc"
@@ -50,6 +53,8 @@ type BonusRollover = { required: number; progress: number; remaining: number; ca
 export default function WithdrawPage() {
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
+  const { data: limits } = useSWR("/api/settings/deposit-methods", limitsFetcher, { revalidateOnFocus: false })
+  const MIN_WITHDRAWAL = limits?.min_withdraw_usd ?? DEFAULT_MIN_WITHDRAWAL
 
   const [method, setMethod] = useState<Method>("pix")
   const [amount, setAmount] = useState("")
