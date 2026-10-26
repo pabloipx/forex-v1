@@ -102,7 +102,7 @@ export function TopNav({ theme, onToggleTheme, account, onAccountChange, authent
             <div className="hidden h-9 items-center gap-3 rounded-full border border-term-line pl-4 pr-1 sm:flex">
               <div className="flex flex-col items-end leading-none">
                 <span className="text-[10px] font-medium uppercase tracking-wide text-term-muted">
-                  {account === "real" ? "Saldo real" : "Saldo demo"}
+                  {account === "real" ? "Saldo" : "Saldo demo"}
                 </span>
                 <span className="mt-0.5 font-mono text-sm font-semibold tabular-nums text-term-text">
                   {formatUsd(account === "real" ? balances.real : balances.demo)}
