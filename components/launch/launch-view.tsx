@@ -149,14 +149,14 @@ export function LaunchView({ symbol, initialTheme }: { symbol: string; initialTh
               )}
             </div>
 
-            <div className="relative h-72 overflow-hidden rounded-lg border border-term-line bg-term-panel sm:h-96">
-              <LaunchChart points={data.history} theme={theme} rising={rising} />
-              {isPresale && (
-                <p className="pointer-events-none absolute inset-x-0 top-3 text-center text-[11px] text-term-muted">
-                  O preço de mercado começa no lançamento
-                </p>
-              )}
+            <div className="h-96 overflow-hidden rounded-lg border border-term-line bg-term-panel sm:h-[28rem]">
+              <LaunchChart points={data.history} symbol={symbol} theme={theme} />
             </div>
+            {isPresale && presale != null && (
+              <p className="-mt-1 text-xs text-term-muted">
+                Na pré-venda a compra é sempre a US$ {fmtUsd(presale)} por moeda.
+              </p>
+            )}
 
             {isPresale && launchMs && (
               <div className="flex flex-col gap-3 rounded-lg border border-term-line bg-term-panel p-4">
