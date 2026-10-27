@@ -13,6 +13,8 @@ export type AdminView =
   | "withdrawals"
   | "deposits"
   | "launches"
+  | "investors_crypto"
+  | "investors_passive"
 
 export const brl = (v: number | null | undefined) =>
   v == null || !Number.isFinite(v) ? "—" : v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })

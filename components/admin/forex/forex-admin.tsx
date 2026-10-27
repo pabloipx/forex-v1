@@ -15,6 +15,7 @@ import {
   Headset,
   LogOut,
   Menu,
+  PiggyBank,
   Rocket,
   ShieldCheck,
   SlidersHorizontal,
@@ -35,6 +36,7 @@ import { ManipulationSection } from "./manipulation-section"
 import { GatewaySection } from "./gateway-section"
 import { LimitsSection } from "./limits-section"
 import { LaunchesSection } from "./launches-section"
+import { InvestorsSection } from "./investors-section"
 
 const SECTIONS = [
   { id: "overview", label: "Visão geral", group: "Painel", icon: BarChart3, Component: OverviewSection },
@@ -43,6 +45,7 @@ const SECTIONS = [
   { id: "launches", label: "Lançamentos", group: "Mercado", icon: Rocket, Component: LaunchesSection },
   { id: "manipulation", label: "Manipulação", group: "Mercado", icon: Zap, Component: ManipulationSection },
   { id: "users", label: "Usuários e saldos", group: "Clientes", icon: Users, Component: UsersSection },
+  { id: "investors", label: "Investidores", group: "Clientes", icon: PiggyBank, Component: InvestorsSection },
   { id: "kyc", label: "KYC", group: "Clientes", icon: ShieldCheck, Component: KycSection },
   { id: "support", label: "Suporte", group: "Clientes", icon: Headset, Component: AdminSupport },
   { id: "deposits", label: "Depósitos", group: "Financeiro", icon: ArrowDownToLine, Component: DepositsSection },

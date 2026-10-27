@@ -10,7 +10,7 @@ export const createInvestmentSchema = z.object({
 
 export const withdrawInvestmentSchema = z.object({ id: z.string().uuid() })
 
-interface InvestmentRow {
+export interface InvestmentRow {
   id: string
   amount_usd: number
   monthly_rate: number
@@ -21,7 +21,7 @@ interface InvestmentRow {
   status: "active" | "completed"
 }
 
-function toView(row: InvestmentRow, now = Date.now()): InvestmentView {
+export function toView(row: InvestmentRow, now = Date.now()): InvestmentView {
   const amount = Number(row.amount_usd)
   const monthly = Math.round(amount * Number(row.monthly_rate) * 100) / 100
   const start = new Date(row.started_at)
