@@ -4,7 +4,8 @@ import { useState } from "react"
 import Link from "next/link"
 import { mutate as globalMutate } from "swr"
 import { toast } from "sonner"
-import { ArrowRight, CalendarDays, Loader2, Lock } from "lucide-react"
+import { ArrowRight, CalendarDays, Loader2 } from "lucide-react"
+import { APPLY_DURATION_MS, InvestApplying } from "./invest-applying"
 import { cn } from "@/lib/utils"
 import { fmtUsd, INVEST_MIN, INVEST_MONTHLY_RATE, INVEST_MONTHS } from "@/lib/invest-schedule"
 import { useCountUp } from "./use-count-up"
@@ -80,6 +81,7 @@ function Projection({ amount }: { amount: number }) {
 export function InvestSimulator({ authenticated, balance }: { authenticated: boolean; balance?: number }) {
   const [raw, setRaw] = useState(formatInput(500))
   const [busy, setBusy] = useState(false)
+  const [applying, setApplying] = useState<{ amount: number; startedAt: number; done: boolean } | null>(null)
   const amount = parseAmount(raw)
   const valid = Number.isFinite(amount) && amount >= INVEST_MIN
   const safe = Number.isFinite(amount) ? amount : 0
@@ -89,25 +91,33 @@ export function InvestSimulator({ authenticated, balance }: { authenticated: boo
 
   const confirm = async () => {
     if (!valid || busy) return
+    const value = Math.round(amount * 100) / 100
     setBusy(true)
+    setApplying({ amount: value, startedAt: Date.now(), done: false })
+    const minDelay = new Promise((r) => setTimeout(r, APPLY_DURATION_MS))
     try {
       const res = await fetch("/api/invest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: Math.round(amount * 100) / 100 }),
+        body: JSON.stringify({ amount: value }),
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error ?? "Não foi possível investir")
-      toast.success(`Investimento de ${fmtUsd(json.result.amount)} confirmado`)
+      await minDelay
+      setApplying((a) => (a ? { ...a, done: true } : a))
       await Promise.all([globalMutate("/api/invest"), globalMutate("/api/futures/state?account=real")])
+      await new Promise((r) => setTimeout(r, 1800))
+      toast.success(`Investimento de ${fmtUsd(json.result.amount)} aplicado`)
     } catch (e) {
       toast.error((e as Error).message)
     } finally {
+      setApplying(null)
       setBusy(false)
     }
   }
 
   return (
+    <>
     <section
       aria-labelledby="sim-title"
       className="iv-rise iv-panel flex flex-col gap-6 rounded-3xl p-5 md:p-7"
@@ -186,9 +196,7 @@ export function InvestSimulator({ authenticated, balance }: { authenticated: boo
         <div className="iv-hairline" />
         <div className="flex items-start justify-between gap-4">
           <div className="flex flex-col gap-1">
-            <span className="flex items-center gap-1.5 text-sm text-iv-muted">
-              <Lock className="size-3.5" aria-hidden /> Total em 3 meses
-            </span>
+            <span className="text-sm text-iv-muted">Valor total em 3 meses</span>
             <Money value={total} className="text-xl font-semibold text-iv-ink" />
           </div>
           <div className="flex flex-col items-end gap-1 text-right">
@@ -222,5 +230,7 @@ export function InvestSimulator({ authenticated, balance }: { authenticated: boo
         </Link>
       )}
     </section>
+    {applying && <InvestApplying amount={applying.amount} startedAt={applying.startedAt} done={applying.done} />}
+    </>
   )
 }

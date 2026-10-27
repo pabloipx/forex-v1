@@ -1038,7 +1038,22 @@ body {
 .iv-draw { animation: iv-draw 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 .iv-sweep { animation: iv-sweep 2.6s ease-in-out infinite; }
 .iv-float { animation: iv-float 4s ease-in-out infinite; }
+@keyframes iv-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes iv-pop {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes iv-halo {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(61 180 255 / 0.25), inset 0 0 24px rgb(61 180 255 / 0.12); }
+  50% { box-shadow: 0 0 0 14px rgb(61 180 255 / 0), inset 0 0 36px rgb(61 180 255 / 0.22); }
+}
+.iv-fade { animation: iv-fade 0.3s ease-out both; }
+.iv-pop { animation: iv-pop 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.iv-halo { animation: iv-halo 2s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
   .iv-rise, .iv-bull, .iv-shine::after, .iv-live, .iv-glow, .iv-bar,
-  .iv-grow, .iv-draw, .iv-sweep, .iv-float { animation: none; opacity: 1; }
+  .iv-grow, .iv-draw, .iv-sweep, .iv-float, .iv-fade, .iv-pop, .iv-halo { animation: none; opacity: 1; }
 }
