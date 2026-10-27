@@ -1,9 +1,9 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import useSWR, { mutate as globalMutate } from "swr"
-import { toast } from "sonner"
-import { ChevronDown, Search, Star } from "lucide-react"
+import Link from "next/link"
+import useSWR from "swr"
+import { ChevronDown, ChevronRight, Search, Star } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import {
@@ -16,6 +16,7 @@ import {
 } from "@/lib/futures/markets"
 import type { DerivativesInfo, Ticker } from "@/hooks/use-futures"
 import { AssetIcon } from "./asset-icon"
+import { fmtUsd, type Holding, type Launch } from "@/components/launch/launch-trade"
 
 interface TickerBarProps {
   market: FuturesMarket
@@ -29,25 +30,6 @@ interface TickerBarProps {
 type SelectorTab = MarketCategory | "fav" | "launch"
 const FAV_KEY = "kb:fav-markets"
 
-interface Launch {
-  id: string
-  symbol: string
-  name: string
-  description: string | null
-  icon_url: string | null
-  launch_at: string | null
-  presale_price_usd: number | null
-  price_usd: number | null
-  phase: "presale" | "live" | "ended"
-  trade_price_usd: number | null
-}
-
-interface Holding {
-  launch_id: string
-  qty: number
-  invested_usd: number
-}
-
 interface LaunchesResponse {
   data: Launch[]
   holdings: Holding[]
@@ -55,9 +37,6 @@ interface LaunchesResponse {
 
 const launchFetcher = (url: string): Promise<LaunchesResponse> =>
   fetch(url).then((r) => (r.ok ? r.json() : { data: [], holdings: [] }))
-
-const fmtUsd = (v: number, max = 2) =>
-  v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: max })
 
 function useNow(enabled: boolean) {
   const [now, setNow] = useState(() => Date.now())
@@ -78,119 +57,8 @@ function countdown(ms: number) {
   return `${d > 0 ? `${d}d ` : ""}${pad(h)}h ${pad(m)}m ${pad(s % 60)}s`
 }
 
-function LaunchTrade({ coin, holding, onDone }: { coin: Launch; holding?: Holding; onDone: () => void }) {
-  const [side, setSide] = useState<"buy" | "sell">("buy")
-  const [value, setValue] = useState("")
-  const [busy, setBusy] = useState(false)
-  const price = coin.trade_price_usd ?? 0
-  const isPresale = coin.phase === "presale"
-  const amount = Number(value.replace(",", "."))
-  const valid = Number.isFinite(amount) && amount > 0
-  const preview = side === "buy" ? (valid && price ? amount / price : 0) : valid ? amount * price : 0
-
-  const submit = async () => {
-    if (!valid || busy) return
-    setBusy(true)
-    try {
-      const res = await fetch("/api/launches", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ launch_id: coin.id, side, value: amount }),
-      })
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error ?? "Não foi possível concluir")
-      toast.success(
-        side === "buy"
-          ? `Compra de ${json.trade.qty.toLocaleString("pt-BR", { maximumFractionDigits: 6 })} ${coin.symbol.replace("USDT", "")} concluída`
-          : `Venda concluída: US$ ${fmtUsd(json.trade.amount)}`,
-      )
-      setValue("")
-      await Promise.all([globalMutate("/api/launches"), globalMutate("/api/futures/state?account=real")])
-      onDone()
-    } catch (e) {
-      toast.error((e as Error).message)
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  return (
-    <div className="mx-3 mt-1 flex flex-col gap-3 rounded-lg border border-term-line bg-term-bg p-3">
-      {holding && holding.qty > 0 && (
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-term-muted">Você tem</span>
-          <span className="font-mono tabular-nums">
-            {holding.qty.toLocaleString("pt-BR", { maximumFractionDigits: 6 })} · US$ {fmtUsd(holding.qty * price)}
-          </span>
-        </div>
-      )}
-      {!isPresale && (
-        <div role="radiogroup" aria-label="Operação" className="grid grid-cols-2 gap-1 rounded-md bg-term-line/40 p-1">
-          {(["buy", "sell"] as const).map((s) => (
-            <button
-              key={s}
-              role="radio"
-              aria-checked={side === s}
-              onClick={() => {
-                setSide(s)
-                setValue("")
-              }}
-              className={cn(
-                "min-h-10 rounded text-sm font-semibold",
-                side === s ? (s === "buy" ? "bg-up text-background" : "bg-down text-background") : "text-term-muted",
-              )}
-            >
-              {s === "buy" ? "Comprar" : "Vender"}
-            </button>
-          ))}
-        </div>
-      )}
-      <label className="flex flex-col gap-1.5 text-xs text-term-muted">
-        {side === "buy" ? "Valor (USD)" : "Quantidade"}
-        <input
-          inputMode="decimal"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.nativeEvent.isComposing && e.keyCode !== 229) submit()
-          }}
-          placeholder={side === "buy" ? "100,00" : "0,0"}
-          className="h-11 rounded-md border border-term-line bg-term-panel px-3 font-mono text-base text-term-text outline-none focus:border-primary"
-        />
-      </label>
-      {side === "sell" && holding && (
-        <button onClick={() => setValue(String(holding.qty))} className="-mt-2 self-start text-xs text-primary">
-          Vender tudo
-        </button>
-      )}
-      <p className="text-xs text-term-muted">
-        {side === "buy"
-          ? `Você recebe ≈ ${preview.toLocaleString("pt-BR", { maximumFractionDigits: 6 })} ${coin.symbol.replace("USDT", "")}`
-          : `Você recebe ≈ US$ ${fmtUsd(preview)}`}
-        {" · "}preço US$ {fmtUsd(price)}
-      </p>
-      <button
-        onClick={submit}
-        disabled={!valid || busy}
-        className={cn(
-          "min-h-11 rounded-md text-sm font-semibold text-background disabled:opacity-50",
-          side === "buy" ? "bg-up" : "bg-down",
-        )}
-      >
-        {busy ? "Processando..." : side === "buy" ? (isPresale ? "Comprar na pré-venda" : "Comprar") : "Vender"}
-      </button>
-      {isPresale && (
-        <p className="text-[11px] leading-relaxed text-term-muted">
-          Venda liberada após o lançamento. O valor é debitado do seu saldo real.
-        </p>
-      )}
-    </div>
-  )
-}
-
 function UpcomingLaunches() {
   const { data, isLoading, mutate } = useSWR("/api/launches", launchFetcher, { refreshInterval: 10_000 })
-  const [open, setOpen] = useState<string | null>(null)
   const coins = data?.data ?? []
   const now = useNow(coins.some((c) => c.phase === "presale" && c.launch_at))
 
@@ -206,12 +74,10 @@ function UpcomingLaunches() {
       {coins.map((coin) => {
         const holding = data?.holdings.find((h) => h.launch_id === coin.id)
         const isPresale = coin.phase === "presale"
-        const expanded = open === coin.id
         return (
-          <li key={coin.id} className="flex flex-col pb-2">
-            <button
-              onClick={() => setOpen(expanded ? null : coin.id)}
-              aria-expanded={expanded}
+          <li key={coin.id}>
+            <Link
+              href={`/lancamento/${coin.symbol}`}
               className="flex min-h-14 items-center gap-2.5 px-3 py-2.5 text-left text-sm hover:bg-term-line/20"
             >
               <img
@@ -226,13 +92,14 @@ function UpcomingLaunches() {
                 <span className="text-[11px] text-term-muted">
                   {coin.symbol}
                   {coin.trade_price_usd != null && ` · US$ ${fmtUsd(coin.trade_price_usd)}`}
+                  {holding && holding.qty > 0 && " · você tem"}
                 </span>
               </span>
               <span className="flex flex-col items-end gap-0.5">
                 <span
                   className={cn(
                     "rounded px-2 py-0.5 text-[11px] font-semibold",
-                    isPresale ? "bg-primary/10 text-primary" : "bg-up/10 text-up",
+                    isPresale ? "bg-primary/10 text-primary" : "bg-term-up/10 text-term-up",
                   )}
                 >
                   {isPresale ? "Pré-venda" : "Ao vivo"}
@@ -243,26 +110,8 @@ function UpcomingLaunches() {
                   </span>
                 )}
               </span>
-            </button>
-            {expanded && (
-              <>
-                {coin.description && (
-                  <p className="px-3 pb-2 text-xs leading-relaxed text-term-muted text-pretty">{coin.description}</p>
-                )}
-                {isPresale && coin.launch_at && (
-                  <p className="px-3 pb-1 text-[11px] text-term-muted">
-                    Lançamento:{" "}
-                    {new Date(coin.launch_at).toLocaleString("pt-BR", {
-                      dateStyle: "full",
-                      timeStyle: "short",
-                      timeZone: "America/Sao_Paulo",
-                    })}{" "}
-                    (Brasília)
-                  </p>
-                )}
-                <LaunchTrade coin={coin} holding={holding} onDone={() => mutate()} />
-              </>
-            )}
+              <ChevronRight className="size-4 shrink-0 text-term-muted" aria-hidden="true" />
+            </Link>
           </li>
         )
       })}
