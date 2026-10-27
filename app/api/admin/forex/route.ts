@@ -25,7 +25,15 @@ import {
   updateUserProfile,
   updateMarket,
 } from "@/lib/admin/forex-admin"
-import { deleteLaunch, launchInputSchema, listLaunches, saveLaunch } from "@/lib/launches"
+import {
+  deleteLaunch,
+  getHolderSummary,
+  launchInputSchema,
+  listLaunches,
+  saveLaunch,
+  setLaunchListed,
+  setLaunchPrice,
+} from "@/lib/launches"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -40,7 +48,10 @@ const views = {
   adjustments: listAdjustments,
   withdrawals: listWithdrawals,
   deposits: listDeposits,
-  launches: () => listLaunches({ onlyVisible: false }),
+  launches: async () => {
+    const [launches, holders] = await Promise.all([listLaunches({ onlyVisible: false }), getHolderSummary()])
+    return launches.map((l) => ({ ...l, holders: holders.find((h) => h.launch_id === l.id) ?? null }))
+  },
 } as const
 
 export async function GET(request: NextRequest) {
@@ -128,6 +139,8 @@ const actionSchema = z.discriminatedUnion("action", [
   }),
   z.object({ action: z.literal("save_launch"), launch: launchInputSchema }),
   z.object({ action: z.literal("delete_launch"), id: z.string().uuid() }),
+  z.object({ action: z.literal("set_launch_price"), id: z.string().uuid(), price: z.number().finite().positive().max(1e9) }),
+  z.object({ action: z.literal("set_launch_listed"), id: z.string().uuid(), listed: z.boolean() }),
 ])
 
 export async function POST(request: NextRequest) {
@@ -169,8 +182,11 @@ export async function POST(request: NextRequest) {
       case "save_launch":
         return NextResponse.json({ success: true, launch: await saveLaunch(a.launch) })
       case "delete_launch":
-        await deleteLaunch(a.id)
-        return NextResponse.json({ success: true })
+        return NextResponse.json({ success: true, refunded: await deleteLaunch(a.id) })
+      case "set_launch_price":
+        return NextResponse.json({ success: true, launch: await setLaunchPrice(a.id, a.price) })
+      case "set_launch_listed":
+        return NextResponse.json({ success: true, launch: await setLaunchListed(a.id, a.listed) })
     }
   } catch (e) {
     return errorResponse(e)
