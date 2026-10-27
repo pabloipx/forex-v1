@@ -93,6 +93,65 @@ export async function listLaunches({ onlyVisible }: { onlyVisible: boolean }): P
   return (data ?? []).map(toLaunch)
 }
 
+export async function getLaunchBySymbol(symbol: string): Promise<TokenLaunch | null> {
+  const { data, error } = await createAdminClient()
+    .from("token_launches")
+    .select(COLUMNS)
+    .eq("symbol", symbol.toUpperCase())
+    .eq("visible", true)
+    .neq("status", "ended")
+    .maybeSingle()
+  if (error) throw new Error(error.message)
+  return data ? toLaunch(data) : null
+}
+
+export interface PricePoint {
+  time: number
+  value: number
+}
+
+/**
+ * Chart series for the coin: flat at the presale price until launch,
+ * then every admin price change, extended to "now" at the current price.
+ */
+export async function getPriceSeries(launch: TokenLaunch): Promise<PricePoint[]> {
+  const nowSec = Math.floor(Date.now() / 1000)
+  const presale = launch.presale_price_usd ?? launch.initial_price_usd
+  const launchSec = launch.launch_at ? Math.floor(new Date(launch.launch_at).getTime() / 1000) : null
+
+  if (launch.phase === "presale") {
+    if (presale == null) return []
+    return [
+      { time: nowSec - 7 * 86400, value: presale },
+      { time: nowSec, value: presale },
+    ]
+  }
+
+  const { data, error } = await createAdminClient()
+    .from("token_price_history")
+    .select("price_usd, created_at")
+    .eq("launch_id", launch.id)
+    .order("created_at")
+    .limit(5000)
+  if (error) throw new Error(error.message)
+
+  const byTime = new Map<number, number>()
+  const start = launchSec ?? nowSec
+  if (presale != null) byTime.set(start - 60, presale)
+  const rows = data ?? []
+  // Price in effect at launch is the last value set before the launch moment.
+  const atLaunch = [...rows].reverse().find((r) => new Date(r.created_at).getTime() / 1000 <= start)
+  const launchPrice = Number(atLaunch?.price_usd ?? launch.price_usd ?? presale ?? 0)
+  byTime.set(start, launchPrice)
+  for (const r of rows) {
+    const t = Math.floor(new Date(r.created_at).getTime() / 1000)
+    if (t > start) byTime.set(t, Number(r.price_usd))
+  }
+  const current = launch.trade_price_usd
+  if (current != null) byTime.set(Math.max(nowSec, Math.max(...byTime.keys()) + 1), current)
+  return [...byTime.entries()].sort((a, b) => a[0] - b[0]).map(([time, value]) => ({ time, value }))
+}
+
 export async function saveLaunch({ id, ...input }: LaunchInput): Promise<TokenLaunch> {
   const admin = createAdminClient()
   const payload = { ...input, updated_at: new Date().toISOString(), price_updated_at: new Date().toISOString() }
