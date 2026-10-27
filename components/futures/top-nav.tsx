@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Moon, Sun, Wallet } from "lucide-react"
+import { Moon, Sun, TrendingUp, Wallet } from "lucide-react"
 import { UserMenu } from "./user-menu"
 import { cn } from "@/lib/utils"
 import type { AccountMode } from "@/lib/futures/types"
@@ -56,6 +56,13 @@ export function TopNav({ theme, onToggleTheme, account, onAccountChange, authent
               {l.label}
             </Link>
           ))}
+          <Link
+            href="/invest"
+            className="group ml-1 flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-3 py-1.5 text-sm font-semibold text-primary transition-colors hover:border-primary/60 hover:bg-primary/15"
+          >
+            <TrendingUp className="size-4 transition-transform group-hover:-translate-y-0.5" aria-hidden="true" />
+            Renda Passiva
+          </Link>
         </nav>
       </div>
 
