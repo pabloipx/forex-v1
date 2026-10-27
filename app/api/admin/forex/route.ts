@@ -34,6 +34,7 @@ import {
   setLaunchListed,
   setLaunchPrice,
 } from "@/lib/launches"
+import { listCryptoInvestors, listPassiveInvestors } from "@/lib/admin/investors"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -52,6 +53,8 @@ const views = {
     const [launches, holders] = await Promise.all([listLaunches({ onlyVisible: false }), getHolderSummary()])
     return launches.map((l) => ({ ...l, holders: holders.find((h) => h.launch_id === l.id) ?? null }))
   },
+  investors_crypto: listCryptoInvestors,
+  investors_passive: listPassiveInvestors,
 } as const
 
 export async function GET(request: NextRequest) {

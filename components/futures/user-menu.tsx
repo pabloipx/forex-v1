@@ -12,6 +12,7 @@ import {
   LogOut,
   Settings,
   ShieldCheck,
+  TrendingUp,
   User,
   type LucideIcon,
 } from "lucide-react"
@@ -43,6 +44,7 @@ const accountLinks: MenuLink[] = [
 const walletLinks: MenuLink[] = [
   { href: "/deposit", label: "Depositar", icon: ArrowDownToLine },
   { href: "/withdraw", label: "Sacar", icon: ArrowUpFromLine },
+  { href: "/invest", label: "Renda Passiva", icon: TrendingUp },
   { href: "/transactions", label: "Transações", icon: History },
 ]
 
