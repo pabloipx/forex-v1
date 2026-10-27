@@ -65,12 +65,23 @@ const round2 = (n: number) => Math.round(n * 100) / 100
  * The same bucket always renders the same candle, so refreshes don't reshuffle
  * history, and the forming candle always closes at the real tradable price.
  */
-export function buildCandles(anchors: PriceAnchor[], symbol: string, intervalSec: number, nowSec: number): Candle[] {
+export function buildCandles(
+  anchors: PriceAnchor[],
+  symbol: string,
+  intervalSec: number,
+  nowSec: number,
+  rally = false,
+): Candle[] {
   if (anchors.length === 0) return []
   const sorted = [...anchors].sort((a, b) => a.time - b.time)
   const seed = hashString(`${symbol}:${intervalSec}`)
   const sigma = (0.0024 * Math.sqrt(intervalSec / 60)) / 2.1
   const lastBucket = Math.floor(nowSec / intervalSec) * intervalSec
+  // Rally mode: history climbs toward the current price, accelerating into "now",
+  // so the forming candle sits at the all-time high.
+  const rallyDepth = Math.min(0.72, 0.07 * Math.sqrt(intervalSec / 60))
+  const rallyK = -Math.log(1 - rallyDepth)
+  const rallyFactor = (i: number) => (rally ? Math.exp(-rallyK * Math.pow(i / (CANDLE_COUNT - 1), 0.75)) : 1)
 
   const noiseAt = (t: number) => {
     let sum = 0
@@ -87,16 +98,24 @@ export function buildCandles(anchors: PriceAnchor[], symbol: string, intervalSec
   for (let i = CANDLE_COUNT - 1; i >= 0; i--) {
     const t = lastBucket - i * intervalSec
     const idx = t / intervalSec
-    const target = priceAt(sorted, t + intervalSec - 1)
+    const rawTarget = priceAt(sorted, t + intervalSec - 1)
+    const target = rawTarget * rallyFactor(i)
     const isLast = i === 0
-    const close = isLast ? target : target * (1 + noiseAt(t))
+    let close = isLast ? target : target * (1 + noiseAt(t))
     const open = prevClose ?? close * (1 + gauss(seed, idx, 3) * sigma)
     const wickUp = Math.abs(gauss(seed, idx, 5)) * sigma * 0.9
     const wickDown = Math.abs(gauss(seed, idx, 9)) * sigma * 0.9
-    const high = Math.max(open, close) * (1 + wickUp)
+    let high = Math.max(open, close) * (1 + wickUp)
     const low = Math.min(open, close) * (1 - wickDown)
+    if (rally) {
+      const ceiling = rawTarget * (1 - 0.0004 * Math.min(i, 20))
+      if (!isLast) close = Math.min(close, ceiling)
+      high = isLast ? Math.max(open, close) : Math.min(high, Math.max(ceiling, open, close))
+      high = Math.max(high, open, close)
+    }
     const move = Math.abs(close - open) / open
-    const volume = (40 + unit(seed, idx, 11) * 120) * (1 + move * 60) * Math.sqrt(intervalSec / 60)
+    const momentum = rally ? 1 + (1 - i / (CANDLE_COUNT - 1)) * 1.6 : 1
+    const volume = (40 + unit(seed, idx, 11) * 120) * (1 + move * 60) * Math.sqrt(intervalSec / 60) * momentum
 
     candles.push({
       time: t,

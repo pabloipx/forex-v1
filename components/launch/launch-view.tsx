@@ -150,7 +150,7 @@ export function LaunchView({ symbol, initialTheme }: { symbol: string; initialTh
             </div>
 
             <div className="h-96 overflow-hidden rounded-lg border border-term-line bg-term-panel sm:h-[28rem]">
-              <LaunchChart points={data.history} symbol={symbol} theme={theme} />
+              <LaunchChart points={data.history} symbol={symbol} theme={theme} rally={isPresale} />
             </div>
             {isPresale && presale != null && (
               <p className="-mt-1 text-xs text-term-muted">

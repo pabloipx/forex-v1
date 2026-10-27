@@ -23,7 +23,17 @@ export type PricePoint = PriceAnchor
 
 const fmt = (n: number) => n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
-export function LaunchChart({ points, symbol, theme }: { points: PricePoint[]; symbol: string; theme: TermTheme }) {
+export function LaunchChart({
+  points,
+  symbol,
+  theme,
+  rally = false,
+}: {
+  points: PricePoint[]
+  symbol: string
+  theme: TermTheme
+  rally?: boolean
+}) {
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   const candleRef = useRef<ISeriesApi<"Candlestick"> | null>(null)
@@ -40,7 +50,7 @@ export function LaunchChart({ points, symbol, theme }: { points: PricePoint[]; s
     return () => clearInterval(id)
   }, [])
 
-  const candles = useMemo(() => buildCandles(points, symbol, interval, tick), [points, symbol, interval, tick])
+  const candles = useMemo(() => buildCandles(points, symbol, interval, tick, rally), [points, symbol, interval, tick, rally])
   const byTime = useMemo(() => new Map(candles.map((c) => [c.time, c])), [candles])
   const byTimeRef = useRef(byTime)
   byTimeRef.current = byTime
