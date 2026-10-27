@@ -91,7 +91,7 @@ export function BalancePill() {
       <Wallet className="size-4 shrink-0 text-iv-sky" aria-hidden />
       <div className="flex min-w-0 flex-col leading-tight">
         <span className="text-[11px] uppercase tracking-wider text-iv-muted">Saldo real</span>
-        <span className="truncate font-mono text-sm font-semibold tabular-nums text-iv-ink" aria-live="polite">
+        <span className="truncate iv-num text-sm font-semibold tabular-nums text-iv-ink" aria-live="polite">
           {hidden ? "US$ ••••" : `US$ ${usd(shown)}`}
         </span>
       </div>
@@ -189,7 +189,7 @@ export function AccountMenu() {
 
         <div className="mx-1 my-1 rounded-xl border border-iv-line bg-iv-bg px-3 py-2.5">
           <span className="text-[11px] uppercase tracking-wider text-iv-muted">Saldo disponível</span>
-          <p className="font-mono text-lg font-semibold tabular-nums">US$ {usd(balance)}</p>
+          <p className="iv-num text-lg font-semibold tabular-nums">US$ {usd(balance)}</p>
         </div>
 
         <DropdownMenuSeparator className="bg-iv-line" />

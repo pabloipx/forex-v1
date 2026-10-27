@@ -37,7 +37,7 @@ export function InvestView() {
       <InvestHeader />
       <main>
         <InvestHero />
-        <div className="mx-auto grid max-w-6xl gap-5 px-4 py-6 lg:grid-cols-[1.1fr_1fr]">
+        <div className="mx-auto grid max-w-6xl gap-5 px-4 pb-10 pt-2 lg:grid-cols-[1.1fr_1fr]">
           <InvestSimulator
             authenticated={authenticated}
             balance={state?.authenticated ? (state.balance ?? 0) : undefined}
@@ -57,9 +57,11 @@ export function InvestView() {
                 className="iv-rise flex items-center gap-3"
                 style={{ animationDelay: `${640 + i * 90}ms` }}
               >
-                <Icon className="size-8 shrink-0 text-iv-sky" aria-hidden />
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-iv-line bg-iv-card">
+                  <Icon className="size-5 text-iv-sky" aria-hidden />
+                </span>
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium text-iv-ink">{title}</span>
+                  <span className="text-sm font-semibold text-iv-ink">{title}</span>
                   <span className="text-xs text-iv-muted">{text}</span>
                 </div>
               </li>

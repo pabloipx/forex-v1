@@ -3,9 +3,40 @@
 import { useState } from "react"
 import { mutate as globalMutate } from "swr"
 import { toast } from "sonner"
-import { CalendarDays, Loader2, Lock, ShieldCheck, Wallet } from "lucide-react"
+import { CalendarDays, Loader2, Lock, ShieldCheck } from "lucide-react"
 import { fmtDate, fmtUsd, type InvestmentView } from "@/lib/invest-schedule"
 import { useCountUp } from "./use-count-up"
+
+const RING = 2 * Math.PI * 26
+
+function PayoutRing({ done, total }: { done: number; total: number }) {
+  const offset = RING * (1 - done / total)
+  return (
+    <div className="relative size-16 shrink-0">
+      <svg viewBox="0 0 64 64" className="size-16 -rotate-90" aria-hidden>
+        <circle cx="32" cy="32" r="26" fill="none" strokeWidth="4" className="stroke-iv-line" />
+        <circle
+          cx="32"
+          cy="32"
+          r="26"
+          fill="none"
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeDasharray={RING}
+          strokeDashoffset={offset}
+          className="iv-draw stroke-iv-sky"
+          style={{ ["--iv-len" as string]: RING }}
+        />
+      </svg>
+      <span className="absolute inset-0 flex flex-col items-center justify-center leading-none">
+        <span className="iv-num text-base font-semibold text-iv-ink">
+          {done}/{total}
+        </span>
+        <span className="mt-0.5 text-[9px] uppercase tracking-wider text-iv-muted">pagos</span>
+      </span>
+    </div>
+  )
+}
 
 function InvestmentCard({ inv, index }: { inv: InvestmentView; index: number }) {
   const [busy, setBusy] = useState(false)
@@ -33,60 +64,54 @@ function InvestmentCard({ inv, index }: { inv: InvestmentView; index: number }) 
 
   return (
     <li
-      className="iv-rise flex flex-col gap-4 rounded-xl border border-iv-line bg-iv-bg/70 p-4"
+      className="iv-rise iv-inset flex flex-col gap-5 rounded-2xl p-5"
       style={{ animationDelay: `${500 + index * 100}ms` }}
     >
-      <div className="flex flex-col gap-4 sm:flex-row">
-        <div className="flex flex-1 flex-col gap-2">
+      <div className="flex items-center gap-4">
+        <PayoutRing done={inv.payoutsDone} total={inv.months} />
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex items-center justify-between gap-2">
             <span className="text-sm text-iv-muted">Investimento atual</span>
             {done ? (
-              <span className="rounded-full bg-iv-line px-2.5 py-0.5 text-xs text-iv-muted">Finalizado</span>
+              <span className="rounded-full border border-iv-line px-2.5 py-0.5 text-xs text-iv-muted">Finalizado</span>
             ) : (
-              <span className="flex items-center gap-1.5 rounded-full bg-iv-up/15 px-2.5 py-0.5 text-xs text-iv-up">
+              <span className="flex items-center gap-1.5 rounded-full border border-iv-up/30 bg-iv-up/10 px-2.5 py-0.5 text-xs font-medium text-iv-up">
                 <span className="iv-live size-1.5 rounded-full bg-iv-up" aria-hidden />
                 Ativo
               </span>
             )}
           </div>
-          <span className="font-mono text-2xl font-bold tabular-nums text-iv-ink">{fmtUsd(amount)}</span>
-          <span className="text-xs text-iv-muted">
-            {inv.payoutsDone}/{inv.months} rendimentos liberados
-          </span>
-        </div>
-        <div className="flex flex-col gap-3 border-t border-iv-line pt-4 sm:border-l sm:border-t-0 sm:pl-4 sm:pt-0">
-          <div className="flex flex-col gap-1">
-            <span className="text-sm text-iv-muted">Rendimento mensal ({Math.round(inv.monthlyRate * 100)}%)</span>
-            <span className="font-mono font-semibold tabular-nums text-iv-ink">{fmtUsd(inv.monthlyYield)}</span>
-          </div>
-          {inv.nextPayoutAt && (
-            <div className="flex flex-col gap-1">
-              <span className="text-sm text-iv-muted">Próximo saque</span>
-              <span className="flex items-center gap-2 font-mono tabular-nums text-iv-ink">
-                <CalendarDays className="size-5 text-iv-muted" aria-hidden />
-                {fmtDate(inv.nextPayoutAt)}
-              </span>
-            </div>
-          )}
+          <span className="iv-num text-2xl font-semibold text-iv-ink">{fmtUsd(amount)}</span>
         </div>
       </div>
 
-      <div className="flex items-center gap-3 border-t border-iv-line pt-4">
-        <Lock className="size-5 shrink-0 text-iv-muted" aria-hidden />
-        <div className="flex flex-col text-sm">
-          <span className="text-iv-muted">Valor liberado após 3 meses ({fmtDate(inv.unlockAt)})</span>
-          <span className="text-iv-ink">
-            {fmtUsd(inv.amount)} <span className="text-iv-muted">(valor investido)</span>
-          </span>
+      <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl bg-iv-line/70">
+        <div className="flex flex-col gap-1 bg-iv-card p-3.5">
+          <dt className="text-xs text-iv-muted">Rendimento ({Math.round(inv.monthlyRate * 100)}%)</dt>
+          <dd className="iv-num text-base font-semibold text-iv-sky">+{fmtUsd(inv.monthlyYield)}</dd>
         </div>
-      </div>
+        <div className="flex flex-col gap-1 bg-iv-card p-3.5">
+          <dt className="text-xs text-iv-muted">Próximo saque</dt>
+          <dd className="iv-num flex items-center gap-1.5 text-base font-semibold text-iv-ink">
+            <CalendarDays className="size-4 text-iv-muted" aria-hidden />
+            {inv.nextPayoutAt ? fmtDate(inv.nextPayoutAt) : "—"}
+          </dd>
+        </div>
+        <div className="col-span-2 flex items-center gap-3 bg-iv-card p-3.5">
+          <Lock className="size-4 shrink-0 text-iv-gold" aria-hidden />
+          <div className="flex flex-1 items-center justify-between gap-2 text-sm">
+            <span className="text-iv-muted">Liberado em {fmtDate(inv.unlockAt)}</span>
+            <span className="iv-num font-semibold text-iv-ink">{fmtUsd(inv.amount)}</span>
+          </div>
+        </div>
+      </dl>
 
       {!done && (
         <button
           type="button"
           onClick={withdraw}
           disabled={busy || inv.available <= 0}
-          className="flex h-11 items-center justify-center gap-2 rounded-lg border border-iv-blue/60 text-sm font-medium text-iv-sky transition-all hover:bg-iv-blue/15 active:scale-[0.98] disabled:border-iv-line disabled:text-iv-muted"
+          className="iv-num flex h-12 items-center justify-center gap-2 rounded-xl border border-iv-sky/40 bg-iv-blue/10 text-sm font-semibold text-iv-sky transition-all hover:bg-iv-blue/20 active:scale-[0.98] disabled:border-iv-line disabled:bg-transparent disabled:font-medium disabled:text-iv-muted"
         >
           {busy && <Loader2 className="size-4 animate-spin" aria-hidden />}
           {inv.available > 0 ? `Sacar ${fmtUsd(inv.available)}` : "Nenhum valor disponível para saque"}
@@ -97,24 +122,38 @@ function InvestmentCard({ inv, index }: { inv: InvestmentView; index: number }) 
 }
 
 export function MyInvestments({ investments, loading }: { investments: InvestmentView[]; loading: boolean }) {
+  const totalInvested = investments.filter((i) => i.status !== "completed").reduce((s, i) => s + i.amount, 0)
+  const total = useCountUp(totalInvested, 900)
   return (
     <section
       aria-labelledby="mine-title"
-      className="iv-rise flex flex-col gap-4 rounded-2xl border border-iv-line bg-iv-card/80 p-5"
+      className="iv-rise iv-panel flex flex-col gap-5 rounded-3xl p-5 md:p-7"
       style={{ animationDelay: "460ms" }}
     >
-      <div className="flex items-center gap-3">
-        <Wallet className="size-7 text-iv-sky" aria-hidden />
-        <h2 id="mine-title" className="text-xl font-semibold text-iv-ink">
-          Seus investimentos
-        </h2>
-      </div>
+      <header className="flex items-end justify-between gap-3">
+        <div className="flex flex-col gap-2">
+          <span className="iv-eyebrow text-iv-gold">Carteira</span>
+          <h2 id="mine-title" className="font-display text-3xl leading-tight text-iv-ink">
+            Seus investimentos
+          </h2>
+        </div>
+        {investments.length > 0 && (
+          <div className="flex flex-col items-end gap-0.5">
+            <span className="text-xs text-iv-muted">Aplicado</span>
+            <span className="iv-num text-base font-semibold text-iv-ink">{fmtUsd(total)}</span>
+          </div>
+        )}
+      </header>
       {loading ? (
-        <div className="h-40 animate-pulse rounded-xl bg-iv-bg/70" />
+        <div className="h-48 animate-pulse rounded-2xl bg-iv-bg/70" />
       ) : investments.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-iv-line p-5 text-center text-sm leading-relaxed text-iv-muted">
-          Você ainda não tem investimentos. Simule um valor e confirme para começar a receber 10% ao mês.
-        </p>
+        <div className="iv-inset flex flex-col items-center gap-3 rounded-2xl px-5 py-8 text-center">
+          <PayoutRing done={0} total={3} />
+          <p className="max-w-xs text-pretty text-sm leading-relaxed text-iv-muted">
+            Você ainda não tem investimentos. Simule um valor e confirme para começar a receber{" "}
+            <span className="font-semibold text-iv-ink">10% ao mês</span>.
+          </p>
+        </div>
       ) : (
         <ul className="flex flex-col gap-3">
           {investments.map((inv, i) => (
@@ -129,15 +168,18 @@ export function MyInvestments({ investments, loading }: { investments: Investmen
 export function TrustCard() {
   return (
     <section
-      className="iv-rise flex items-start gap-4 rounded-2xl border border-iv-line bg-iv-card/80 p-5"
+      className="iv-rise iv-panel flex items-start gap-4 rounded-3xl p-5 md:p-6"
       style={{ animationDelay: "560ms" }}
     >
-      <ShieldCheck className="size-9 shrink-0 text-iv-sky" aria-hidden />
-      <div className="flex flex-col gap-1">
-        <h2 className="font-medium text-iv-sky">Seguro e confiável</h2>
-        <p className="text-sm leading-relaxed text-iv-ink/85">
-          Seus investimentos são protegidos por tecnologia de ponta e <strong>criptografia</strong>, garantindo a
-          segurança do seu capital na Kryptobit.
+      <span className="iv-float flex size-12 shrink-0 items-center justify-center rounded-2xl border border-iv-sky/30 bg-iv-blue/10">
+        <ShieldCheck className="size-6 text-iv-sky" aria-hidden />
+      </span>
+      <div className="flex flex-col gap-1.5">
+        <h2 className="font-display text-xl text-iv-ink">Seguro e confiável</h2>
+        <p className="text-sm leading-relaxed text-iv-muted">
+          Seus investimentos são protegidos por tecnologia de ponta e{" "}
+          <span className="font-semibold text-iv-ink">criptografia</span>, garantindo a segurança do seu capital na
+          Kryptobit.
         </p>
       </div>
     </section>

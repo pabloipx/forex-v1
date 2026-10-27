@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { mutate as globalMutate } from "swr"
 import { toast } from "sonner"
-import { ArrowRight, CalendarDays, Coins, Loader2 } from "lucide-react"
+import { ArrowRight, CalendarDays, Loader2, Lock } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { fmtUsd, INVEST_MIN, INVEST_MONTHLY_RATE, INVEST_MONTHS } from "@/lib/invest-schedule"
 import { useCountUp } from "./use-count-up"
@@ -13,6 +13,69 @@ const PRESETS = [500, 1000, 2000, 5000, 10000]
 
 const parseAmount = (raw: string) => Number(raw.replace(/[^\d,]/g, "").replace(",", "."))
 const formatInput = (v: number) => v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const shortUsd = (v: number) => (v >= 1000 ? `${(v / 1000).toLocaleString("pt-BR")}k` : String(v))
+
+function Money({ value, className }: { value: number; className?: string }) {
+  const [int, dec] = value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).split(",")
+  return (
+    <span className={cn("iv-num inline-flex items-baseline", className)}>
+      <span className="mr-1.5 text-[0.45em] font-medium tracking-normal text-iv-muted">US$</span>
+      {int}
+      <span className="text-[0.55em] text-iv-ink/50">,{dec}</span>
+    </span>
+  )
+}
+
+function Projection({ amount }: { amount: number }) {
+  const monthly = amount * INVEST_MONTHLY_RATE
+  const steps = Array.from({ length: INVEST_MONTHS }, (_, i) => ({
+    label: `Mês ${i + 1}`,
+    value: amount + monthly * (i + 1),
+  }))
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <span className="iv-eyebrow text-iv-muted">Projeção</span>
+        <span className="iv-num text-xs text-iv-muted">+{Math.round(INVEST_MONTHLY_RATE * INVEST_MONTHS * 100)}% em 3 meses</span>
+      </div>
+      <div className="flex h-28 items-end gap-3" aria-hidden>
+        {steps.map((s, i) => {
+          const height = 34 + (46 * (i + 1)) / INVEST_MONTHS
+          const yieldPct = 22 + 18 * i
+          return (
+            <div key={s.label} className="flex h-full flex-1 flex-col items-center justify-end gap-2">
+              <span className="iv-num text-[11px] text-iv-ink/80">{fmtUsd(s.value)}</span>
+              <div
+                className="iv-grow flex w-full flex-col overflow-hidden rounded-t-md"
+                style={{ height: `${height}%`, animationDelay: `${600 + i * 140}ms` }}
+              >
+                <div className="relative w-full flex-none overflow-hidden bg-iv-sky" style={{ flexBasis: `${yieldPct}%` }}>
+                  <span className="iv-sweep absolute inset-0 bg-gradient-to-r from-transparent via-iv-ink/40 to-transparent" />
+                </div>
+                <div className="w-full flex-1 bg-iv-blue/25" />
+              </div>
+            </div>
+          )
+        })}
+      </div>
+      <div className="flex gap-3">
+        {steps.map((s) => (
+          <span key={s.label} className="flex-1 text-center text-[11px] text-iv-muted">
+            {s.label}
+          </span>
+        ))}
+      </div>
+      <div className="flex items-center gap-4 text-[11px] text-iv-muted">
+        <span className="flex items-center gap-1.5">
+          <span className="size-2 rounded-sm bg-iv-blue/40" aria-hidden /> Valor investido
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="size-2 rounded-sm bg-iv-sky" aria-hidden /> Rendimentos
+        </span>
+      </div>
+    </div>
+  )
+}
 
 export function InvestSimulator({ authenticated, balance }: { authenticated: boolean; balance?: number }) {
   const [raw, setRaw] = useState(formatInput(500))
@@ -22,6 +85,7 @@ export function InvestSimulator({ authenticated, balance }: { authenticated: boo
   const safe = Number.isFinite(amount) ? amount : 0
   const monthly = useCountUp(safe * INVEST_MONTHLY_RATE)
   const total = useCountUp(safe * (1 + INVEST_MONTHLY_RATE * INVEST_MONTHS))
+  const insufficient = authenticated && balance !== undefined && valid && amount > balance
 
   const confirm = async () => {
     if (!valid || busy) return
@@ -46,35 +110,49 @@ export function InvestSimulator({ authenticated, balance }: { authenticated: boo
   return (
     <section
       aria-labelledby="sim-title"
-      className="iv-rise flex flex-col gap-5 rounded-2xl border border-iv-line bg-iv-card/80 p-5"
+      className="iv-rise iv-panel flex flex-col gap-6 rounded-3xl p-5 md:p-7"
       style={{ animationDelay: "380ms" }}
     >
-      <div className="flex items-start gap-3">
-        <Coins className="size-9 shrink-0 text-iv-sky" aria-hidden />
-        <div className="flex flex-col gap-1">
-          <h2 id="sim-title" className="text-xl font-semibold text-iv-ink">
-            Simule seu investimento
-          </h2>
-          <p className="text-sm leading-relaxed text-iv-muted">Digite o valor que deseja investir e veja quanto irá render.</p>
-        </div>
-      </div>
+      <header className="flex flex-col gap-2">
+        <span className="iv-eyebrow text-iv-gold">Simulador</span>
+        <h2 id="sim-title" className="font-display text-3xl leading-tight text-iv-ink">
+          Simule seu investimento
+        </h2>
+        <p className="text-sm leading-relaxed text-iv-muted">Digite o valor que deseja investir e veja quanto irá render.</p>
+      </header>
 
-      <div className="flex flex-col gap-2">
-        <label htmlFor="invest-amount" className="text-sm text-iv-muted">
-          Valor do investimento
-        </label>
-        <div className="flex items-center gap-2 rounded-xl border border-iv-line bg-iv-bg px-4 transition-colors focus-within:border-iv-blue">
-          <span className="text-base text-iv-muted">US$</span>
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <label htmlFor="invest-amount" className="text-sm font-medium text-iv-ink/85">
+            Valor do investimento
+          </label>
+          {authenticated && balance !== undefined && (
+            <button
+              type="button"
+              onClick={() => balance >= INVEST_MIN && setRaw(formatInput(Math.floor(balance * 100) / 100))}
+              className="iv-num min-h-11 text-xs text-iv-muted transition-colors hover:text-iv-sky"
+            >
+              Saldo <span className="text-iv-ink">{fmtUsd(balance)}</span>
+            </button>
+          )}
+        </div>
+        <div
+          className={cn(
+            "iv-inset flex items-center gap-3 rounded-2xl px-4 transition-all focus-within:border-iv-sky/70 focus-within:shadow-[0_0_0_4px_rgb(61_180_255/0.12)]",
+            !valid && raw && "border-lp-down/60",
+          )}
+        >
+          <span className="text-sm font-medium text-iv-muted">US$</span>
           <input
             id="invest-amount"
             inputMode="decimal"
             value={raw}
             onChange={(e) => setRaw(e.target.value.replace(/[^\d.,]/g, ""))}
             onBlur={() => Number.isFinite(amount) && amount > 0 && setRaw(formatInput(amount))}
-            className="h-12 min-w-0 flex-1 bg-transparent font-mono text-base tabular-nums text-iv-ink outline-none"
+            className="iv-num h-14 min-w-0 flex-1 bg-transparent text-2xl font-semibold text-iv-ink outline-none"
           />
         </div>
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+        <div className="grid grid-cols-5 gap-1.5 rounded-2xl border border-iv-line/70 bg-iv-bg/50 p-1">
           {PRESETS.map((p) => {
             const active = Math.abs(amount - p) < 0.005
             return (
@@ -83,65 +161,53 @@ export function InvestSimulator({ authenticated, balance }: { authenticated: boo
                 type="button"
                 onClick={() => setRaw(formatInput(p))}
                 aria-pressed={active}
+                aria-label={`US$ ${p.toLocaleString("pt-BR")}`}
                 className={cn(
-                  "h-11 rounded-lg border text-sm transition-all active:scale-95",
+                  "iv-num h-11 rounded-xl text-sm font-medium transition-all active:scale-95",
                   active
-                    ? "border-iv-blue bg-iv-blue/20 text-iv-sky"
-                    : "border-iv-line bg-iv-bg text-iv-ink/80 hover:border-iv-blue/60",
+                    ? "bg-iv-blue text-iv-ink shadow-[inset_0_1px_0_rgb(255_255_255/0.2),0_6px_16px_-6px_rgb(22_114_255/0.8)]"
+                    : "text-iv-ink/70 hover:bg-iv-line/50 hover:text-iv-ink",
                 )}
               >
-                US$ {p.toLocaleString("pt-BR")}
+                {shortUsd(p)}
               </button>
             )
           })}
         </div>
         {!valid && raw && <p className="text-sm text-lp-down">Valor mínimo: US$ 500</p>}
-        {authenticated && balance !== undefined && (
-          <p className="text-sm text-iv-muted">
-            Saldo disponível: <span className="font-mono tabular-nums text-iv-ink">{fmtUsd(balance)}</span>
-          </p>
-        )}
+        {insufficient && <p className="text-sm text-lp-down">Saldo insuficiente para esse valor</p>}
       </div>
 
-      <div className="flex flex-col gap-4 rounded-xl border border-iv-line bg-iv-bg/70 p-4">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div aria-hidden className="flex h-9 items-end gap-1">
-              {[0.45, 0.7, 1].map((h, i) => (
-                <span
-                  key={h}
-                  className="iv-bar w-2 rounded-sm bg-iv-sky"
-                  style={{ height: `${h * 100}%`, animationDelay: `${i * 200}ms` }}
-                />
-              ))}
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-sm text-iv-ink/85">Rendimento mensal (10%)</span>
-              <span className="font-mono text-3xl font-bold tabular-nums text-iv-sky">{fmtUsd(monthly)}</span>
-            </div>
-          </div>
+      <div className="iv-inset flex flex-col gap-5 rounded-2xl p-5">
+        <div className="flex flex-col gap-1">
+          <span className="text-sm text-iv-muted">Rendimento mensal (10%)</span>
+          <Money value={monthly} className="text-[2.5rem] font-semibold leading-none text-iv-sky" />
+        </div>
+        <div className="iv-hairline" />
+        <div className="flex items-start justify-between gap-4">
           <div className="flex flex-col gap-1">
-            <span className="text-sm text-iv-muted">Valor total em 3 meses (bloqueado)</span>
-            <span className="font-mono text-lg font-semibold tabular-nums text-iv-ink">{fmtUsd(total)}</span>
-          </div>
-        </div>
-        <div className="flex items-start gap-3 border-t border-iv-line pt-4">
-          <CalendarDays className="size-6 shrink-0 text-iv-ink/80" aria-hidden />
-          <div className="flex flex-col gap-0.5 text-sm">
-            <span className="text-iv-ink/85">Rendimento liberado todo dia 30</span>
-            <span className="text-iv-sky">
-              Você pode sacar o rendimento mensal <span className="underline underline-offset-2">(todo dia 30)</span>
+            <span className="flex items-center gap-1.5 text-sm text-iv-muted">
+              <Lock className="size-3.5" aria-hidden /> Total em 3 meses
             </span>
+            <Money value={total} className="text-xl font-semibold text-iv-ink" />
+          </div>
+          <div className="flex flex-col items-end gap-1 text-right">
+            <span className="flex items-center gap-1.5 text-sm text-iv-muted">
+              <CalendarDays className="size-3.5" aria-hidden /> Liberação
+            </span>
+            <span className="iv-num text-xl font-semibold text-iv-ink">Dia 30</span>
           </div>
         </div>
+        <div className="iv-hairline" />
+        <Projection amount={valid ? amount : INVEST_MIN} />
       </div>
 
       {authenticated ? (
         <button
           type="button"
           onClick={confirm}
-          disabled={!valid || busy}
-          className="iv-glow group flex h-12 items-center justify-center gap-2 rounded-xl bg-iv-blue font-medium text-iv-ink transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
+          disabled={!valid || busy || insufficient}
+          className="iv-btn iv-shine group relative flex h-14 items-center justify-center gap-2 overflow-hidden rounded-2xl text-base font-semibold text-iv-ink transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
         >
           {busy ? <Loader2 className="size-5 animate-spin" aria-hidden /> : null}
           Confirmar Investimento
@@ -150,7 +216,7 @@ export function InvestSimulator({ authenticated, balance }: { authenticated: boo
       ) : (
         <Link
           href="/auth/login"
-          className="iv-glow flex h-12 items-center justify-center gap-2 rounded-xl bg-iv-blue font-medium text-iv-ink"
+          className="iv-btn iv-shine relative flex h-14 items-center justify-center gap-2 overflow-hidden rounded-2xl text-base font-semibold text-iv-ink"
         >
           Entrar para investir <ArrowRight className="size-5" aria-hidden />
         </Link>

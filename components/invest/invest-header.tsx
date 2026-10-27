@@ -45,14 +45,14 @@ function TickerStrip() {
                 <span className="text-xs font-semibold text-iv-ink md:text-sm">{c.label}</span>
                 {t && (
                   <span
-                    className={cn("font-mono text-[11px] tabular-nums md:text-xs", up ? "text-iv-up" : "text-lp-down")}
+                    className={cn("iv-num text-[11px] tabular-nums md:text-xs", up ? "text-iv-up" : "text-lp-down")}
                   >
                     {up ? "+" : ""}
                     {t.changePercent.toFixed(2)}%
                   </span>
                 )}
               </div>
-              <span className="truncate font-mono text-xs tabular-nums text-iv-muted md:text-sm md:text-iv-ink">
+              <span className="truncate iv-num text-xs tabular-nums text-iv-muted md:text-sm md:text-iv-ink">
                 {t ? `$${formatPrice(t.price)}` : "—"}
               </span>
             </div>
@@ -106,31 +106,54 @@ export function InvestHero() {
         sizes="100vw"
         className="iv-bull object-cover object-[70%_center] opacity-60 md:object-right md:opacity-100"
       />
-      <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-iv-bg via-iv-bg/80 to-iv-bg/10" />
-      <div className="relative mx-auto flex max-w-6xl flex-col items-start gap-4 px-4 py-10 md:py-14">
+      <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-iv-bg via-iv-bg/85 to-iv-bg/10" />
+      <div aria-hidden className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-iv-bg to-transparent" />
+      <div className="relative mx-auto flex max-w-6xl flex-col items-start gap-5 px-5 pb-8 pt-10 md:pb-14 md:pt-16">
         <span
-          className="iv-rise iv-shine relative overflow-hidden rounded-full bg-iv-blue px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-iv-ink"
+          className="iv-rise iv-shine iv-eyebrow relative flex items-center gap-2 overflow-hidden rounded-full border border-iv-sky/30 bg-iv-blue/15 px-3.5 py-1.5 text-iv-sky"
           style={{ animationDelay: "100ms" }}
         >
+          <span className="iv-live size-1.5 rounded-full bg-iv-sky" aria-hidden />
           Renda Passiva
         </span>
         <h1
-          className="iv-rise text-balance text-4xl font-bold leading-tight text-iv-ink md:text-5xl"
+          className="iv-rise font-display text-balance text-[2.75rem] leading-[1.02] text-iv-ink md:text-7xl"
           style={{ animationDelay: "200ms" }}
         >
           Seu dinheiro
           <br />
-          <span className="text-iv-ink/80">trabalhando </span>
-          <span className="text-iv-sky">por você</span>
+          trabalhando <em className="text-iv-sky">por você</em>
         </h1>
+        <div className="iv-rise iv-gold-rule" style={{ animationDelay: "280ms" }} aria-hidden />
         <p
-          className="iv-rise max-w-lg text-pretty text-base leading-relaxed text-iv-ink/85"
+          className="iv-rise max-w-md text-pretty text-[15px] leading-relaxed text-iv-ink/75"
           style={{ animationDelay: "320ms" }}
         >
-          Invista a partir de <strong className="text-iv-ink">US$ 500</strong> e receba rendimentos mensais com a
-          segurança da Kryptobit. O valor investido fica aplicado por 3 meses, e você pode sacar os rendimentos todo
-          mês.
+          Invista a partir de <strong className="font-semibold text-iv-ink">US$ 500</strong> e receba rendimentos
+          mensais com a segurança da Kryptobit. O valor fica aplicado por 3 meses e os rendimentos podem ser sacados
+          todo mês.
         </p>
+        <dl
+          className="iv-rise mt-1 flex w-full max-w-md items-stretch rounded-2xl border border-iv-line/80 bg-iv-bg/60 backdrop-blur-md"
+          style={{ animationDelay: "420ms" }}
+        >
+          {[
+            { k: "Rendimento", v: "10%", s: "ao mês" },
+            { k: "Prazo", v: "3", s: "meses" },
+            { k: "Saque", v: "Dia 30", s: "todo mês" },
+          ].map((item, i) => (
+            <div
+              key={item.k}
+              className={`flex flex-1 flex-col gap-1 px-4 py-3 ${i > 0 ? "border-l border-iv-line/80" : ""}`}
+            >
+              <dt className="iv-eyebrow text-[10px] text-iv-muted">{item.k}</dt>
+              <dd className="flex items-baseline gap-1">
+                <span className="iv-num whitespace-nowrap text-lg font-semibold text-iv-ink">{item.v}</span>
+                <span className="hidden text-xs text-iv-muted min-[380px]:inline">{i === 2 ? "" : item.s}</span>
+              </dd>
+            </div>
+          ))}
+        </dl>
       </div>
     </section>
   )
