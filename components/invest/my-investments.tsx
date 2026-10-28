@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { CalendarDays, Loader2, Lock, ShieldCheck } from "lucide-react"
 import { fmtDate, fmtUsd, type InvestmentView } from "@/lib/invest-schedule"
 import { useCountUp } from "./use-count-up"
+import { getInvestAsset } from "@/lib/invest-assets"
 
 const RING = 2 * Math.PI * 26
 
@@ -71,7 +72,9 @@ function InvestmentCard({ inv, index }: { inv: InvestmentView; index: number }) 
         <PayoutRing done={inv.payoutsDone} total={inv.months} />
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-sm text-iv-muted">Investimento atual</span>
+            <span className="min-w-0 truncate text-sm text-iv-muted">
+              {getInvestAsset(inv.asset).name} <span className="iv-num text-iv-ink/80">{getInvestAsset(inv.asset).ticker}</span>
+            </span>
             {done ? (
               <span className="rounded-full border border-iv-line px-2.5 py-0.5 text-xs text-iv-muted">Finalizado</span>
             ) : (

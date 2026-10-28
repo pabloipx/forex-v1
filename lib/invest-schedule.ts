@@ -4,6 +4,7 @@ export const INVEST_MONTHS = 3
 
 export interface InvestmentView {
   id: string
+  asset: string
   amount: number
   monthlyRate: number
   monthlyYield: number

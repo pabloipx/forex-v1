@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Valor inválido" }, { status: 400 })
     }
-    return NextResponse.json({ success: true, result: await createInvestment(user.id, parsed.data.amount) })
+    return NextResponse.json({ success: true, result: await createInvestment(user.id, parsed.data.amount, parsed.data.asset) })
   } catch (e) {
     return errorResponse(e)
   }

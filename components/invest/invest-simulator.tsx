@@ -9,6 +9,8 @@ import { APPLY_DURATION_MS, InvestApplying } from "./invest-applying"
 import { cn } from "@/lib/utils"
 import { fmtUsd, INVEST_MIN, INVEST_MONTHLY_RATE, INVEST_MONTHS } from "@/lib/invest-schedule"
 import { useCountUp } from "./use-count-up"
+import { AssetPicker } from "./asset-picker"
+import { getInvestAsset, type InvestAssetId } from "@/lib/invest-assets"
 
 const PRESETS = [500, 1000, 2000, 5000, 10000]
 
@@ -80,6 +82,7 @@ function Projection({ amount }: { amount: number }) {
 
 export function InvestSimulator({ authenticated, balance }: { authenticated: boolean; balance?: number }) {
   const [raw, setRaw] = useState(formatInput(500))
+  const [asset, setAsset] = useState<InvestAssetId>("USD")
   const [busy, setBusy] = useState(false)
   const [applying, setApplying] = useState<{ amount: number; startedAt: number; done: boolean } | null>(null)
   const amount = parseAmount(raw)
@@ -99,7 +102,7 @@ export function InvestSimulator({ authenticated, balance }: { authenticated: boo
       const res = await fetch("/api/invest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: value }),
+        body: JSON.stringify({ amount: value, asset }),
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error ?? "Não foi possível investir")
@@ -107,7 +110,7 @@ export function InvestSimulator({ authenticated, balance }: { authenticated: boo
       setApplying((a) => (a ? { ...a, done: true } : a))
       await Promise.all([globalMutate("/api/invest"), globalMutate("/api/futures/state?account=real")])
       await new Promise((r) => setTimeout(r, 1800))
-      toast.success(`Investimento de ${fmtUsd(json.result.amount)} aplicado`)
+      toast.success(`Investimento de ${fmtUsd(json.result.amount)} em ${getInvestAsset(asset).name} aplicado`)
     } catch (e) {
       toast.error((e as Error).message)
     } finally {
@@ -128,8 +131,12 @@ export function InvestSimulator({ authenticated, balance }: { authenticated: boo
         <h2 id="sim-title" className="font-display text-3xl leading-tight text-iv-ink">
           Simule seu investimento
         </h2>
-        <p className="text-sm leading-relaxed text-iv-muted">Digite o valor que deseja investir e veja quanto irá render.</p>
+        <p className="text-sm leading-relaxed text-iv-muted">Escolha um ativo, digite o valor e veja quanto irá render.</p>
       </header>
+
+      <AssetPicker value={asset} onChange={setAsset} />
+
+      <div className="iv-hairline" />
 
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
@@ -190,7 +197,9 @@ export function InvestSimulator({ authenticated, balance }: { authenticated: boo
 
       <div className="iv-inset flex flex-col gap-5 rounded-2xl p-5">
         <div className="flex flex-col gap-1">
-          <span className="text-sm text-iv-muted">Rendimento mensal (10%)</span>
+          <span className="text-sm text-iv-muted">
+            Rendimento mensal (10%) · <span className="text-iv-ink/80">{getInvestAsset(asset).ticker}</span>
+          </span>
           <Money value={monthly} className="text-[2.5rem] font-semibold leading-none text-iv-sky" />
         </div>
         <div className="iv-hairline" />

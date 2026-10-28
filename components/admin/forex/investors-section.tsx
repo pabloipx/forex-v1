@@ -1,5 +1,6 @@
 "use client"
 
+import { getInvestAsset } from "@/lib/invest-assets"
 import { useMemo, useState } from "react"
 import { Coins, PiggyBank, Search } from "lucide-react"
 import { Badge, ErrorNote, Panel, Stat, inputCls } from "./ui"
@@ -182,6 +183,7 @@ function PassiveList({ q, onOpen }: { q: string; onOpen: (r: Investor) => void }
                   <Badge tone={r.status === "active" ? "up" : "muted"}>{r.status === "active" ? "Ativo" : "Concluído"}</Badge>
                 </div>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2 md:grid-cols-5">
+                  <Field label="Ativo" value={`${getInvestAsset(r.asset).name} (${getInvestAsset(r.asset).ticker})`} />
                   <Field label="Investido" value={money(r.amount)} tone="accent" />
                   <Field label="Rendimento mensal" value={money(r.monthlyYield)} />
                   <Field label="Já sacado" value={money(r.received_usd)} />
