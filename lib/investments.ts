@@ -3,15 +3,18 @@ import { z } from "zod"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { TradingError } from "@/lib/futures/errors"
 import { payoutAt, type InvestmentView } from "@/lib/invest-schedule"
+import { INVEST_ASSET_IDS } from "@/lib/invest-assets"
 
 export const createInvestmentSchema = z.object({
   amount: z.number().finite().min(500, "Valor mínimo para investir: US$ 500").max(1e9),
+  asset: z.enum(INVEST_ASSET_IDS).default("USD"),
 })
 
 export const withdrawInvestmentSchema = z.object({ id: z.string().uuid() })
 
 export interface InvestmentRow {
   id: string
+  asset: string | null
   amount_usd: number
   monthly_rate: number
   months: number
@@ -31,6 +34,7 @@ export function toView(row: InvestmentRow, now = Date.now()): InvestmentView {
   const principalAvailable = due >= row.months && !row.principal_returned ? amount : 0
   return {
     id: row.id,
+    asset: row.asset ?? "USD",
     amount,
     monthlyRate: Number(row.monthly_rate),
     monthlyYield: monthly,
@@ -48,7 +52,7 @@ export function toView(row: InvestmentRow, now = Date.now()): InvestmentView {
 export async function listInvestments(userId: string): Promise<InvestmentView[]> {
   const { data, error } = await createAdminClient()
     .from("investments")
-    .select("id, amount_usd, monthly_rate, months, started_at, yield_paid_usd, principal_returned, status")
+    .select("id, asset, amount_usd, monthly_rate, months, started_at, yield_paid_usd, principal_returned, status")
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
   if (error) throw new Error(error.message)
@@ -64,10 +68,11 @@ async function callRpc<T>(fn: string, args: Record<string, unknown>): Promise<T>
   return data as T
 }
 
-export function createInvestment(userId: string, amount: number) {
-  return callRpc<{ id: string; amount: number; balance: number }>("invest_create", {
+export function createInvestment(userId: string, amount: number, asset: string) {
+  return callRpc<{ id: string; amount: number; asset: string; balance: number }>("invest_create", {
     p_user: userId,
     p_amount: amount,
+    p_asset: asset,
   })
 }
 

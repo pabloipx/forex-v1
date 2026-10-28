@@ -82,7 +82,7 @@ export async function listCryptoInvestors(): Promise<CryptoInvestorRow[]> {
 export async function listPassiveInvestors(): Promise<PassiveInvestorRow[]> {
   const { data, error } = await createAdminClient()
     .from("investments")
-    .select("id, user_id, amount_usd, monthly_rate, months, started_at, yield_paid_usd, principal_returned, status")
+    .select("id, user_id, asset, amount_usd, monthly_rate, months, started_at, yield_paid_usd, principal_returned, status")
     .order("created_at", { ascending: false })
     .limit(2000)
   if (error) throw new Error(error.message)
