@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { toast } from "sonner"
 import { TrendingDown, TrendingUp, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -14,6 +14,7 @@ interface LaunchRow {
   icon_url: string | null
   initial_price_usd: number | null
   price_usd: number | null
+  trade_price_usd: number | null
   status: "upcoming" | "live" | "ended"
   phase: "presale" | "live" | "ended"
   holders: { holders: number; qty: number; invested_usd: number } | null
@@ -59,12 +60,8 @@ export function LaunchManipulation() {
   const [targetDraft, setTargetDraft] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
-  useEffect(() => {
-    if (!launchId && launches[0]) setLaunchId(launches[0].id)
-  }, [launchId, launches])
-
-  const launch = launches.find((l) => l.id === launchId) ?? null
-  const price = launch ? (launch.price_usd ?? launch.initial_price_usd ?? 0) : 0
+  const launch = launches.find((l) => l.id === launchId) ?? launches[0] ?? null
+  const price = launch ? (launch.trade_price_usd ?? launch.price_usd ?? launch.initial_price_usd ?? 0) : 0
   const dec = decimalsFor(price)
   const pct = Number(movePct.replace(",", "."))
   const target = price > 0 && pct > 0 ? roundPrice(price * (1 + (direction === "up" ? 1 : -1) * (pct / 100))) : null
@@ -88,7 +85,7 @@ export function LaunchManipulation() {
     if (pct > 1000) return toast.error("Movimento máximo: 1000%")
     setBusy(true)
     try {
-      await adminAction({ action: "set_launch_price", id: launch.id, price: target })
+      await adminAction({ action: "set_launch_trade_price", id: launch.id, price: target })
       await refreshAdmin("launches", "investors_crypto")
       setTargetDraft(null)
       toast.success(`${launch.symbol}: US$ ${usd(price, dec)} → US$ ${usd(target, decimalsFor(target))}`)
@@ -213,7 +210,7 @@ export function LaunchManipulation() {
             <span className={cn("font-mono", direction === "up" ? "text-long" : "text-short")}>
               US$ {usd(target, decimalsFor(target))}
             </span>{" "}
-            na hora. O novo preço fica registrado no gráfico da moeda.
+            na hora.{launch.phase === "live" ? " O novo preço fica registrado no gráfico da moeda." : ""}
           </p>
           {holdersCount > 0 && (
             <p className="flex items-start gap-1.5">
@@ -229,7 +226,10 @@ export function LaunchManipulation() {
             </p>
           )}
           {launch.phase === "presale" && (
-            <p className="text-primary">Moeda em pré-venda: o novo preço passa a valer no lançamento.</p>
+            <p className="text-primary">
+              Moeda em pré-venda: muda o preço de pré-venda, que é o que os clientes pagam agora. O preço de lançamento não é
+              alterado.
+            </p>
           )}
         </div>
       )}

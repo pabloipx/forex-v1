@@ -224,8 +224,9 @@ export function ManipulationSection() {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-pretty text-sm leading-relaxed text-term-muted">
-        Desloca o preço de um mercado de futuros em relação ao feed real. O deslocamento vale para todo o sistema: gráfico,
-        livro, execução de ordens, TP/SL e liquidações. Ao terminar, o preço converge de volta ao real sem saltos.
+        {category === "launch"
+          ? "Muda o preço de uma moeda em lançamento na hora. Vale para compra, venda e o saldo dos clientes que têm a moeda. O preço fica no novo valor até você mudar de novo."
+          : "Desloca o preço de um mercado de futuros em relação ao feed real. O deslocamento vale para todo o sistema: gráfico, livro, execução de ordens, TP/SL e liquidações. Ao terminar, o preço converge de volta ao real sem saltos."}
       </p>
 
       <div className="grid gap-4 xl:grid-cols-[400px_1fr]">

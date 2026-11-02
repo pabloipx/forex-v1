@@ -30,6 +30,7 @@ interface CryptoRow extends Investor {
 
 interface PassiveRow extends Investor {
   id: string
+  asset: string
   amount: number
   monthlyYield: number
   months: number
