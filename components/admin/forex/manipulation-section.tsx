@@ -8,6 +8,7 @@ import { CATEGORY_LABELS, MARKETS, formatPrice, getMarket, type MarketCategory }
 import { PHASE_LABELS, intensityAt, type FuturesManipulation, type ManipulationPhase } from "@/lib/futures/manipulation-curve"
 import { cn } from "@/lib/utils"
 import { Badge, DataTable, ErrorNote, Panel, SmallButton, inputCls, td } from "./ui"
+import { LaunchManipulation } from "./launch-manipulation"
 
 type Row = FuturesManipulation & {
   phase: ManipulationPhase
@@ -130,7 +131,7 @@ export function ManipulationSection() {
   const { data, error, mutate } = useSWR<{ manipulations: Row[] }>("/api/admin/manipulations", fetcher, { refreshInterval: 2000 })
   const { data: tick } = useSWR<{ tickers: Record<string, { price: number }> }>("/api/futures/tickers", fetcher, { refreshInterval: 3000 })
 
-  const [category, setCategory] = useState<MarketCategory>("crypto")
+  const [category, setCategory] = useState<MarketCategory | "launch">("crypto")
   const [symbol, setSymbol] = useState("BTCUSDT")
   const [direction, setDirection] = useState<"up" | "down">("up")
   const [movePct, setMovePct] = useState("0.5")
@@ -223,31 +224,47 @@ export function ManipulationSection() {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-pretty text-sm leading-relaxed text-term-muted">
-        Desloca o preço de um mercado de futuros em relação ao feed real. O deslocamento vale para todo o sistema: gráfico,
-        livro, execução de ordens, TP/SL e liquidações. Ao terminar, o preço converge de volta ao real sem saltos.
+        {category === "launch"
+          ? "Muda o preço de uma moeda em lançamento na hora. Vale para compra, venda e o saldo dos clientes que têm a moeda. O preço fica no novo valor até você mudar de novo."
+          : "Desloca o preço de um mercado de futuros em relação ao feed real. O deslocamento vale para todo o sistema: gráfico, livro, execução de ordens, TP/SL e liquidações. Ao terminar, o preço converge de volta ao real sem saltos."}
       </p>
 
       <div className="grid gap-4 xl:grid-cols-[400px_1fr]">
         <Panel title="Nova manipulação">
-          <form onSubmit={create} className="flex flex-col gap-5 p-4">
-            <Field label="Mercado">
-              <div role="radiogroup" aria-label="Categoria" className="flex gap-1">
-                {CATEGORIES.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    role="radio"
-                    aria-checked={category === c}
-                    onClick={() => {
-                      setCategory(c)
-                      setSymbol(MARKETS.find((m) => m.category === c)!.symbol)
-                    }}
-                    className={cn("rounded px-2 py-1 text-xs", category === c ? "bg-term-line text-term-text" : "text-term-muted hover:text-term-text")}
-                  >
-                    {CATEGORY_LABELS[c]}
-                  </button>
-                ))}
-              </div>
+          <div className="flex flex-col gap-1.5 px-4 pb-3 pt-4">
+            <span className="text-xs text-term-muted">Mercado</span>
+            <div role="radiogroup" aria-label="Categoria" className="-mx-1 flex gap-1 overflow-x-auto px-1">
+              {CATEGORIES.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  role="radio"
+                  aria-checked={category === c}
+                  onClick={() => {
+                    setCategory(c)
+                    setSymbol(MARKETS.find((m) => m.category === c)!.symbol)
+                  }}
+                  className={cn("shrink-0 rounded px-2 py-1.5 text-xs", category === c ? "bg-term-line text-term-text" : "text-term-muted hover:text-term-text")}
+                >
+                  {CATEGORY_LABELS[c]}
+                </button>
+              ))}
+              <button
+                type="button"
+                role="radio"
+                aria-checked={category === "launch"}
+                onClick={() => setCategory("launch")}
+                className={cn("shrink-0 rounded px-2 py-1.5 text-xs", category === "launch" ? "bg-term-line text-term-text" : "text-term-muted hover:text-term-text")}
+              >
+                Lançamentos
+              </button>
+            </div>
+          </div>
+          {category === "launch" ? (
+            <LaunchManipulation />
+          ) : (
+          <form onSubmit={create} className="flex flex-col gap-5 px-4 pb-4">
+            <Field label="Par">
               <select value={symbol} onChange={(e) => setSymbol(e.target.value)} className={inputCls} aria-label="Mercado">
                 {MARKETS.filter((m) => m.category === category).map((m) => (
                   <option key={m.symbol} value={m.symbol}>
@@ -405,6 +422,7 @@ export function ManipulationSection() {
               {busy === "create" ? "Enviando..." : scheduled ? "Agendar manipulação" : "Iniciar manipulação"}
             </button>
           </form>
+          )}
         </Panel>
 
         <div className="flex min-w-0 flex-col gap-4">

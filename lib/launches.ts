@@ -174,6 +174,25 @@ export async function setLaunchPrice(id: string, priceUsd: number): Promise<Toke
   return toLaunch(data)
 }
 
+/** Moves the price clients trade at right now: presale price during presale, market price after launch. */
+export async function setLaunchTradePrice(id: string, priceUsd: number): Promise<TokenLaunch> {
+  const admin = createAdminClient()
+  const { data: current, error: readError } = await admin.from("token_launches").select(COLUMNS).eq("id", id).single()
+  if (readError) throw new Error(readError.message)
+  const launch = toLaunch(current)
+  if (launch.phase === "ended") throw new Error("Moeda encerrada não pode ter o preço alterado")
+  if (launch.phase === "live") return setLaunchPrice(id, priceUsd)
+  const now = new Date().toISOString()
+  const { data, error } = await admin
+    .from("token_launches")
+    .update({ presale_price_usd: priceUsd, updated_at: now })
+    .eq("id", id)
+    .select(COLUMNS)
+    .single()
+  if (error) throw new Error(error.message)
+  return toLaunch(data)
+}
+
 export async function setLaunchListed(id: string, listed: boolean): Promise<TokenLaunch> {
   const { data, error } = await createAdminClient()
     .from("token_launches")

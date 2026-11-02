@@ -23,13 +23,24 @@ export function AssetGlyph({ asset, className }: { asset: InvestAsset; className
     <span
       aria-hidden
       className={cn(
-        "iv-num flex size-11 flex-none items-center justify-center rounded-xl border font-semibold",
-        asset.glyph.length > 2 ? "text-xs" : asset.glyph.length > 1 ? "text-sm" : "text-lg",
+        "relative flex size-11 flex-none items-center justify-center rounded-xl border",
         GLYPH_TONE[asset.group],
         className,
       )}
     >
-      {asset.glyph}
+      <img
+        src={asset.logo}
+        alt=""
+        className={cn(
+          "size-full rounded-[inherit] object-cover",
+          asset.group === "moedas" && "size-7 rounded-full object-cover ring-1 ring-iv-ink/15",
+        )}
+      />
+      {asset.badge && (
+        <span className="iv-num absolute -bottom-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-iv-line bg-iv-bg px-1 text-[10px] font-semibold leading-4 text-iv-ink">
+          {asset.badge}
+        </span>
+      )}
     </span>
   )
 }

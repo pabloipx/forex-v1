@@ -33,6 +33,7 @@ import {
   saveLaunch,
   setLaunchListed,
   setLaunchPrice,
+  setLaunchTradePrice,
 } from "@/lib/launches"
 import { listCryptoInvestors, listPassiveInvestors } from "@/lib/admin/investors"
 
@@ -143,6 +144,7 @@ const actionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("save_launch"), launch: launchInputSchema }),
   z.object({ action: z.literal("delete_launch"), id: z.string().uuid() }),
   z.object({ action: z.literal("set_launch_price"), id: z.string().uuid(), price: z.number().finite().positive().max(1e9) }),
+  z.object({ action: z.literal("set_launch_trade_price"), id: z.string().uuid(), price: z.number().finite().positive().max(1e9) }),
   z.object({ action: z.literal("set_launch_listed"), id: z.string().uuid(), listed: z.boolean() }),
 ])
 
@@ -188,6 +190,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, refunded: await deleteLaunch(a.id) })
       case "set_launch_price":
         return NextResponse.json({ success: true, launch: await setLaunchPrice(a.id, a.price) })
+      case "set_launch_trade_price":
+        return NextResponse.json({ success: true, launch: await setLaunchTradePrice(a.id, a.price) })
       case "set_launch_listed":
         return NextResponse.json({ success: true, launch: await setLaunchListed(a.id, a.listed) })
     }
