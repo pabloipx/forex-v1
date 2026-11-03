@@ -1,18 +1,16 @@
 import type React from "react"
-import { Instrument_Serif, Manrope } from "next/font/google"
+import type { Metadata, Viewport } from "next"
+import { investFontVars } from "@/lib/invest-fonts"
 
-const display = Instrument_Serif({
-  subsets: ["latin"],
-  weight: "400",
-  style: ["normal", "italic"],
-  variable: "--font-iv-display",
-})
+export const metadata: Metadata = {
+  title: "Carteira de Investimentos | Kryptobit",
+  description: "Acompanhe seu patrimônio, a distribuição dos ativos e os rendimentos mensais da sua carteira na Kryptobit.",
+}
 
-const sans = Manrope({
-  subsets: ["latin"],
-  variable: "--font-iv-sans",
-})
+export const viewport: Viewport = {
+  themeColor: "#040914",
+}
 
 export default function InvestLayout({ children }: { children: React.ReactNode }) {
-  return <div className={`${display.variable} ${sans.variable} iv-theme`}>{children}</div>
+  return <div className={`${investFontVars} iv-theme`}>{children}</div>
 }
