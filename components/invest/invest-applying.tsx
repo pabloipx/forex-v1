@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { createPortal } from "react-dom"
+import { investFontVars } from "@/lib/invest-fonts"
 import { Check, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { fmtUsd } from "@/lib/invest-schedule"
@@ -29,12 +31,16 @@ export function InvestApplying({ amount, startedAt, done }: { amount: number; st
   const active = done ? STEPS.length : Math.min(Math.floor(progress * STEPS.length), STEPS.length - 1)
   const remaining = Math.max(0, Math.ceil((APPLY_DURATION_MS - (now - startedAt)) / 1000))
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="applying-title"
-      className="iv-fade fixed inset-0 z-50 flex items-center justify-center bg-iv-bg/85 p-5 backdrop-blur-md"
+      data-invest-applying=""
+      className={cn(
+        investFontVars,
+        "iv-theme iv-fade pointer-events-auto fixed inset-0 z-[100] flex items-center justify-center bg-iv-bg/85 p-5 font-sans text-iv-ink backdrop-blur-md",
+      )}
     >
       <div className="iv-panel iv-pop flex w-full max-w-sm flex-col items-center gap-6 rounded-3xl p-6">
         <div className="relative flex size-36 items-center justify-center">
@@ -66,7 +72,7 @@ export function InvestApplying({ amount, startedAt, done }: { amount: number; st
         </div>
 
         <div className="flex flex-col items-center gap-1.5 text-center">
-          <h2 id="applying-title" className="font-display text-2xl text-iv-ink text-balance">
+          <h2 id="applying-title" className="text-balance text-2xl font-bold tracking-tight text-iv-ink">
             {done ? "Investimento aplicado" : "Aplicando seu investimento"}
           </h2>
           <p className="text-sm leading-relaxed text-iv-muted">
@@ -109,6 +115,7 @@ export function InvestApplying({ amount, startedAt, done }: { amount: number; st
           })}
         </ol>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
