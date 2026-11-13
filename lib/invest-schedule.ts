@@ -2,6 +2,17 @@ export const INVEST_MIN = 500
 export const INVEST_MONTHLY_RATE = 0.1
 export const INVEST_MONTHS = 3
 
+/** Monthly rate per asset id (0.1 = 10%), as configured by the admin. */
+export type InvestRates = Record<string, number>
+
+export const rateFor = (rates: InvestRates | undefined, asset: string) => {
+  const r = rates?.[asset]
+  return typeof r === "number" && Number.isFinite(r) && r > 0 ? r : INVEST_MONTHLY_RATE
+}
+
+export const fmtRate = (rate: number) =>
+  `${(rate * 100).toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}%`
+
 export interface InvestmentView {
   id: string
   asset: string

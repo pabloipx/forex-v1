@@ -15,6 +15,7 @@ import {
   Headset,
   LogOut,
   Menu,
+  Percent,
   PiggyBank,
   Rocket,
   ShieldCheck,
@@ -37,6 +38,7 @@ import { GatewaySection } from "./gateway-section"
 import { LimitsSection } from "./limits-section"
 import { LaunchesSection } from "./launches-section"
 import { InvestorsSection } from "./investors-section"
+import { PassiveRatesSection } from "./passive-rates-section"
 
 const SECTIONS = [
   { id: "overview", label: "Visão geral", group: "Painel", icon: BarChart3, Component: OverviewSection },
@@ -46,6 +48,7 @@ const SECTIONS = [
   { id: "manipulation", label: "Manipulação", group: "Mercado", icon: Zap, Component: ManipulationSection },
   { id: "users", label: "Usuários e saldos", group: "Clientes", icon: Users, Component: UsersSection },
   { id: "investors", label: "Investidores", group: "Clientes", icon: PiggyBank, Component: InvestorsSection },
+  { id: "passive_rates", label: "Renda passiva", group: "Clientes", icon: Percent, Component: PassiveRatesSection },
   { id: "kyc", label: "KYC", group: "Clientes", icon: ShieldCheck, Component: KycSection },
   { id: "support", label: "Suporte", group: "Clientes", icon: Headset, Component: AdminSupport },
   { id: "deposits", label: "Depósitos", group: "Financeiro", icon: ArrowDownToLine, Component: DepositsSection },

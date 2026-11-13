@@ -7,7 +7,16 @@ import { toast } from "sonner"
 import { ArrowRight, Check, Loader2 } from "lucide-react"
 import { APPLY_DURATION_MS, InvestApplying } from "./invest-applying"
 import { cn } from "@/lib/utils"
-import { fmtDate, fmtUsd, INVEST_MIN, INVEST_MONTHLY_RATE, INVEST_MONTHS, payoutAt } from "@/lib/invest-schedule"
+import {
+  fmtDate,
+  fmtRate,
+  fmtUsd,
+  INVEST_MIN,
+  INVEST_MONTHS,
+  payoutAt,
+  rateFor,
+  type InvestRates,
+} from "@/lib/invest-schedule"
 import { useCountUp } from "./use-count-up"
 import {
   getInvestAsset,
@@ -23,7 +32,15 @@ const parseAmount = (raw: string) => Number(raw.replace(/[^\d,]/g, "").replace("
 const formatInput = (v: number) => v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const shortUsd = (v: number) => (v >= 1000 ? `${(v / 1000).toLocaleString("pt-BR")}k` : String(v))
 
-function AssetTiles({ value, onChange }: { value: InvestAssetId; onChange: (id: InvestAssetId) => void }) {
+function AssetTiles({
+  value,
+  onChange,
+  rates,
+}: {
+  value: InvestAssetId
+  onChange: (id: InvestAssetId) => void
+  rates?: InvestRates
+}) {
   const [group, setGroup] = useState<InvestAssetGroup>(getInvestAsset(value).group)
   const assets = INVEST_ASSETS.filter((a) => a.group === group)
 
@@ -78,6 +95,7 @@ function AssetTiles({ value, onChange }: { value: InvestAssetId; onChange: (id: 
               <span className="flex min-w-0 flex-1 flex-col">
                 <span className="iv-num text-sm font-bold text-iv-ink">{a.badge ?? a.ticker}</span>
                 <span className="line-clamp-2 text-xs leading-snug text-iv-muted">{a.name}</span>
+                <span className="iv-num mt-0.5 text-xs font-semibold text-iv-up">{fmtRate(rateFor(rates, a.id))} a.m.</span>
               </span>
               {selected && (
                 <span className="iv-pop absolute right-2 top-2 flex size-5 items-center justify-center rounded-full bg-iv-sky text-iv-bg">
@@ -92,13 +110,13 @@ function AssetTiles({ value, onChange }: { value: InvestAssetId; onChange: (id: 
   )
 }
 
-function ProjectionBars({ amount }: { amount: number }) {
+function ProjectionBars({ amount, rate }: { amount: number; rate: number }) {
   const [shown, setShown] = useState(false)
   useEffect(() => {
     const id = requestAnimationFrame(() => setShown(true))
     return () => cancelAnimationFrame(id)
   }, [])
-  const monthly = amount * INVEST_MONTHLY_RATE
+  const monthly = amount * rate
   const final = amount + monthly * INVEST_MONTHS
   return (
     <div className="flex h-24 items-end gap-2" aria-hidden>
@@ -125,22 +143,25 @@ function ProjectionBars({ amount }: { amount: number }) {
 export function InvestSimulator({
   authenticated,
   balance,
+  rates,
   onInvested,
 }: {
   authenticated: boolean
   balance?: number
+  rates?: InvestRates
   onInvested?: () => void
 }) {
   const [raw, setRaw] = useState(formatInput(1000))
   const [asset, setAsset] = useState<InvestAssetId>("USD")
   const [busy, setBusy] = useState(false)
-  const [applying, setApplying] = useState<{ amount: number; startedAt: number; done: boolean } | null>(null)
+  const [applying, setApplying] = useState<{ amount: number; rate: number; startedAt: number; done: boolean } | null>(null)
   const [today] = useState(() => new Date())
+  const rate = rateFor(rates, asset)
   const amount = parseAmount(raw)
   const valid = Number.isFinite(amount) && amount >= INVEST_MIN
   const safe = valid ? amount : 0
-  const monthly = useCountUp(safe * INVEST_MONTHLY_RATE, 500)
-  const total = useCountUp(safe * (1 + INVEST_MONTHLY_RATE * INVEST_MONTHS), 500)
+  const monthly = useCountUp(safe * rate, 500)
+  const total = useCountUp(safe * (1 + rate * INVEST_MONTHS), 500)
   const insufficient = authenticated && balance !== undefined && valid && amount > balance
   const selected = getInvestAsset(asset)
 
@@ -148,7 +169,7 @@ export function InvestSimulator({
     if (!valid || busy || insufficient) return
     const value = Math.round(amount * 100) / 100
     setBusy(true)
-    setApplying({ amount: value, startedAt: Date.now(), done: false })
+    setApplying({ amount: value, rate, startedAt: Date.now(), done: false })
     const minDelay = new Promise((r) => setTimeout(r, APPLY_DURATION_MS))
     let ok = false
     try {
@@ -160,7 +181,8 @@ export function InvestSimulator({
       const json = await res.json()
       if (!res.ok) throw new Error(json.error ?? "Não foi possível investir")
       await minDelay
-      setApplying((a) => (a ? { ...a, done: true } : a))
+      const contracted = Number(json.result.monthly_rate)
+      setApplying((a) => (a ? { ...a, done: true, rate: contracted > 0 ? contracted : a.rate } : a))
       await Promise.all([globalMutate("/api/invest"), globalMutate("/api/futures/state?account=real")])
       await new Promise((r) => setTimeout(r, 1800))
       toast.success(`Investimento de ${fmtUsd(json.result.amount)} em ${selected.name} aplicado`)
@@ -177,7 +199,7 @@ export function InvestSimulator({
   return (
     <>
       <div className="grid min-h-0 flex-1 gap-6 overflow-y-auto overscroll-contain px-5 pb-5 sm:px-6 md:grid-cols-2">
-        <AssetTiles value={asset} onChange={setAsset} />
+        <AssetTiles value={asset} onChange={setAsset} rates={rates} />
 
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-3">
@@ -248,10 +270,10 @@ export function InvestSimulator({
                 <span className="iv-num text-3xl font-bold leading-none text-iv-up">+{fmtUsd(monthly)}</span>
               </div>
               <span className="rounded-md border border-iv-up/25 bg-iv-up/10 px-2 py-1 text-xs font-semibold text-iv-up">
-                {Math.round(INVEST_MONTHLY_RATE * 100)}% a.m.
+                {fmtRate(rate)} a.m.
               </span>
             </div>
-            <ProjectionBars amount={valid ? amount : INVEST_MIN} />
+            <ProjectionBars amount={valid ? amount : INVEST_MIN} rate={rate} />
             <dl className="flex flex-col divide-y divide-iv-line/60 text-sm">
               <div className="flex items-center justify-between gap-3 py-2">
                 <dt className="text-iv-muted">Ativo</dt>
@@ -299,7 +321,9 @@ export function InvestSimulator({
         )}
       </div>
 
-      {applying && <InvestApplying amount={applying.amount} startedAt={applying.startedAt} done={applying.done} />}
+      {applying && (
+        <InvestApplying amount={applying.amount} rate={applying.rate} startedAt={applying.startedAt} done={applying.done} />
+      )}
     </>
   )
 }

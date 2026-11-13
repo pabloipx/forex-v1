@@ -36,6 +36,7 @@ import {
   setLaunchTradePrice,
 } from "@/lib/launches"
 import { listCryptoInvestors, listPassiveInvestors } from "@/lib/admin/investors"
+import { investRatesInputSchema, listInvestRates, saveInvestRates } from "@/lib/invest-rates"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -56,6 +57,7 @@ const views = {
   },
   investors_crypto: listCryptoInvestors,
   investors_passive: listPassiveInvestors,
+  invest_rates: listInvestRates,
 } as const
 
 export async function GET(request: NextRequest) {
@@ -146,6 +148,7 @@ const actionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("set_launch_price"), id: z.string().uuid(), price: z.number().finite().positive().max(1e9) }),
   z.object({ action: z.literal("set_launch_trade_price"), id: z.string().uuid(), price: z.number().finite().positive().max(1e9) }),
   z.object({ action: z.literal("set_launch_listed"), id: z.string().uuid(), listed: z.boolean() }),
+  z.object({ action: z.literal("set_invest_rates"), rates: investRatesInputSchema }),
 ])
 
 export async function POST(request: NextRequest) {
@@ -194,6 +197,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, launch: await setLaunchTradePrice(a.id, a.price) })
       case "set_launch_listed":
         return NextResponse.json({ success: true, launch: await setLaunchListed(a.id, a.listed) })
+      case "set_invest_rates":
+        return NextResponse.json({ success: true, rates: await saveInvestRates(a.rates) })
     }
   } catch (e) {
     return errorResponse(e)

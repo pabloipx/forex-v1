@@ -69,7 +69,7 @@ async function callRpc<T>(fn: string, args: Record<string, unknown>): Promise<T>
 }
 
 export function createInvestment(userId: string, amount: number, asset: string) {
-  return callRpc<{ id: string; amount: number; asset: string; balance: number }>("invest_create", {
+  return callRpc<{ id: string; amount: number; asset: string; monthly_rate: number; balance: number }>("invest_create", {
     p_user: userId,
     p_amount: amount,
     p_asset: asset,

@@ -1,5 +1,5 @@
 import { getInvestAsset, type InvestAsset } from "@/lib/invest-assets"
-import { INVEST_MONTHLY_RATE, INVEST_MONTHS, payoutAt, type InvestmentView } from "@/lib/invest-schedule"
+import { INVEST_MONTHS, payoutAt, rateFor, type InvestmentView, type InvestRates } from "@/lib/invest-schedule"
 
 export const SLICE_COLORS = ["#1e8bff", "#16d98a", "#f5b51b", "#8b5cf6", "#22d3ee", "#fb7a3c", "#f472b6", "#2dd4bf", "#f87171", "#a3e635"]
 
@@ -82,14 +82,14 @@ function cycle(active: InvestmentView[], now: number) {
   return { nextPayoutAt: next, cycleProgress: Math.min(1, Math.max(0, (now - prevDue) / (end - prevDue))) }
 }
 
-export function buildPortfolio(investments: InvestmentView[], now = Date.now()): Portfolio {
+export function buildPortfolio(investments: InvestmentView[], now = Date.now(), rates?: InvestRates): Portfolio {
   const sample = investments.length === 0
-  const list = sample ? sampleInvestments(now) : investments
+  const list = sample ? sampleInvestments(now, rates) : investments
   const active = list.filter((i) => i.status === "active")
   const invested = active.reduce((s, i) => s + i.amount, 0)
   const available = list.reduce((s, i) => s + i.available, 0)
   const monthlyYield = active.reduce((s, i) => s + i.monthlyYield, 0)
-  const monthlyRate = invested > 0 ? monthlyYield / invested : INVEST_MONTHLY_RATE
+  const monthlyRate = invested > 0 ? monthlyYield / invested : rateFor(rates, "USD")
 
   const byAsset = new Map<string, { value: number; yield: number }>()
   for (const inv of active) {
@@ -128,16 +128,17 @@ const SAMPLE = [
   { asset: "SGOV", amount: 1500 },
 ]
 
-function sampleInvestments(now: number): InvestmentView[] {
+function sampleInvestments(now: number, rates?: InvestRates): InvestmentView[] {
   const start = new Date(now - 40 * DAY)
   return SAMPLE.map((s, i) => {
     const payoutsDone = [1, 2, 3].filter((k) => payoutAt(start, k).getTime() <= now).length
+    const rate = rateFor(rates, s.asset)
     return {
       id: `sample-${i}`,
       asset: s.asset,
       amount: s.amount,
-      monthlyRate: INVEST_MONTHLY_RATE,
-      monthlyYield: s.amount * INVEST_MONTHLY_RATE,
+      monthlyRate: rate,
+      monthlyYield: Math.round(s.amount * rate * 100) / 100,
       months: INVEST_MONTHS,
       startedAt: start.toISOString(),
       payoutsDone,

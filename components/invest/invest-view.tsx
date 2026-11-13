@@ -7,7 +7,7 @@ import useSWR from "swr"
 import { Toaster } from "sonner"
 import { Info } from "lucide-react"
 import { useFuturesState } from "@/hooks/use-futures"
-import type { InvestmentView } from "@/lib/invest-schedule"
+import type { InvestmentView, InvestRates } from "@/lib/invest-schedule"
 import { buildPortfolio } from "@/lib/invest-portfolio"
 import { PortfolioNav, type PortfolioTab } from "./portfolio/portfolio-nav"
 import { PatrimonyCard } from "./portfolio/patrimony-card"
@@ -45,15 +45,17 @@ const fetcher = async (url: string) => {
 }
 
 const EMPTY: InvestmentView[] = []
+const NO_RATES: InvestRates = {}
 
 export function InvestView() {
-  const { data, isLoading } = useSWR<{ authenticated: boolean; investments: InvestmentView[] }>("/api/invest", fetcher, {
+  const { data, isLoading } = useSWR<{ authenticated: boolean; investments: InvestmentView[]; rates?: InvestRates }>("/api/invest", fetcher, {
     refreshInterval: 30000,
     keepPreviousData: true,
   })
   const { state } = useFuturesState("real")
   const authenticated = Boolean(data?.authenticated)
   const investments = data?.investments ?? EMPTY
+  const rates = data?.rates ?? NO_RATES
 
   const [tab, setTab] = useState<PortfolioTab>("visao-geral")
   const [hidden, setHidden] = useState(false)
@@ -67,7 +69,7 @@ export function InvestView() {
   }, [])
 
   // `now` only ticks once a minute; read the clock again so a just-made aporte counts as realized.
-  const portfolio = useMemo(() => buildPortfolio(investments, Math.max(now, Date.now())), [investments, now])
+  const portfolio = useMemo(() => buildPortfolio(investments, Math.max(now, Date.now()), rates), [investments, now, rates])
 
   const openInvest = useCallback(() => {
     setDialogMounted(true)
@@ -149,6 +151,7 @@ export function InvestView() {
           onOpenChange={setInvestOpen}
           authenticated={authenticated}
           balance={state?.authenticated ? (state.balance ?? 0) : undefined}
+          rates={rates}
         />
       )}
     </div>

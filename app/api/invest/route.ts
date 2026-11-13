@@ -7,18 +7,30 @@ import {
   withdrawInvestment,
   withdrawInvestmentSchema,
 } from "@/lib/investments"
+import { getInvestRates } from "@/lib/invest-rates"
+import type { InvestRates } from "@/lib/invest-schedule"
 
 export const dynamic = "force-dynamic"
 
+const NO_STORE = { "Cache-Control": "no-store" }
+
+async function safeRates(): Promise<InvestRates> {
+  try {
+    return await getInvestRates()
+  } catch (e) {
+    console.error("[invest] failed to load rates", e)
+    return {}
+  }
+}
+
 export async function GET() {
+  const ratesPromise = safeRates()
   try {
     const user = await requireUser()
-    return NextResponse.json(
-      { authenticated: true, investments: await listInvestments(user.id) },
-      { headers: { "Cache-Control": "no-store" } },
-    )
+    const [investments, rates] = await Promise.all([listInvestments(user.id), ratesPromise])
+    return NextResponse.json({ authenticated: true, investments, rates }, { headers: NO_STORE })
   } catch {
-    return NextResponse.json({ authenticated: false, investments: [] }, { headers: { "Cache-Control": "no-store" } })
+    return NextResponse.json({ authenticated: false, investments: [], rates: await ratesPromise }, { headers: NO_STORE })
   }
 }
 
