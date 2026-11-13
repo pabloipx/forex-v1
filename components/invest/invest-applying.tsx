@@ -5,7 +5,7 @@ import { createPortal } from "react-dom"
 import { investFontVars } from "@/lib/invest-fonts"
 import { Check, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { fmtUsd } from "@/lib/invest-schedule"
+import { fmtRate, fmtUsd } from "@/lib/invest-schedule"
 
 export const APPLY_DURATION_MS = 15000
 
@@ -19,7 +19,17 @@ const STEPS = [
 
 const RING = 2 * Math.PI * 52
 
-export function InvestApplying({ amount, startedAt, done }: { amount: number; startedAt: number; done: boolean }) {
+export function InvestApplying({
+  amount,
+  rate,
+  startedAt,
+  done,
+}: {
+  amount: number
+  rate: number
+  startedAt: number
+  done: boolean
+}) {
   const [now, setNow] = useState(startedAt)
 
   useEffect(() => {
@@ -77,7 +87,7 @@ export function InvestApplying({ amount, startedAt, done }: { amount: number; st
           </h2>
           <p className="text-sm leading-relaxed text-iv-muted">
             <span className="iv-num font-semibold text-iv-ink">{fmtUsd(amount)}</span>
-            {done ? " já está rendendo 10% ao mês." : " · não feche esta tela"}
+            {done ? ` já está rendendo ${fmtRate(rate)} ao mês.` : " · não feche esta tela"}
           </p>
         </div>
 

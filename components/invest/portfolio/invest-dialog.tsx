@@ -2,7 +2,7 @@
 
 import { SquareArrowOutUpRight, Wallet, X } from "lucide-react"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
-import { fmtUsd } from "@/lib/invest-schedule"
+import { fmtUsd, type InvestRates } from "@/lib/invest-schedule"
 import { investFontVars } from "@/lib/invest-fonts"
 import { cn } from "@/lib/utils"
 import { InvestSimulator } from "../invest-simulator"
@@ -14,11 +14,13 @@ export default function InvestDialog({
   onOpenChange,
   authenticated,
   balance,
+  rates,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   authenticated: boolean
   balance?: number
+  rates?: InvestRates
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -75,7 +77,12 @@ export default function InvestDialog({
           </div>
         )}
 
-        <InvestSimulator authenticated={authenticated} balance={balance} onInvested={() => onOpenChange(false)} />
+        <InvestSimulator
+          authenticated={authenticated}
+          balance={balance}
+          rates={rates}
+          onInvested={() => onOpenChange(false)}
+        />
       </DialogContent>
     </Dialog>
   )
