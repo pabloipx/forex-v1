@@ -10,6 +10,21 @@ export const rateFor = (rates: InvestRates | undefined, asset: string) => {
   return typeof r === "number" && Number.isFinite(r) && r > 0 ? r : INVEST_MONTHLY_RATE
 }
 
+export const INVEST_TERM_MIN = 1
+export const INVEST_TERM_MAX = 24
+export const INVEST_TERM_OPTIONS = [1, 2, 3, 4, 5, 6, 9, 12, 18, 24] as const
+
+/** Term in months per asset id, as configured by the admin. */
+export type InvestTerms = Record<string, number>
+
+export const termFor = (terms: InvestTerms | undefined, asset: string) => {
+  const t = terms?.[asset]
+  return typeof t === "number" && Number.isInteger(t) && t >= INVEST_TERM_MIN && t <= INVEST_TERM_MAX ? t : INVEST_MONTHS
+}
+
+export const fmtTerm = (months: number) =>
+  months === 12 ? "1 ano" : months === 24 ? "2 anos" : `${months} ${months === 1 ? "mês" : "meses"}`
+
 export const fmtRate = (rate: number) =>
   `${(rate * 100).toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}%`
 

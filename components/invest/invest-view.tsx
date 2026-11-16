@@ -7,7 +7,7 @@ import useSWR from "swr"
 import { Toaster } from "sonner"
 import { Info } from "lucide-react"
 import { useFuturesState } from "@/hooks/use-futures"
-import type { InvestmentView, InvestRates } from "@/lib/invest-schedule"
+import type { InvestmentView, InvestRates, InvestTerms } from "@/lib/invest-schedule"
 import { buildPortfolio } from "@/lib/invest-portfolio"
 import { PortfolioNav, type PortfolioTab } from "./portfolio/portfolio-nav"
 import { PatrimonyCard } from "./portfolio/patrimony-card"
@@ -46,9 +46,15 @@ const fetcher = async (url: string) => {
 
 const EMPTY: InvestmentView[] = []
 const NO_RATES: InvestRates = {}
+const NO_TERMS: InvestTerms = {}
 
 export function InvestView() {
-  const { data, isLoading } = useSWR<{ authenticated: boolean; investments: InvestmentView[]; rates?: InvestRates }>("/api/invest", fetcher, {
+  const { data, isLoading } = useSWR<{
+    authenticated: boolean
+    investments: InvestmentView[]
+    rates?: InvestRates
+    terms?: InvestTerms
+  }>("/api/invest", fetcher, {
     refreshInterval: 30000,
     keepPreviousData: true,
   })
@@ -56,6 +62,7 @@ export function InvestView() {
   const authenticated = Boolean(data?.authenticated)
   const investments = data?.investments ?? EMPTY
   const rates = data?.rates ?? NO_RATES
+  const terms = data?.terms ?? NO_TERMS
 
   const [tab, setTab] = useState<PortfolioTab>("visao-geral")
   const [hidden, setHidden] = useState(false)
@@ -69,7 +76,10 @@ export function InvestView() {
   }, [])
 
   // `now` only ticks once a minute; read the clock again so a just-made aporte counts as realized.
-  const portfolio = useMemo(() => buildPortfolio(investments, Math.max(now, Date.now()), rates), [investments, now, rates])
+  const portfolio = useMemo(
+    () => buildPortfolio(investments, Math.max(now, Date.now()), rates, terms),
+    [investments, now, rates, terms],
+  )
 
   const openInvest = useCallback(() => {
     setDialogMounted(true)
@@ -152,6 +162,7 @@ export function InvestView() {
           authenticated={authenticated}
           balance={state?.authenticated ? (state.balance ?? 0) : undefined}
           rates={rates}
+          terms={terms}
         />
       )}
     </div>

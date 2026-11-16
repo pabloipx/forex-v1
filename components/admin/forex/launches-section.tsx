@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, type FormEvent } from "react"
+import { useRef, useState, type FormEvent } from "react"
 import { toast } from "sonner"
-import { Plus } from "lucide-react"
+import { ImageUp, Loader2, Plus, X } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
 import { Badge, ErrorNote, Panel, SmallButton, inputCls } from "./ui"
@@ -108,6 +108,89 @@ function Field({ label, children, hint }: { label: string; children: React.React
   )
 }
 
+const LOGO_MAX_BYTES = 2 * 1024 * 1024
+
+function LogoField({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+  const [showLink, setShowLink] = useState(false)
+
+  const upload = async (file: File | undefined) => {
+    if (!file) return
+    if (file.size > LOGO_MAX_BYTES) {
+      toast.error("Imagem muito grande. Máximo 2 MB.")
+      return
+    }
+    setUploading(true)
+    try {
+      const body = new FormData()
+      body.append("file", file)
+      const res = await fetch("/api/admin/launches/logo", { method: "POST", body })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok || !json.url) throw new Error(json.error ?? "Não foi possível enviar a imagem")
+      onChange(json.url)
+      toast.success("Logo enviada. Salve para aplicar.")
+    } catch (err) {
+      toast.error((err as Error).message)
+    } finally {
+      setUploading(false)
+      if (inputRef.current) inputRef.current.value = ""
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-1.5 text-xs text-term-muted">
+      <span>Logo</span>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+          className={cn(inputCls, "flex min-w-0 flex-1 items-center justify-center gap-2 whitespace-nowrap px-2 font-sans text-sm font-medium text-term-text hover:border-primary disabled:opacity-60 md:text-sm")}
+        >
+          {uploading ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <ImageUp className="size-4" aria-hidden="true" />}
+          {uploading ? "Enviando..." : value ? "Trocar imagem" : "Enviar imagem"}
+        </button>
+        {value && (
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            aria-label="Remover logo"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-term-line text-term-muted transition-colors hover:text-short md:h-9 md:w-9"
+          >
+            <X className="size-4" aria-hidden="true" />
+          </button>
+        )}
+      </div>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/webp,image/gif"
+        className="sr-only"
+        tabIndex={-1}
+        aria-label="Arquivo da logo"
+        onChange={(e) => upload(e.target.files?.[0])}
+      />
+      {showLink ? (
+        <input
+          className={inputCls}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="https://... ou /images/..."
+          aria-label="Link da logo"
+        />
+      ) : (
+        <span className="text-[11px] text-term-muted/80">
+          PNG, JPG, WEBP ou GIF até 2 MB. Prefira imagem quadrada.{" "}
+          <button type="button" onClick={() => setShowLink(true)} className="text-primary underline-offset-2 hover:underline">
+            Usar link
+          </button>
+        </span>
+      )}
+    </div>
+  )
+}
+
 function LaunchForm({ initial, onDone }: { initial: Draft; onDone: () => void }) {
   const [d, setD] = useState<Draft>(initial)
   const [busy, setBusy] = useState(false)
@@ -208,9 +291,7 @@ function LaunchForm({ initial, onDone }: { initial: Draft; onDone: () => void })
       </Field>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="Ícone" hint="Caminho (/images/...) ou link https">
-          <input className={inputCls} value={d.icon_url} onChange={(e) => set("icon_url", e.target.value)} />
-        </Field>
+        <LogoField value={d.icon_url} onChange={(url) => set("icon_url", url)} />
         <Field label="Site oficial" hint="Opcional">
           <input className={inputCls} value={d.website_url} onChange={(e) => set("website_url", e.target.value)} placeholder="https://" />
         </Field>
