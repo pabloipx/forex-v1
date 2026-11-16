@@ -10,12 +10,14 @@ import { cn } from "@/lib/utils"
 import {
   fmtDate,
   fmtRate,
+  fmtTerm,
   fmtUsd,
   INVEST_MIN,
-  INVEST_MONTHS,
   payoutAt,
   rateFor,
+  termFor,
   type InvestRates,
+  type InvestTerms,
 } from "@/lib/invest-schedule"
 import { useCountUp } from "./use-count-up"
 import {
@@ -36,10 +38,12 @@ function AssetTiles({
   value,
   onChange,
   rates,
+  terms,
 }: {
   value: InvestAssetId
   onChange: (id: InvestAssetId) => void
   rates?: InvestRates
+  terms?: InvestTerms
 }) {
   const [group, setGroup] = useState<InvestAssetGroup>(getInvestAsset(value).group)
   const assets = INVEST_ASSETS.filter((a) => a.group === group)
@@ -95,7 +99,10 @@ function AssetTiles({
               <span className="flex min-w-0 flex-1 flex-col">
                 <span className="iv-num text-sm font-bold text-iv-ink">{a.badge ?? a.ticker}</span>
                 <span className="line-clamp-2 text-xs leading-snug text-iv-muted">{a.name}</span>
-                <span className="iv-num mt-0.5 text-xs font-semibold text-iv-up">{fmtRate(rateFor(rates, a.id))} a.m.</span>
+                <span className="mt-0.5 text-xs">
+                  <span className="iv-num font-semibold text-iv-up">{fmtRate(rateFor(rates, a.id))} a.m.</span>
+                  <span className="whitespace-nowrap text-iv-muted"> · {fmtTerm(termFor(terms, a.id))}</span>
+                </span>
               </span>
               {selected && (
                 <span className="iv-pop absolute right-2 top-2 flex size-5 items-center justify-center rounded-full bg-iv-sky text-iv-bg">
@@ -110,29 +117,37 @@ function AssetTiles({
   )
 }
 
-function ProjectionBars({ amount, rate }: { amount: number; rate: number }) {
+const MAX_BARS = 6
+
+/** Months to draw as bars: every month for short terms, otherwise evenly spaced points ending at the term. */
+const barMonths = (months: number) =>
+  months <= MAX_BARS
+    ? Array.from({ length: months }, (_, i) => i + 1)
+    : [...new Set(Array.from({ length: MAX_BARS }, (_, i) => Math.round(((i + 1) * months) / MAX_BARS)))]
+
+function ProjectionBars({ amount, rate, months }: { amount: number; rate: number; months: number }) {
   const [shown, setShown] = useState(false)
   useEffect(() => {
     const id = requestAnimationFrame(() => setShown(true))
     return () => cancelAnimationFrame(id)
   }, [])
   const monthly = amount * rate
-  const final = amount + monthly * INVEST_MONTHS
+  const final = amount + monthly * months
   return (
     <div className="flex h-24 items-end gap-2" aria-hidden>
-      {Array.from({ length: INVEST_MONTHS + 1 }, (_, i) => {
-        const value = amount + monthly * i
+      {[0, ...barMonths(months)].map((m, i) => {
+        const value = amount + monthly * m
         const pct = 45 + (55 * (value - amount)) / Math.max(final - amount, 1)
         return (
-          <div key={i} className="flex h-full flex-1 flex-col items-center justify-end gap-1.5">
+          <div key={m} className="flex h-full flex-1 flex-col items-center justify-end gap-1.5">
             <div
               className={cn(
                 "w-full rounded-t-md transition-[height] duration-700 ease-out",
-                i === 0 ? "bg-iv-line" : "bg-gradient-to-t from-[#0e8f5c] to-[#16d98a]",
+                m === 0 ? "bg-iv-line" : "bg-gradient-to-t from-[#0e8f5c] to-[#16d98a]",
               )}
               style={{ height: shown ? `${pct}%` : "6%", transitionDelay: `${i * 90}ms` }}
             />
-            <span className="text-[10px] text-iv-muted">{i === 0 ? "Hoje" : `Mês ${i}`}</span>
+            <span className="whitespace-nowrap text-[10px] text-iv-muted">{m === 0 ? "Hoje" : `Mês ${m}`}</span>
           </div>
         )
       })}
@@ -144,11 +159,13 @@ export function InvestSimulator({
   authenticated,
   balance,
   rates,
+  terms,
   onInvested,
 }: {
   authenticated: boolean
   balance?: number
   rates?: InvestRates
+  terms?: InvestTerms
   onInvested?: () => void
 }) {
   const [raw, setRaw] = useState(formatInput(1000))
@@ -157,11 +174,12 @@ export function InvestSimulator({
   const [applying, setApplying] = useState<{ amount: number; rate: number; startedAt: number; done: boolean } | null>(null)
   const [today] = useState(() => new Date())
   const rate = rateFor(rates, asset)
+  const months = termFor(terms, asset)
   const amount = parseAmount(raw)
   const valid = Number.isFinite(amount) && amount >= INVEST_MIN
   const safe = valid ? amount : 0
   const monthly = useCountUp(safe * rate, 500)
-  const total = useCountUp(safe * (1 + rate * INVEST_MONTHS), 500)
+  const total = useCountUp(safe * (1 + rate * months), 500)
   const insufficient = authenticated && balance !== undefined && valid && amount > balance
   const selected = getInvestAsset(asset)
 
@@ -199,7 +217,7 @@ export function InvestSimulator({
   return (
     <>
       <div className="grid min-h-0 flex-1 gap-6 overflow-y-auto overscroll-contain px-5 pb-5 sm:px-6 md:grid-cols-2">
-        <AssetTiles value={asset} onChange={setAsset} rates={rates} />
+        <AssetTiles value={asset} onChange={setAsset} rates={rates} terms={terms} />
 
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-3">
@@ -273,7 +291,7 @@ export function InvestSimulator({
                 {fmtRate(rate)} a.m.
               </span>
             </div>
-            <ProjectionBars amount={valid ? amount : INVEST_MIN} rate={rate} />
+            <ProjectionBars amount={valid ? amount : INVEST_MIN} rate={rate} months={months} />
             <dl className="flex flex-col divide-y divide-iv-line/60 text-sm">
               <div className="flex items-center justify-between gap-3 py-2">
                 <dt className="text-iv-muted">Ativo</dt>
@@ -288,10 +306,14 @@ export function InvestSimulator({
               </div>
               <div className="flex items-center justify-between gap-3 py-2">
                 <dt className="text-iv-muted">Resgate do valor</dt>
-                <dd className="iv-num font-medium text-iv-ink">{fmtDate(payoutAt(today, INVEST_MONTHS).toISOString())}</dd>
+                <dd className="iv-num font-medium text-iv-ink">{fmtDate(payoutAt(today, months).toISOString())}</dd>
+              </div>
+              <div className="flex items-center justify-between gap-3 py-2">
+                <dt className="text-iv-muted">Prazo</dt>
+                <dd className="font-medium text-iv-ink">{fmtTerm(months)}</dd>
               </div>
               <div className="flex items-center justify-between gap-3 pt-2">
-                <dt className="font-semibold text-iv-ink">Total em {INVEST_MONTHS} meses</dt>
+                <dt className="font-semibold text-iv-ink">Total em {fmtTerm(months)}</dt>
                 <dd className="iv-num text-base font-bold text-iv-ink">{fmtUsd(total)}</dd>
               </div>
             </dl>

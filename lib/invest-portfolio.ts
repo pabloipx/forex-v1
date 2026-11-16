@@ -1,5 +1,12 @@
 import { getInvestAsset, type InvestAsset } from "@/lib/invest-assets"
-import { INVEST_MONTHS, payoutAt, rateFor, type InvestmentView, type InvestRates } from "@/lib/invest-schedule"
+import {
+  payoutAt,
+  rateFor,
+  termFor,
+  type InvestmentView,
+  type InvestRates,
+  type InvestTerms,
+} from "@/lib/invest-schedule"
 
 export const SLICE_COLORS = ["#1e8bff", "#16d98a", "#f5b51b", "#8b5cf6", "#22d3ee", "#fb7a3c", "#f472b6", "#2dd4bf", "#f87171", "#a3e635"]
 
@@ -82,9 +89,14 @@ function cycle(active: InvestmentView[], now: number) {
   return { nextPayoutAt: next, cycleProgress: Math.min(1, Math.max(0, (now - prevDue) / (end - prevDue))) }
 }
 
-export function buildPortfolio(investments: InvestmentView[], now = Date.now(), rates?: InvestRates): Portfolio {
+export function buildPortfolio(
+  investments: InvestmentView[],
+  now = Date.now(),
+  rates?: InvestRates,
+  terms?: InvestTerms,
+): Portfolio {
   const sample = investments.length === 0
-  const list = sample ? sampleInvestments(now, rates) : investments
+  const list = sample ? sampleInvestments(now, rates, terms) : investments
   const active = list.filter((i) => i.status === "active")
   const invested = active.reduce((s, i) => s + i.amount, 0)
   const available = list.reduce((s, i) => s + i.available, 0)
@@ -128,10 +140,11 @@ const SAMPLE = [
   { asset: "SGOV", amount: 1500 },
 ]
 
-function sampleInvestments(now: number, rates?: InvestRates): InvestmentView[] {
+function sampleInvestments(now: number, rates?: InvestRates, terms?: InvestTerms): InvestmentView[] {
   const start = new Date(now - 40 * DAY)
   return SAMPLE.map((s, i) => {
-    const payoutsDone = [1, 2, 3].filter((k) => payoutAt(start, k).getTime() <= now).length
+    const months = termFor(terms, s.asset)
+    const payoutsDone = Array.from({ length: months }, (_, k) => k + 1).filter((k) => payoutAt(start, k).getTime() <= now).length
     const rate = rateFor(rates, s.asset)
     return {
       id: `sample-${i}`,
@@ -139,11 +152,11 @@ function sampleInvestments(now: number, rates?: InvestRates): InvestmentView[] {
       amount: s.amount,
       monthlyRate: rate,
       monthlyYield: Math.round(s.amount * rate * 100) / 100,
-      months: INVEST_MONTHS,
+      months,
       startedAt: start.toISOString(),
       payoutsDone,
-      nextPayoutAt: payoutsDone < INVEST_MONTHS ? payoutAt(start, payoutsDone + 1).toISOString() : null,
-      unlockAt: payoutAt(start, INVEST_MONTHS).toISOString(),
+      nextPayoutAt: payoutsDone < months ? payoutAt(start, payoutsDone + 1).toISOString() : null,
+      unlockAt: payoutAt(start, months).toISOString(),
       yieldPaid: 0,
       available: 0,
       status: "active" as const,
