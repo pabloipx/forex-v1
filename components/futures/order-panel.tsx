@@ -504,7 +504,7 @@ export function OrderPanel({
           </button>
         </div>
 
-        <div role="tablist" aria-label="Tipo de ordem" className="flex items-center gap-5">
+        <div role="tablist" aria-label="Tipo de ordem" className="flex min-w-0 items-center gap-5 phone:gap-2.5">
           {(
             [
               ["limit", "Limitada"],
@@ -518,7 +518,7 @@ export function OrderPanel({
               aria-selected={orderType === k}
               onClick={() => setOrderType(k)}
               className={cn(
-                "text-[15px] font-semibold transition-colors",
+                "whitespace-nowrap text-[15px] font-semibold transition-colors phone:text-[13px]",
                 orderType === k ? "text-term-accent" : "text-term-muted hover:text-term-text",
               )}
             >
@@ -530,7 +530,7 @@ export function OrderPanel({
               <button
                 type="button"
                 aria-label="Sobre os tipos de ordem"
-                className="ml-auto text-term-muted hover:text-term-text"
+                className="ml-auto text-term-muted hover:text-term-text phone:hidden"
               >
                 <CircleHelp className="size-4" aria-hidden />
               </button>

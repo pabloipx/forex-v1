@@ -68,8 +68,10 @@
   --color-iv-muted: #8a9bbd;
   --color-iv-up: #22c55e;
   --color-iv-gold: #d8bd84;
-  --font-sans: "Inter", "Inter Fallback", sans-serif;
-  --font-mono: "JetBrains Mono", "Geist Mono", monospace;
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  /* Numbers use Inter with tabular digits (see .font-mono below) instead of a typewriter-style monospace. */
+  --font-mono: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-code: var(--font-jetbrains), ui-monospace, Menlo, monospace;
   --color-background: #0b0f14;
   --color-foreground: #ffffff;
   --color-card: #121826;
@@ -1056,4 +1058,10 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .iv-rise, .iv-bull, .iv-shine::after, .iv-live, .iv-glow, .iv-bar,
   .iv-grow, .iv-draw, .iv-sweep, .iv-float, .iv-fade, .iv-pop, .iv-halo { animation: none; opacity: 1; }
+}
+
+/* Prices and quantities: equal-width digits keep columns aligned without a typewriter look. */
+.font-mono {
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -0.005em;
 }

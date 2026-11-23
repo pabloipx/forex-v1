@@ -1,10 +1,11 @@
 import type React from "react"
 import type { Metadata, Viewport } from "next"
-import { Inter } from "next/font/google"
+import { Inter, JetBrains_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" })
+const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains", display: "swap" })
 
 export const metadata: Metadata = {
   title: "Kryptobit — Forex e Futuros",
@@ -28,7 +29,12 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="pt-BR" className="bg-[#0B0F14]" style={{ height: "100%" }} data-scroll-behavior="smooth">
+    <html
+      lang="pt-BR"
+      className={`${inter.variable} ${jetbrainsMono.variable} bg-[#0B0F14]`}
+      style={{ height: "100%" }}
+      data-scroll-behavior="smooth"
+    >
       <body
         className={`${inter.className} antialiased bg-[#0B0F14]`}
         style={{
