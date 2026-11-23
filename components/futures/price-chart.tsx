@@ -212,7 +212,8 @@ function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag
         background: { type: ColorType.Solid, color: t.bg },
         textColor: t.text,
         fontSize: 11,
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Trebuchet MS', Roboto, Ubuntu, sans-serif",
+        // Canvas text needs the real family name; next/font exposes it on <body>.
+        fontFamily: `${getComputedStyle(document.body).fontFamily}, -apple-system, BlinkMacSystemFont, sans-serif`,
         attributionLogo: false,
       },
       grid: { vertLines: { color: t.grid }, horzLines: { color: t.grid } },

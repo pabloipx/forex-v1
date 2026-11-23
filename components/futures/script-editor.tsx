@@ -214,7 +214,7 @@ export function ScriptEditor({ open, onOpenChange, store, errors }: ScriptEditor
                     spellCheck={false}
                     onChange={(e) => setCode(e.target.value)}
                     onKeyDown={onKeyDown}
-                    className="min-h-0 flex-1 resize-none bg-term-bg p-3 font-mono text-[13px] leading-relaxed text-term-text outline-none"
+                    className="min-h-0 flex-1 resize-none bg-term-bg p-3 font-code text-[13px] leading-relaxed text-term-text outline-none"
                   />
                   <div className="flex min-h-9 items-center gap-2 border-t border-term-line px-3 py-2 font-mono text-[11px]">
                   {isPine ? (

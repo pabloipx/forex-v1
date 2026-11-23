@@ -2,7 +2,9 @@
 
 import { useState, type ReactNode } from "react"
 import { toast } from "sonner"
-import { Pencil } from "lucide-react"
+import { Pencil, Share2 } from "lucide-react"
+import { AssetIcon } from "./asset-icon"
+import { PnlShareDialog, type PnlShareData } from "./pnl-share-dialog"
 import { Slider } from "@/components/ui/slider"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
@@ -263,34 +265,40 @@ function LeverageDialog({ position, onClose, onSaved }: { position: Position; on
   )
 }
 
-function PositionRow({
-  p,
+function CloseDialog({
+  position,
   mark,
-  onChanged,
-  onEditTpSl,
-  onEditLeverage,
+  onClose,
+  onDone,
 }: {
-  p: Position
+  position: Position
   mark: number | null
-  onChanged: () => void
-  onEditTpSl: () => void
-  onEditLeverage: () => void
+  onClose: () => void
+  onDone: () => void
 }) {
-  const market = MARKET_MAP[p.symbol]
-  const [limitPrice, setLimitPrice] = useState("")
+  const market = MARKET_MAP[position.symbol]
+  const [mode, setMode] = useState<"market" | "limit">("market")
+  const [price, setPrice] = useState(mark != null ? mark.toFixed(market?.priceDecimals ?? 2) : "")
   const [busy, setBusy] = useState(false)
   if (!market) return null
-  const d = market.priceDecimals
-  const pnl = mark != null ? unrealizedPnl(market, p.side, p.qty, p.entry_price, mark) : 0
-  const roi = p.margin > 0 ? (pnl / p.margin) * 100 : 0
+  const target = mode === "market" ? mark : parseDecimalInput(price, mark ?? position.entry_price)
+  const est =
+    target != null && Number.isFinite(target) && target > 0
+      ? estimateClosePnl(market, position.side, position.qty, position.entry_price, target, position.leverage)
+      : null
 
-  const close = async (price?: number) => {
+  const submit = async () => {
+    const limit = mode === "limit" ? target : undefined
+    if (mode === "limit" && !(limit != null && Number.isFinite(limit) && limit > 0)) {
+      toast.error("Informe um preço válido")
+      return
+    }
     setBusy(true)
     try {
-      await futuresApi.closePosition(p.id, undefined, price)
-      toast.success(price ? "Ordem de fechamento enviada" : `Posição ${p.symbol} fechada`)
-      setLimitPrice("")
-      onChanged()
+      await futuresApi.closePosition(position.id, undefined, limit ?? undefined)
+      toast.success(limit ? "Ordem de fechamento enviada" : `Posição ${position.symbol} fechada`)
+      onDone()
+      onClose()
     } catch (e) {
       toast.error((e as Error).message)
     } finally {
@@ -299,73 +307,226 @@ function PositionRow({
   }
 
   return (
-    <tr className="border-t border-term-line/60 hover:bg-term-line/30">
-      <Td className="font-sans">
-        <span className="flex flex-col leading-tight">
-          <span className="font-semibold text-term-text">{p.symbol}</span>
-          <span className="text-[11px]">
-            <SideLabel side={p.side} /> <button
-              onClick={onEditLeverage}
-              className="inline-flex items-center gap-1 text-term-muted hover:text-primary"
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="border-term-line bg-term-panel text-term-text sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Fechar posição · {position.symbol}</DialogTitle>
+          <DialogDescription className="text-term-muted">
+            {position.side === "long" ? "Long" : "Short"} {position.leverage}x · {position.qty.toFixed(market.qtyDecimals)}{" "}
+            {market.qtyUnit}
+          </DialogDescription>
+        </DialogHeader>
+        <div role="tablist" aria-label="Tipo de fechamento" className="grid grid-cols-2 gap-1 rounded-md bg-term-bg p-1">
+          {(
+            [
+              ["market", "A mercado"],
+              ["limit", "Limitada"],
+            ] as const
+          ).map(([k, label]) => (
+            <button
+              key={k}
+              type="button"
+              role="tab"
+              aria-selected={mode === k}
+              onClick={() => setMode(k)}
+              className={cn(
+                "h-8 rounded text-sm font-semibold transition-colors",
+                mode === k ? "bg-term-line text-term-text" : "text-term-muted hover:text-term-text",
+              )}
             >
-              {p.margin_mode === "cross" ? "Cruzada" : "Isolada"} {p.leverage}x
-              <Pencil className="size-2.5" aria-hidden="true" />
-              <span className="sr-only">Ajustar alavancagem</span>
+              {label}
             </button>
-          </span>
-        </span>
-      </Td>
-      <Td right className={p.side === "long" ? "text-long" : "text-short"}>
-        {p.qty.toFixed(market.qtyDecimals)} {market.qtyUnit}
-      </Td>
-      <Td right className="text-term-text">{formatUsd(mark != null ? notionalUsd(market, p.qty, mark) : null)}</Td>
-      <Td right className="text-term-text">{formatPrice(p.entry_price, d)}</Td>
-      <Td right className="text-term-text">{formatPrice(mark, d)}</Td>
-      <Td right className="text-primary">{formatPrice(p.liquidation_price, d)}</Td>
-      <Td right className="text-term-text">{formatUsd(p.margin)}</Td>
-      <Td right className={pnl >= 0 ? "text-long" : "text-short"}>
-        {pnl >= 0 ? "+" : ""}
-        {formatUsd(pnl)} ({roi >= 0 ? "+" : ""}
-        {roi.toFixed(2)}%)
-      </Td>
-      <Td right className="text-term-text">
-        <button onClick={onEditTpSl} className="inline-flex items-center gap-1 hover:text-primary">
-          <span>
-            {p.take_profit ? formatPrice(p.take_profit, d) : "--"} / {p.stop_loss ? formatPrice(p.stop_loss, d) : "--"}
-          </span>
-          <Pencil className="size-3" aria-hidden="true" />
-          <span className="sr-only">Editar TP/SL</span>
+          ))}
+        </div>
+        {mode === "limit" && (
+          <label className="flex items-center gap-2 rounded-md bg-term-bg px-3 py-2 focus-within:ring-1 focus-within:ring-primary">
+            <span className="text-xs text-term-muted">Preço ({market.quote})</span>
+            <input
+              inputMode="decimal"
+              value={price}
+              onChange={(e) => setPrice(sanitizeDecimalInput(e.target.value))}
+              className="w-full bg-transparent text-right font-mono text-sm text-term-text outline-none"
+            />
+          </label>
+        )}
+        {est && (
+          <p className="flex justify-between text-xs">
+            <span className="text-term-muted">P&L estimado</span>
+            <span className={cn("font-mono font-semibold", est.pnl >= 0 ? "text-long" : "text-short")}>
+              {est.pnl >= 0 ? "+" : ""}
+              {formatUsd(est.pnl)} USD ({est.roi >= 0 ? "+" : ""}
+              {est.roi.toFixed(2)}%)
+            </span>
+          </p>
+        )}
+        <button
+          onClick={submit}
+          disabled={busy}
+          className="rounded-md bg-primary py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
+        >
+          {busy ? "Enviando..." : mode === "market" ? "Fechar a mercado" : "Enviar ordem limitada"}
         </button>
-      </Td>
-      <Td right className="font-sans">
-        <span className="flex items-center justify-end gap-1.5">
-          <button
-            disabled={busy}
-            onClick={() => close()}
-            className="rounded bg-term-line px-2 py-1 text-xs font-semibold text-term-text hover:bg-term-muted/30 disabled:opacity-60"
-          >
-            Mercado
-          </button>
-          <input
-            aria-label="Preço limite de fechamento"
-            inputMode="decimal"
-            value={limitPrice}
-            onChange={(e) => setLimitPrice(e.target.value.replace(",", ".").replace(/[^0-9.]/g, ""))}
-            placeholder="Preço"
-            className="w-20 rounded bg-term-bg px-2 py-1 text-right font-mono text-xs text-term-text outline-none placeholder:text-term-muted"
-          />
-          <button
-            disabled={busy || !Number(limitPrice)}
-            onClick={() => close(Number(limitPrice))}
-            className="rounded bg-term-line px-2 py-1 text-xs font-semibold text-term-text hover:bg-term-muted/30 disabled:opacity-60"
-          >
-            Limite
-          </button>
-        </span>
-      </Td>
-    </tr>
+      </DialogContent>
+    </Dialog>
   )
 }
+
+function Metric({ label, value, className }: { label: string; value: ReactNode; className?: string }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-0.5">
+      <dt className="truncate text-[11px] text-term-muted">{label}</dt>
+      <dd className={cn("truncate font-mono text-[13px] font-medium text-term-text", className)}>{value}</dd>
+    </div>
+  )
+}
+
+const cardBtn =
+  "flex h-8 min-w-0 items-center justify-center truncate rounded-md border border-term-line px-2 text-xs font-semibold text-term-text transition-colors hover:border-term-muted hover:bg-term-line/60 disabled:opacity-50"
+
+function PositionCard({
+  p,
+  mark,
+  onEditTpSl,
+  onEditLeverage,
+  onClosePosition,
+  onShare,
+}: {
+  p: Position
+  mark: number | null
+  onEditTpSl: () => void
+  onEditLeverage: () => void
+  onClosePosition: () => void
+  onShare: (roi: number) => void
+}) {
+  const market = MARKET_MAP[p.symbol]
+  if (!market) return null
+  const d = market.priceDecimals
+  const pnl = mark != null ? unrealizedPnl(market, p.side, p.qty, p.entry_price, mark) : 0
+  const roi = p.margin > 0 ? (pnl / p.margin) * 100 : 0
+  const up = pnl >= 0
+
+  return (
+    <article className="flex min-w-0 flex-col gap-3 rounded-lg border border-term-line/70 bg-term-bg/40 p-3">
+      <header className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <AssetIcon market={market} size={28} />
+          <div className="flex min-w-0 flex-col">
+            <span className="truncate text-[15px] font-bold leading-tight text-term-text">{p.symbol}</span>
+            <span className="flex items-center gap-1.5 text-xs">
+              <span className={cn("font-semibold", p.side === "long" ? "text-long" : "text-short")}>
+                {p.side === "long" ? "Long" : "Short"}
+              </span>
+              <button
+                type="button"
+                onClick={onEditLeverage}
+                className="inline-flex items-center gap-1 whitespace-nowrap text-term-muted hover:text-term-text"
+              >
+                {p.margin_mode === "cross" ? "Cruzada" : "Isolada"} {p.leverage}x
+                <Pencil className="size-3" aria-hidden="true" />
+                <span className="sr-only">Ajustar alavancagem</span>
+              </button>
+            </span>
+          </div>
+        </div>
+        <div className="flex min-w-0 items-start gap-2">
+          <div className="flex min-w-0 flex-col items-end">
+            <span className="truncate text-[11px] text-term-muted">P&L não realizado (USD)</span>
+            <span className={cn("whitespace-nowrap font-mono text-base font-bold leading-tight sm:text-lg", up ? "text-long" : "text-short")}>
+              {up ? "+" : ""}
+              {formatUsd(pnl)} ({roi >= 0 ? "+" : ""}
+              {roi.toFixed(2)}%)
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => onShare(roi)}
+            aria-label={`Compartilhar P&L de ${p.symbol}`}
+            className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md text-term-muted hover:bg-term-line hover:text-term-text"
+          >
+            <Share2 className="size-4" aria-hidden="true" />
+          </button>
+        </div>
+      </header>
+
+      <dl className="grid grid-cols-4 gap-x-3 gap-y-2">
+        <Metric label={`Quantidade (${market.qtyUnit})`} value={p.qty.toFixed(market.qtyDecimals)} />
+        <Metric label="Preço de entrada" value={formatPrice(p.entry_price, d)} />
+        <Metric label="Preço de marcação" value={formatPrice(mark, d)} />
+        <Metric label="Preço liq. est." value={formatPrice(p.liquidation_price, d)} className="text-term-accent" />
+        <Metric label="Valor (USD)" value={formatUsd(mark != null ? notionalUsd(market, p.qty, mark) : null)} />
+        <Metric label="Margem (USD)" value={formatUsd(p.margin)} />
+        <div className="col-span-2 flex min-w-0 flex-col gap-0.5">
+          <dt className="text-[11px] text-term-muted">TP/SL</dt>
+          <dd className="truncate font-mono text-[13px] font-medium">
+            <span className={p.take_profit ? "text-long" : "text-term-muted"}>
+              {p.take_profit ? formatPrice(p.take_profit, d) : "--"}
+            </span>
+            <span className="text-term-muted"> / </span>
+            <span className={p.stop_loss ? "text-short" : "text-term-muted"}>{p.stop_loss ? formatPrice(p.stop_loss, d) : "--"}</span>
+          </dd>
+        </div>
+      </dl>
+
+      <div className="grid grid-cols-3 gap-2">
+        <button type="button" onClick={onEditTpSl} className={cardBtn}>
+          Definir TP/SL
+        </button>
+        <button type="button" onClick={onEditTpSl} className={cardBtn}>
+          Trailing stop
+        </button>
+        <button type="button" onClick={onClosePosition} className={cardBtn}>
+          Fechar
+        </button>
+      </div>
+    </article>
+  )
+}
+
+function OrderCard({ o, onCancel }: { o: Order; onCancel: (id: string) => void }) {
+  const m = MARKET_MAP[o.symbol]
+  const d = m?.priceDecimals ?? 2
+  const buy = o.side === "buy"
+  return (
+    <article className="flex min-w-0 flex-col gap-3 rounded-lg border border-term-line/70 bg-term-bg/40 p-3">
+      <header className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
+          {m && <AssetIcon market={m} size={28} />}
+          <div className="flex min-w-0 flex-col">
+            <span className="truncate text-[15px] font-bold leading-tight text-term-text">{o.symbol}</span>
+            <span className="flex flex-wrap items-center gap-1.5 text-xs">
+              <span className={cn("font-semibold", buy ? "text-long" : "text-short")}>{buy ? "Compra" : "Venda"}</span>
+              <span className="text-term-muted">{ORDER_TYPE[o.order_type]}</span>
+              {o.reduce_only && <span className="rounded bg-term-line px-1 text-[10px] text-term-text">Reduzir</span>}
+            </span>
+          </div>
+        </div>
+        <span className="whitespace-nowrap font-mono text-[11px] text-term-muted">{time(o.created_at)}</span>
+      </header>
+      <dl className="grid grid-cols-4 gap-x-3 gap-y-2">
+        <Metric label="Preço" value={o.price ? formatPrice(o.price, d) : "Mercado"} />
+        <Metric label={`Qtd (${m?.qtyUnit ?? ""})`} value={o.qty.toFixed(m?.qtyDecimals ?? 3)} />
+        <Metric
+          label="Disparo"
+          value={o.trigger_price ? `${o.trigger_direction === "rise" ? "≥" : "≤"} ${formatPrice(o.trigger_price, d)}` : "--"}
+        />
+        <Metric label="Margem (USD)" value={formatUsd(o.reserved_margin)} />
+        <div className="col-span-4 flex min-w-0 flex-col gap-0.5">
+          <dt className="text-[11px] text-term-muted">TP/SL</dt>
+          <dd className="truncate font-mono text-[13px] font-medium">
+            <span className={o.take_profit ? "text-long" : "text-term-muted"}>{o.take_profit ? formatPrice(o.take_profit, d) : "--"}</span>
+            <span className="text-term-muted"> / </span>
+            <span className={o.stop_loss ? "text-short" : "text-term-muted"}>{o.stop_loss ? formatPrice(o.stop_loss, d) : "--"}</span>
+          </dd>
+        </div>
+      </dl>
+      <button type="button" onClick={() => onCancel(o.id)} className={cardBtn}>
+        Cancelar ordem
+      </button>
+    </article>
+  )
+}
+
+const cardGrid = "grid gap-3 p-3 xl:grid-cols-2 min-[1800px]:grid-cols-3 phone:grid-cols-1 phone:gap-2 phone:p-2"
 
 function OrdersTable({ orders, onCancel }: { orders: Order[]; onCancel?: (id: string) => void }) {
   return (
@@ -434,6 +595,8 @@ export function AccountTables({ state, account, marks, derivs, liveSymbol, liveP
   const [tab, setTab] = useState<Tab>("positions")
   const [editing, setEditing] = useState<Position | null>(null)
   const [editingLev, setEditingLev] = useState<Position | null>(null)
+  const [closing, setClosing] = useState<Position | null>(null)
+  const [sharing, setSharing] = useState<PnlShareData | null>(null)
   const [closingAll, setClosingAll] = useState(false)
   const positions = state?.positions ?? []
   const openOrders = state?.openOrders ?? []
@@ -498,8 +661,10 @@ export function AccountTables({ state, account, marks, derivs, liveSymbol, liveP
               aria-selected={tab === k}
               onClick={() => setTab(k)}
               className={cn(
-                "shrink-0 border-b-2 py-2.5 text-sm font-medium",
-                tab === k ? "border-primary text-term-text" : "border-transparent text-term-muted hover:text-term-text",
+                "shrink-0 whitespace-nowrap border-b-2 py-2.5 text-sm transition-colors",
+                tab === k
+                  ? "border-term-accent font-bold text-term-text"
+                  : "border-transparent font-medium text-term-muted hover:text-term-text",
               )}
             >
               {label}
@@ -529,30 +694,42 @@ export function AccountTables({ state, account, marks, derivs, liveSymbol, liveP
           positions.length === 0 ? (
             <Empty text="Nenhuma posição aberta." />
           ) : (
-            <table className="w-full text-xs">
-              <thead>
-                <tr>
-                  <Th>Contrato</Th>
-                  <Th right>Qtd</Th>
-                  <Th right>Valor (USD)</Th>
-                  <Th right>Preço entrada</Th>
-                  <Th right>Preço marca</Th>
-                  <Th right>Preço liq.</Th>
-                  <Th right>Margem</Th>
-                  <Th right>PnL não realizado (ROI)</Th>
-                  <Th right>TP/SL</Th>
-                  <Th right>Fechar posição</Th>
-                </tr>
-              </thead>
-              <tbody>
-                {positions.map((p) => (
-                  <PositionRow key={p.id} p={p} mark={markOf(p.symbol)} onChanged={onChanged} onEditTpSl={() => setEditing(p)} onEditLeverage={() => setEditingLev(p)} />
-                ))}
-              </tbody>
-            </table>
+            <div className={cardGrid}>
+              {positions.map((p) => (
+                <PositionCard
+                  key={p.id}
+                  p={p}
+                  mark={markOf(p.symbol)}
+                  onEditTpSl={() => setEditing(p)}
+                  onEditLeverage={() => setEditingLev(p)}
+                  onClosePosition={() => setClosing(p)}
+                  onShare={(roi) => {
+                    const m = MARKET_MAP[p.symbol]
+                    setSharing({
+                      symbol: p.symbol,
+                      side: p.side,
+                      leverage: p.leverage,
+                      roi,
+                      entry: p.entry_price,
+                      current: markOf(p.symbol) ?? p.entry_price,
+                      decimals: m?.priceDecimals ?? 2,
+                      demo: account === "demo",
+                    })
+                  }}
+                />
+              ))}
+            </div>
           )
         ) : tab === "orders" ? (
-          openOrders.length === 0 ? <Empty text="Nenhuma ordem em aberto." /> : <OrdersTable orders={openOrders} onCancel={cancel} />
+          openOrders.length === 0 ? (
+            <Empty text="Nenhuma ordem em aberto." />
+          ) : (
+            <div className={cardGrid}>
+              {openOrders.map((o) => (
+                <OrderCard key={o.id} o={o} onCancel={cancel} />
+              ))}
+            </div>
+          )
         ) : tab === "history" ? (
           (state?.orderHistory.length ?? 0) === 0 ? <Empty text="Sem histórico de ordens." /> : <OrdersTable orders={state!.orderHistory} />
         ) : tab === "fills" ? (
@@ -641,6 +818,9 @@ export function AccountTables({ state, account, marks, derivs, liveSymbol, liveP
                 <Th right>PnL fechado</Th>
                 <Th>Motivo</Th>
                 <Th right>Fechada em</Th>
+                <Th right>
+                  <span className="sr-only">Compartilhar</span>
+                </Th>
               </tr>
             </thead>
             <tbody>
@@ -663,6 +843,27 @@ export function AccountTables({ state, account, marks, derivs, liveSymbol, liveP
                       {p.status === "liquidated" ? "Liquidação" : (CLOSE_REASON[p.close_reason ?? ""] ?? "Manual")}
                     </Td>
                     <Td right className="text-term-muted">{p.closed_at ? time(p.closed_at) : "--"}</Td>
+                    <Td right className="font-sans">
+                      <button
+                        type="button"
+                        aria-label={`Compartilhar P&L de ${p.symbol}`}
+                        onClick={() =>
+                          setSharing({
+                            symbol: p.symbol,
+                            side: p.side,
+                            leverage: p.leverage,
+                            roi: p.margin > 0 ? (p.realized_pnl / p.margin) * 100 : 0,
+                            entry: p.entry_price,
+                            current: p.exit_price ?? p.entry_price,
+                            decimals: d,
+                            demo: account === "demo",
+                          })
+                        }
+                        className="inline-flex size-7 items-center justify-center rounded-md text-term-muted hover:bg-term-line hover:text-term-text"
+                      >
+                        <Share2 className="size-4" aria-hidden="true" />
+                      </button>
+                    </Td>
                   </tr>
                 )
               })}
@@ -679,6 +880,10 @@ export function AccountTables({ state, account, marks, derivs, liveSymbol, liveP
         />
       )}
       {editingLev && <LeverageDialog position={editingLev} onClose={() => setEditingLev(null)} onSaved={onChanged} />}
+      {closing && (
+        <CloseDialog position={closing} mark={markOf(closing.symbol)} onClose={() => setClosing(null)} onDone={onChanged} />
+      )}
+      {sharing && <PnlShareDialog data={sharing} onClose={() => setSharing(null)} />}
     </section>
   )
 }
