@@ -145,12 +145,12 @@
   --color-term-muted: var(--term-muted);
   --color-term-field: var(--term-field);
   --color-term-accent: #f7a600;
-  --color-term-up: #089981;
-  --color-term-down: #f23645;
+  --color-term-up: #20b26c;
+  --color-term-down: #ef454a;
   --color-support: #2190ff;
   --color-support-foreground: #ffffff;
-  --color-long: #089981;
-  --color-short: #f23645;
+  --color-long: #20b26c;
+  --color-short: #ef454a;
   --color-pending: #f0b90b;
 }
 
@@ -186,7 +186,14 @@
   color-scheme: light;
 }
 
+/* Escuro do terminal no padrão Bybit: preto neutro, painéis levemente elevados, sem tom azulado */
 .term-dark {
+  --term-bg: #0a0b0d;
+  --term-panel: #111216;
+  --term-line: #25262b;
+  --term-text: #f2f3f5;
+  --term-muted: #81858c;
+  --term-field: #1c1d22;
   color-scheme: dark;
 }
 

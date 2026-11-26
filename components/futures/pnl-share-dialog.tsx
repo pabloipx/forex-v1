@@ -54,7 +54,7 @@ const THEMES: CardTheme[] = [
 ]
 
 const UP = "#20b26c"
-const DOWN = "#f23645"
+const DOWN = "#ef454a"
 const ACCENT = "#f7a600"
 const W = 720
 const H = 940

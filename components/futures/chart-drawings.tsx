@@ -782,7 +782,7 @@ export function DrawingLayer({ state, chart, getSeries, barsRef, step, decimals 
       const w = Math.abs(x2 - x1)
       const h = Math.abs(y2 - y1)
       const measureUp = d.pts[1].p >= d.pts[0].p
-      const fill = d.type === "measure" ? (measureUp ? "#089981" : "#f23645") : stroke
+      const fill = d.type === "measure" ? (measureUp ? "#20b26c" : "#ef454a") : stroke
       els.push(
         <rect
           key="r"

@@ -54,8 +54,8 @@ import { isTraderSignalPro } from "@/lib/futures/script-runtime"
 import { ChartDisplayMenu, DEFAULT_DISPLAY_SETTINGS, type ChartDisplaySettings } from "./chart-display-menu"
 
 const COLORS = {
-  up: "#089981",
-  down: "#f23645",
+  up: "#20b26c",
+  down: "#ef454a",
   accent: "#2190ff",
   liq: "#ff9800",
 }

@@ -8,14 +8,14 @@ export function parseTermTheme(value: string | undefined): TermTheme {
 
 export const CHART_THEMES = {
   dark: {
-    bg: "#131722",
-    grid: "rgba(42, 46, 57, 0.6)",
-    border: "#2a2e39",
-    text: "#b2b5be",
-    crosshair: "#758696",
-    crosshairLabel: "#2a2e39",
-    watermark: "rgba(178, 181, 190, 0.06)",
-    handleFill: "#15181d",
+    bg: "#111216",
+    grid: "rgba(37, 38, 43, 0.7)",
+    border: "#25262b",
+    text: "#a0a3a9",
+    crosshair: "#6b6e75",
+    crosshairLabel: "#2b2c31",
+    watermark: "rgba(242, 243, 245, 0.05)",
+    handleFill: "#111216",
   },
   light: {
     bg: "#ffffff",
