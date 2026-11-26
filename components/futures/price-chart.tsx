@@ -30,7 +30,8 @@ import {
 import { cn } from "@/lib/utils"
 import { formatPrice, type FuturesMarket } from "@/lib/futures/markets"
 import { INTERVALS, INTERVAL_SECONDS, type Candle, type ChartInterval } from "@/lib/futures/chart-intervals"
-import type { Order, Position } from "@/lib/futures/types"
+import type { Order, Position, AccountMode } from "@/lib/futures/types"
+import type { AutoTradeSettings, AutoTradeSignal } from "@/lib/futures/auto-trading"
 import { CHART_THEMES, type ChartTheme, type TermTheme } from "@/lib/futures/term-theme"
 
 function chartLayoutOptions(t: ChartTheme) {
@@ -49,6 +50,7 @@ import { DrawingLayer, DrawingToolbar, useDrawingState } from "./chart-drawings"
 import { useChartScripts } from "@/hooks/use-chart-scripts"
 import { ScriptEditor } from "./script-editor"
 import { useScriptOverlay } from "./use-script-overlay"
+import { isTraderSignalPro } from "@/lib/futures/script-runtime"
 import { ChartDisplayMenu, DEFAULT_DISPLAY_SETTINGS, type ChartDisplaySettings } from "./chart-display-menu"
 
 const COLORS = {
@@ -81,6 +83,15 @@ interface PriceChartProps {
   onLineDrag?: (positionId: string, kind: "tp" | "sl", price: number) => void
   toolbarExtra?: React.ReactNode
   toolbarEnd?: React.ReactNode
+  account: AccountMode
+  availableBalance: number
+  authenticated: boolean
+  autoBotActive: boolean
+  autoBotLabel: string
+  onStartAuto: (settings: AutoTradeSettings) => Promise<void>
+  onAutoSignal: (signal: AutoTradeSignal) => void
+  onStopAuto: () => void
+  onIntervalChange: (interval: ChartInterval) => void
 }
 
 interface LineSpec {
@@ -100,7 +111,25 @@ const fetcher = async (url: string) => {
   return json.candles as Candle[]
 }
 
-function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag, toolbarExtra, toolbarEnd }: PriceChartProps) {
+function PriceChartImpl({
+  market,
+  theme,
+  last,
+  positions,
+  openOrders,
+  onLineDrag,
+  toolbarExtra,
+  toolbarEnd,
+  account,
+  availableBalance,
+  authenticated,
+  autoBotActive,
+  autoBotLabel,
+  onStartAuto,
+  onAutoSignal,
+  onStopAuto,
+  onIntervalChange,
+}: PriceChartProps) {
   const palette = CHART_THEMES[theme]
   const paletteRef = useRef(palette)
   paletteRef.current = palette
@@ -163,8 +192,16 @@ function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag
     scripts: scriptStore.scripts,
     dataVersion: candles,
     decimals: market.priceDecimals,
+    timeframe: interval,
+    onSignal: onAutoSignal,
   })
   const activeScripts = scriptStore.scripts.filter((s) => s.enabled)
+
+  useEffect(() => {
+    if (autoBotActive && !activeScripts.some((s) => isTraderSignalPro(s.code))) {
+      onStopAuto()
+    }
+  }, [autoBotActive, activeScripts, onStopAuto])
 
   const renderLegend = (c: Candle | null) => {
     const el = legendRef.current
@@ -555,7 +592,17 @@ function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag
   return (
     <section aria-label="Gráfico" className="flex h-full flex-col bg-term-panel">
       <div className="flex h-10 shrink-0 items-center justify-between gap-3 border-b border-term-line px-3">
-        <div className="min-w-0 overflow-x-auto [scrollbar-width:none]">{toolbarExtra}</div>
+        <div className="flex min-w-0 items-center gap-2 overflow-x-auto [scrollbar-width:none]">
+          {toolbarExtra}
+          {autoBotActive && (
+            <span className="flex shrink-0 items-center gap-2 rounded bg-term-up/10 px-2 py-1 text-[10px] font-semibold text-term-up">
+              Robô {account === "demo" ? "Demo" : "Real"} · {autoBotLabel}
+              <button type="button" onClick={onStopAuto} className="underline underline-offset-2 hover:text-term-text">
+                Parar
+              </button>
+            </span>
+          )}
+        </div>
         <div className="flex shrink-0 items-center gap-1">
           <button type="button" title="Ajustar gráfico" aria-label="Ajustar gráfico" onClick={() => chartRef.current?.timeScale().fitContent()} className={iconBtn(false)}>
             <Square className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
@@ -568,7 +615,16 @@ function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag
         <div className="flex min-w-0 items-center gap-1 overflow-x-auto [scrollbar-width:none]">
           <div role="radiogroup" aria-label="Intervalo" className="flex shrink-0 items-center gap-0.5">
             {INTERVALS.map((i) => (
-              <button key={i} role="radio" aria-checked={interval === i} onClick={() => setIntervalValue(i)} className={textBtn(interval === i)}>
+              <button
+                key={i}
+                role="radio"
+                aria-checked={interval === i}
+                onClick={() => {
+                  setIntervalValue(i)
+                  onIntervalChange(i)
+                }}
+                className={textBtn(interval === i)}
+              >
                 {INTERVAL_LABEL[i]}
               </button>
             ))}
@@ -612,7 +668,19 @@ function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag
           </button>
         </div>
       </div>
-      <ScriptEditor open={editorOpen} onOpenChange={setEditorOpen} store={scriptStore} errors={scriptErrors} />
+      <ScriptEditor
+        open={editorOpen}
+        onOpenChange={setEditorOpen}
+        store={scriptStore}
+        errors={scriptErrors}
+        account={account}
+        symbol={market.symbol}
+        availableBalance={availableBalance}
+        authenticated={authenticated}
+        interval={interval}
+        onSelectOneMinute={() => setIntervalValue("1m")}
+        onStartAuto={onStartAuto}
+      />
 
       <div className="flex min-h-0 flex-1">
       <DrawingToolbar
