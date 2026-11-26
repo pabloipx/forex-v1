@@ -53,6 +53,8 @@ export interface Order {
   filled_qty: number
   fee: number
   reject_reason: string | null
+  source?: "manual" | "robo" | "sistema"
+  exec_type?: string | null
   created_at: string
   updated_at: string
 }
@@ -112,4 +114,6 @@ export interface PlaceOrderInput {
   timeInForce?: TimeInForce
   takeProfit?: number | null
   stopLoss?: number | null
+  /** Quem enviou a ordem; "sistema" é reservado ao servidor (TP/SL, liquidação). */
+  source?: "manual" | "robo"
 }

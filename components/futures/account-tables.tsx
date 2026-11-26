@@ -673,9 +673,17 @@ function OrdersTable({ orders, onCancel }: { orders: Order[]; onCancel?: (id: st
             <tr key={o.id} className="border-t border-term-line/60 text-term-text hover:bg-term-line/30">
               <Td className="font-sans font-semibold">
                 {o.symbol}
+                {o.source === "robo" && (
+                  <span className="ml-1.5 rounded bg-term-accent/15 px-1 py-px text-[10px] font-semibold text-term-accent">Robô</span>
+                )}
                 {o.reduce_only && <span className="ml-1.5 text-[10px] font-normal text-primary">Reduzir</span>}
               </Td>
-              <Td className="font-sans">{ORDER_TYPE[o.order_type]}</Td>
+              <Td className="font-sans">
+                {ORDER_TYPE[o.order_type]}
+                {o.exec_type && o.exec_type !== "trade" && (
+                  <span className="ml-1 text-term-muted">· {CLOSE_REASON[o.exec_type] ?? (o.exec_type === "close" ? "Fechamento" : o.exec_type)}</span>
+                )}
+              </Td>
               <Td className="font-sans">
                 <SideLabel side={o.side} />
               </Td>
