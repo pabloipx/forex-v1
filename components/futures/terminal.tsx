@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation"
 import { Toaster, toast } from "sonner"
 import { MARKET_MAP, quoteToUsd, roundToStep, unrealizedPnl } from "@/lib/futures/markets"
 import type { AccountMode, FuturesState } from "@/lib/futures/types"
-import type { AutoTradeSettings, AutoTradeSignal } from "@/lib/futures/auto-trading"
+import type { AutoTradeSettings, AutoTradeSignal, AutoTradeStatus } from "@/lib/futures/auto-trading"
 import { futuresApi, useDerivatives, useFuturesState, useTickers, useTradingPrefs } from "@/hooks/use-futures"
 import { useMarketFeed } from "@/hooks/use-market-feed"
 import { useTradeNotifications } from "@/hooks/use-trade-notifications"
@@ -186,9 +186,9 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
   const last = feed.last ?? ticker?.price ?? null
   const equity = accountEquity(state, tickers, derivs)
   const dailyPnlPercent = autoBot && autoBot.baseEquity > 0 ? ((equity - autoBot.baseEquity) / autoBot.baseEquity) * 100 : 0
-  const autoBotLabel = autoBot
-    ? `${dailyPnlPercent >= 0 ? "+" : ""}${dailyPnlPercent.toFixed(2)}% / meta ${autoBot.settings.dailyTargetPercent}% · ${autoBot.tradesToday}/${autoBot.settings.maxTradesPerDay}`
-    : ""
+  const autoBotStatus: AutoTradeStatus | null = autoBot
+    ? { settings: autoBot.settings, tradesToday: autoBot.tradesToday, dailyPnlPercent }
+    : null
 
   const startAutoBot = async (settings: AutoTradeSettings) => {
     if (!state?.authenticated) throw new Error("Entre na sua conta antes de ativar o bot")
@@ -197,13 +197,16 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
       throw new Error("A margem e a reserva de taxas excedem o saldo disponível")
     }
     if (equity <= 0) throw new Error("Não foi possível calcular o patrimônio da conta")
-    const session: AutoBotSession = {
-      settings,
-      startedAt: Date.now(),
-      dayKey: currentDayKey(),
-      baseEquity: equity,
-      tradesToday: 0,
-    }
+    const current = autoBotRef.current
+    const session: AutoBotSession = current && current.settings.account === settings.account && current.settings.symbol === settings.symbol
+      ? { ...current, settings }
+      : {
+          settings,
+          startedAt: Date.now(),
+          dayKey: currentDayKey(),
+          baseEquity: equity,
+          tradesToday: 0,
+        }
     processedSignalRef.current = ""
     autoBotRef.current = session
     setAutoBot(session)
@@ -217,6 +220,7 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
     if (eventKey === processedSignalRef.current) return
     processedSignalRef.current = eventKey
     if (signal.time * 1000 <= session.startedAt) return
+    if (signal.timeframe !== session.settings.timeframe) return
     if (session.settings.account !== account || session.settings.symbol !== symbol) {
       stopAutoBot("Automação parada porque a conta ou o ativo mudou")
       return
@@ -337,7 +341,8 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
   }
 
   const handleIntervalChange = (next: string) => {
-    if (next !== "1m" && autoBotRef.current) stopAutoBot("Automação parada: este script opera somente no gráfico de 1 minuto")
+    const active = autoBotRef.current
+    if (active && next !== active.settings.timeframe) stopAutoBot("Automação parada porque o período do gráfico mudou")
   }
 
   const changeChartView = (next: ChartView) => {
@@ -388,7 +393,7 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
                     availableBalance={state?.balance ?? 0}
                     authenticated={!!state?.authenticated}
                     autoBotActive={!!autoBot}
-                    autoBotLabel={autoBotLabel}
+                    autoBotStatus={autoBotStatus}
                     onStartAuto={startAutoBot}
                     onAutoSignal={handleAutoSignal}
                     onStopAuto={() => stopAutoBot("Automação parada pelo usuário")}

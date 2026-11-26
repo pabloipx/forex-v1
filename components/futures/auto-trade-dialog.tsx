@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, type FormEvent } from "react"
+import { useEffect, useState, type FormEvent } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { MARKET_MAP, type FuturesMarket } from "@/lib/futures/markets"
 import type { AutoTradeSettings } from "@/lib/futures/auto-trading"
+import { INTERVALS, type ChartInterval } from "@/lib/futures/chart-intervals"
 import type { AccountMode } from "@/lib/futures/types"
 import { cn } from "@/lib/utils"
 
@@ -14,8 +15,9 @@ interface Props {
   symbol: string
   availableBalance: number
   authenticated: boolean
-  interval: string
-  onSelectOneMinute: () => void
+  interval: ChartInterval
+  initialSettings?: AutoTradeSettings
+  onSelectInterval: (interval: ChartInterval) => void
   onStart: (settings: AutoTradeSettings) => Promise<void>
 }
 
@@ -32,7 +34,8 @@ export function AutoTradeDialog({
   availableBalance,
   authenticated,
   interval,
-  onSelectOneMinute,
+  initialSettings,
+  onSelectInterval,
   onStart,
 }: Props) {
   const [marginUsd, setMarginUsd] = useState("25")
@@ -45,6 +48,26 @@ export function AutoTradeDialog({
   const [realConfirmed, setRealConfirmed] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!open || !initialSettings) return
+    setMarginUsd(String(initialSettings.marginUsd))
+    setLeverage(String(initialSettings.leverage))
+    setStopLossPercent(String(initialSettings.stopLossPercent))
+    setTakeProfitPercent(String(initialSettings.takeProfitPercent))
+    setDailyTargetPercent(String(initialSettings.dailyTargetPercent))
+    setDailyLossPercent(String(initialSettings.dailyLossPercent))
+    setMaxTradesPerDay(String(initialSettings.maxTradesPerDay))
+  }, [
+    open,
+    initialSettings?.marginUsd,
+    initialSettings?.leverage,
+    initialSettings?.stopLossPercent,
+    initialSettings?.takeProfitPercent,
+    initialSettings?.dailyTargetPercent,
+    initialSettings?.dailyLossPercent,
+    initialSettings?.maxTradesPerDay,
+  ])
 
   const market = MARKET_MAP[symbol] as FuturesMarket | undefined
   const maxLeverage = Math.min(10, market?.maxLeverage ?? 10)
@@ -68,13 +91,14 @@ export function AutoTradeDialog({
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!valid || !market || interval !== "1m" || !authenticated) return
+    if (!valid || !market || !authenticated) return
     setSaving(true)
     setError(null)
     try {
       await onStart({
         account,
         symbol: market.symbol,
+        timeframe: interval,
         marginUsd: margin,
         leverage: lev,
         stopLossPercent: sl,
@@ -97,7 +121,7 @@ export function AutoTradeDialog({
         <DialogHeader>
           <DialogTitle>Automação · TRADER SIGNAL PRO</DialogTitle>
           <DialogDescription className="text-term-muted">
-            Configure a execução automática dos sinais CALL (compra) e PUT (venda). O bot só lê este script e o gráfico atual.
+            Configure a execução automática dos sinais CALL (compra) e PUT (venda). A conversão ignora o bloqueio fixo M1 do Pine e aplica as mesmas regras ao período escolhido.
           </DialogDescription>
         </DialogHeader>
 
@@ -108,14 +132,17 @@ export function AutoTradeDialog({
           </span>
         </div>
 
-        {interval !== "1m" && (
-          <div className="flex flex-col gap-2 rounded-md border border-term-accent/40 bg-term-accent/10 p-3 text-xs text-term-text">
-            <p>Este indicador gera sinais somente no intervalo de 1 minuto.</p>
-            <button type="button" onClick={onSelectOneMinute} className="self-start rounded bg-term-accent px-3 py-1.5 font-semibold text-term-bg">
-              Mudar gráfico para 1m
-            </button>
-          </div>
-        )}
+        <label className={fieldClass}>
+          Período dos sinais
+          <select
+            className={inputClass}
+            value={interval}
+            onChange={(e) => onSelectInterval(e.target.value as ChartInterval)}
+          >
+            {INTERVALS.map((period) => <option key={period} value={period}>{period.toUpperCase()}</option>)}
+          </select>
+          <span>Os sinais são confirmados no fechamento da vela do período escolhido.</span>
+        </label>
 
         {!authenticated && (
           <p className="rounded-md border border-short/30 bg-short/10 p-3 text-xs text-short">
@@ -169,13 +196,16 @@ export function AutoTradeDialog({
             A meta diária é apenas um limite para parar novas entradas, não uma previsão nem promessa de rendimento. O stop e o take profit são enviados junto com cada ordem. A automação funciona enquanto esta tela do terminal estiver aberta; posições abertas mantêm seus stops mesmo se você parar o bot.
           </div>
 
+          {initialSettings && (
+            <p className="text-xs text-term-muted">Os ajustes valem para as próximas entradas; posições já abertas mantêm seus níveis de stop e alvo.</p>
+          )}
           {error && <p role="alert" className="rounded-md border border-short/30 bg-short/10 p-2 text-xs text-short">{error}</p>}
           <button
             type="submit"
-            disabled={!valid || interval !== "1m" || !authenticated || saving}
+            disabled={!valid || !authenticated || saving}
             className="h-11 rounded-md bg-term-accent px-4 text-sm font-bold text-term-bg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {saving ? "Ativando..." : `Ativar automação · ${account === "demo" ? "Demo" : "Real"}`}
+            {saving ? "Aplicando..." : initialSettings ? "Aplicar ajustes" : `Ativar automação · ${account === "demo" ? "Demo" : "Real"}`}
           </button>
         </form>
       </DialogContent>

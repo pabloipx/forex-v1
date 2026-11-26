@@ -14,7 +14,7 @@ import {
   type Time,
   type UTCTimestamp,
 } from "lightweight-charts"
-import type { Candle } from "@/lib/futures/chart-intervals"
+import { INTERVAL_SECONDS, type Candle, type ChartInterval } from "@/lib/futures/chart-intervals"
 import type { ChartScript } from "@/hooks/use-chart-scripts"
 import { isTraderSignalPro, runScript, type ScriptOutput, type ScriptPanel } from "@/lib/futures/script-runtime"
 import type { AutoTradeSignal } from "@/lib/futures/auto-trading"
@@ -28,7 +28,7 @@ interface Options {
   scripts: ChartScript[]
   dataVersion: unknown
   decimals: number
-  timeframe: string
+  timeframe: ChartInterval
   onSignal?: (signal: AutoTradeSignal) => void
 }
 
@@ -259,7 +259,8 @@ export function useScriptOverlay({ chart, getMain, barsRef, scripts, dataVersion
           onSignalRef.current?.({
             scriptId: r.id,
             side: marker.text === "CALL" ? "buy" : "sell",
-            time: confirmed.time + 60,
+            timeframe,
+            time: confirmed.time + INTERVAL_SECONDS[timeframe],
             price: confirmed.close,
           })
         }

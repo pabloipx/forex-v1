@@ -31,7 +31,7 @@ import { cn } from "@/lib/utils"
 import { formatPrice, type FuturesMarket } from "@/lib/futures/markets"
 import { INTERVALS, INTERVAL_SECONDS, type Candle, type ChartInterval } from "@/lib/futures/chart-intervals"
 import type { Order, Position, AccountMode } from "@/lib/futures/types"
-import type { AutoTradeSettings, AutoTradeSignal } from "@/lib/futures/auto-trading"
+import type { AutoTradeSettings, AutoTradeSignal, AutoTradeStatus } from "@/lib/futures/auto-trading"
 import { CHART_THEMES, type ChartTheme, type TermTheme } from "@/lib/futures/term-theme"
 
 function chartLayoutOptions(t: ChartTheme) {
@@ -87,7 +87,7 @@ interface PriceChartProps {
   availableBalance: number
   authenticated: boolean
   autoBotActive: boolean
-  autoBotLabel: string
+  autoBotStatus: AutoTradeStatus | null
   onStartAuto: (settings: AutoTradeSettings) => Promise<void>
   onAutoSignal: (signal: AutoTradeSignal) => void
   onStopAuto: () => void
@@ -124,7 +124,7 @@ function PriceChartImpl({
   availableBalance,
   authenticated,
   autoBotActive,
-  autoBotLabel,
+  autoBotStatus,
   onStartAuto,
   onAutoSignal,
   onStopAuto,
@@ -185,6 +185,7 @@ function PriceChartImpl({
   const scriptStore = useChartScripts()
   const getMain = useCallback(() => candleRef.current, [])
   const [panelOpen, setPanelOpen] = useState(true)
+  const [autoPanelExpanded, setAutoPanelExpanded] = useState(false)
   const { errors: scriptErrors, panels: scriptPanels } = useScriptOverlay({
     chart: chartApi,
     getMain,
@@ -592,17 +593,7 @@ function PriceChartImpl({
   return (
     <section aria-label="Gráfico" className="flex h-full flex-col bg-term-panel">
       <div className="flex h-10 shrink-0 items-center justify-between gap-3 border-b border-term-line px-3">
-        <div className="flex min-w-0 items-center gap-2 overflow-x-auto [scrollbar-width:none]">
-          {toolbarExtra}
-          {autoBotActive && (
-            <span className="flex shrink-0 items-center gap-2 rounded bg-term-up/10 px-2 py-1 text-[10px] font-semibold text-term-up">
-              Robô {account === "demo" ? "Demo" : "Real"} · {autoBotLabel}
-              <button type="button" onClick={onStopAuto} className="underline underline-offset-2 hover:text-term-text">
-                Parar
-              </button>
-            </span>
-          )}
-        </div>
+        <div className="min-w-0 overflow-x-auto [scrollbar-width:none]">{toolbarExtra}</div>
         <div className="flex shrink-0 items-center gap-1">
           <button type="button" title="Ajustar gráfico" aria-label="Ajustar gráfico" onClick={() => chartRef.current?.timeScale().fitContent()} className={iconBtn(false)}>
             <Square className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
@@ -678,7 +669,11 @@ function PriceChartImpl({
         availableBalance={availableBalance}
         authenticated={authenticated}
         interval={interval}
-        onSelectOneMinute={() => setIntervalValue("1m")}
+        initialSettings={autoBotStatus?.settings}
+        onSelectInterval={(next) => {
+          setIntervalValue(next)
+          onIntervalChange(next)
+        }}
         onStartAuto={onStartAuto}
       />
 
@@ -691,6 +686,48 @@ function PriceChartImpl({
         }}
       />
       <div className="relative min-h-0 min-w-0 flex-1">
+        {autoBotStatus && (
+          <aside aria-label="Painel do robô automático" className="pointer-events-auto absolute right-2 top-10 z-30 w-64 max-w-[calc(100%-1rem)] rounded-lg border border-term-up/30 bg-term-panel/95 p-3 text-xs text-term-text shadow-lg backdrop-blur-sm">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="font-semibold text-term-up">TRADER SIGNAL PRO · Ativo</p>
+                <p className="mt-0.5 truncate text-term-muted">
+                  {autoBotStatus.settings.symbol} · {autoBotStatus.settings.timeframe.toUpperCase()} · {autoBotStatus.settings.account === "demo" ? "Demo" : "Real"}
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAutoPanelExpanded((v) => !v)}
+                  className="text-term-muted underline underline-offset-2 hover:text-term-text sm:hidden"
+                  aria-expanded={autoPanelExpanded}
+                >
+                  {autoPanelExpanded ? "Menos" : "Detalhes"}
+                </button>
+                <button type="button" onClick={() => setEditorOpen(true)} className="text-term-muted underline underline-offset-2 hover:text-term-text">
+                  Configurar
+                </button>
+              </div>
+            </div>
+            <div className={cn("mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]", autoPanelExpanded ? "grid" : "hidden sm:grid")}>
+              <span className="text-term-muted">Margem · alavancagem</span>
+              <span className="text-right font-mono">{autoBotStatus.settings.marginUsd} · {autoBotStatus.settings.leverage}x</span>
+              <span className="text-term-muted">Stop · alvo</span>
+              <span className="text-right font-mono">{autoBotStatus.settings.stopLossPercent}% · {autoBotStatus.settings.takeProfitPercent}%</span>
+              <span className="text-term-muted">Resultado / meta diária</span>
+              <span className={cn("text-right font-mono", autoBotStatus.dailyPnlPercent >= 0 ? "text-term-up" : "text-term-down")}>
+                {autoBotStatus.dailyPnlPercent >= 0 ? "+" : ""}{autoBotStatus.dailyPnlPercent.toFixed(2)}% / {autoBotStatus.settings.dailyTargetPercent}%
+              </span>
+              <span className="text-term-muted">Perda máxima diária</span>
+              <span className="text-right font-mono">−{autoBotStatus.settings.dailyLossPercent}%</span>
+              <span className="text-term-muted">Entradas hoje</span>
+              <span className="text-right font-mono">{autoBotStatus.tradesToday}/{autoBotStatus.settings.maxTradesPerDay}</span>
+            </div>
+            <button type="button" onClick={onStopAuto} className="mt-2 w-full rounded border border-term-line py-1.5 font-semibold text-term-muted hover:bg-term-line hover:text-term-text">
+              Parar automação
+            </button>
+          </aside>
+        )}
         {chartApi && (
           <DrawingLayer
             state={drawing}

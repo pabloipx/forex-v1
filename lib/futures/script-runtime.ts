@@ -186,7 +186,7 @@ for (let i = 1; i < n; i++) {
   callSetup[i] = up
   putSetup[i] = down
   // A última vela ainda está formando; só a vela anterior pode emitir entrada.
-  if (timeframe === "1m" && i < n - 1) {
+  if (i < n - 1) {
     callSignal[i] = up && !callSetup[i - 1]
     putSignal[i] = down && !putSetup[i - 1]
     if (callSignal[i]) { lastSignal = "CALL"; lastSignalTime = time[i] }
@@ -200,14 +200,14 @@ signal(callSignal, { side: "buy", text: "CALL", color: "#16be73" })
 signal(putSignal, { side: "sell", text: "PUT", color: "#eb4650" })
 
 const u = n - 1
-const currentStatus = timeframe !== "1m" ? "USE O GRÁFICO 1M" : callSetup[u] ? "CALL CONFIRMADO" : putSetup[u] ? "PUT CONFIRMADO" : "ANALISANDO"
+const currentStatus = callSetup[u] ? "CALL CONFIRMADO" : putSetup[u] ? "PUT CONFIRMADO" : "ANALISANDO"
 const signalColor = lastSignal === "CALL" ? "#16be73" : lastSignal === "PUT" ? "#eb4650" : "#919baa"
 panel([
   ["TRADER SIGNAL", "ONLINE", "#ffffff"],
   ["ÚLTIMO SINAL", lastSignal, signalColor],
-  ["STATUS", currentStatus, timeframe === "1m" ? signalColor : "#eb4650"],
+  ["STATUS", currentStatus, signalColor],
   ["ATIVO", "GRÁFICO ATUAL", "#ffffff"],
-  ["PERÍODO", "1 MINUTO", "#ffffff"],
+  ["PERÍODO", timeframe.toUpperCase(), "#ffffff"],
   ["CONFLUÊNCIA", callSetup[u] ? "4/4 CALL" : putSetup[u] ? "4/4 PUT" : "ANALISANDO", "#ffffff"],
   ["HORÁRIO UTC", lastSignalTime == null ? "--:--" : new Date(lastSignalTime * 1000).toISOString().slice(11, 16), "#ffffff"],
 ])

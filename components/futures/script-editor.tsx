@@ -9,6 +9,7 @@ import { PINE_ERROR, SCRIPT_TEMPLATES, convertPine, isTraderSignalPro, looksLike
 import { AutoTradeDialog } from "./auto-trade-dialog"
 import type { AutoTradeSettings } from "@/lib/futures/auto-trading"
 import type { AccountMode } from "@/lib/futures/types"
+import type { ChartInterval } from "@/lib/futures/chart-intervals"
 import type { ChartScript, useChartScripts } from "@/hooks/use-chart-scripts"
 
 interface ScriptEditorProps {
@@ -20,8 +21,9 @@ interface ScriptEditorProps {
   symbol: string
   availableBalance: number
   authenticated: boolean
-  interval: string
-  onSelectOneMinute: () => void
+  interval: ChartInterval
+  initialSettings?: AutoTradeSettings
+  onSelectInterval: (interval: ChartInterval) => void
   onStartAuto: (settings: AutoTradeSettings) => Promise<void>
 }
 
@@ -45,7 +47,8 @@ export function ScriptEditor({
   availableBalance,
   authenticated,
   interval,
-  onSelectOneMinute,
+  initialSettings,
+  onSelectInterval,
   onStartAuto,
 }: ScriptEditorProps) {
   const { scripts, error, isLoading, create, update, remove } = store
@@ -118,6 +121,7 @@ export function ScriptEditor({
       setName(scriptName)
       await onStartAuto(settings)
       setMessage("Script salvo e automação iniciada")
+      onOpenChange(false)
     } catch (err) {
       setMessage((err as Error).message)
       throw err
@@ -276,7 +280,7 @@ export function ScriptEditor({
                     <>
                       <span className={isSniperPine || autoTraderPine ? "text-term-up" : "text-term-down"}>
                         {autoTraderPine
-                          ? "TRADER SIGNAL PRO - 1M reconhecido. CALL/PUT são convertidos para sinais no gráfico; o pop-up configura o bot."
+                          ? "TRADER SIGNAL PRO reconhecido. CALL/PUT são confirmados no fechamento do período selecionado; configure a automação no pop-up."
                           : isSniperPine
                             ? `Pine Script reconhecido: roda no gráfico como ${sniperTemplate!.name}. Converta para editar em JavaScript.`
                             : PINE_ERROR}
@@ -327,7 +331,8 @@ export function ScriptEditor({
       availableBalance={availableBalance}
       authenticated={authenticated}
       interval={interval}
-      onSelectOneMinute={onSelectOneMinute}
+      initialSettings={initialSettings}
+      onSelectInterval={onSelectInterval}
       onStart={activateAutomation}
     />
     </>
