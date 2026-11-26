@@ -6,8 +6,9 @@ import { flushSync } from "react-dom"
 import { TERM_THEME_COOKIE, type TermTheme } from "@/lib/futures/term-theme"
 import { useRouter } from "next/navigation"
 import { Toaster, toast } from "sonner"
-import { MARKET_MAP } from "@/lib/futures/markets"
-import type { AccountMode } from "@/lib/futures/types"
+import { MARKET_MAP, quoteToUsd, roundToStep, unrealizedPnl } from "@/lib/futures/markets"
+import type { AccountMode, FuturesState } from "@/lib/futures/types"
+import type { AutoTradeSettings, AutoTradeSignal, AutoTradeStatus } from "@/lib/futures/auto-trading"
 import { futuresApi, useDerivatives, useFuturesState, useTickers, useTradingPrefs } from "@/hooks/use-futures"
 import { useMarketFeed } from "@/hooks/use-market-feed"
 import { useTradeNotifications } from "@/hooks/use-trade-notifications"
@@ -22,6 +23,36 @@ import { AccountTables } from "./account-tables"
 import { RotateDevice } from "./rotate-device"
 
 type ChartView = "candles" | "depth"
+
+interface AutoBotSession {
+  settings: AutoTradeSettings
+  startedAt: number
+  dayKey: string
+  baseEquity: number
+  tradesToday: number
+  lastEvent?: string
+}
+
+const currentDayKey = () => {
+  const d = new Date()
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`
+}
+
+function accountEquity(
+  state: FuturesState | undefined,
+  tickers: ReturnType<typeof useTickers>,
+  derivs: ReturnType<typeof useDerivatives>,
+) {
+  if (!state) return 0
+  const positionEquity = state.positions.reduce((sum, p) => {
+    const market = MARKET_MAP[p.symbol]
+    if (!market) return sum + p.margin
+    const mark = derivs[p.symbol]?.markPrice ?? tickers[p.symbol]?.price ?? p.entry_price
+    return sum + p.margin + unrealizedPnl(market, p.side, p.qty, p.entry_price, mark)
+  }, 0)
+  const reservedOrders = state.openOrders.reduce((sum, order) => sum + order.reserved_margin, 0)
+  return state.balance + positionEquity + reservedOrders
+}
 
 function ChartViewToggle({ value, onChange }: { value: ChartView; onChange: (v: ChartView) => void }) {
   const options: [ChartView, string][] = [
@@ -55,6 +86,15 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
   const market = MARKET_MAP[symbol]
   const rootRef = useRef<HTMLDivElement>(null)
   const [theme, setTheme] = useState<TermTheme>(initialTheme)
+  const [account, setAccount] = useState<AccountMode>("demo")
+  const [limitPrice, setLimitPrice] = useState("")
+  const [chartView, setChartView] = useState<ChartView>("candles")
+  const [expanded, setExpanded] = useState(false)
+  const [autoBot, setAutoBot] = useState<AutoBotSession | null>(null)
+  const autoBotRef = useRef<AutoBotSession | null>(null)
+  const processedSignalRef = useRef("")
+  const autoInFlightRef = useRef(false)
+  autoBotRef.current = autoBot
 
   const toggleTheme = useCallback(() => {
     const next: TermTheme = theme === "light" ? "dark" : "light"
@@ -68,7 +108,6 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
       flushSync(() => setTheme(next))
     }
     const done = () => requestAnimationFrame(() => root?.classList.remove("term-switching"))
-
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
     if (!document.startViewTransition || reduceMotion) {
       apply()
@@ -85,11 +124,6 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
     document.body.classList.add(cls)
     return () => document.body.classList.remove(cls)
   }, [theme])
-  const [account, setAccount] = useState<AccountMode>("demo")
-  const [limitPrice, setLimitPrice] = useState("")
-
-  const [chartView, setChartView] = useState<ChartView>("candles")
-  const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
     if (!expanded) return
@@ -114,10 +148,18 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
       <ExpandIcon className="size-4" strokeWidth={1.5} aria-hidden="true" />
     </button>
   )
+
   const tickers = useTickers()
   const derivs = useDerivatives()
   const { state, refresh } = useFuturesState(account)
   useTradeNotifications(state, derivs)
+
+  const stopAutoBot = useCallback((message?: string) => {
+    if (!autoBotRef.current) return
+    autoBotRef.current = null
+    setAutoBot(null)
+    if (message) toast(message)
+  }, [])
 
   const dragLine = async (positionId: string, kind: "tp" | "sl", price: number) => {
     const pos = state?.positions.find((p) => p.id === positionId)
@@ -133,19 +175,205 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
       refresh()
     }
   }
+
   const prefs = useTradingPrefs(!!state?.authenticated)
   const [prefsApplied, setPrefsApplied] = useState(false)
   if (prefs && !prefsApplied) {
     setPrefsApplied(true)
     setAccount(prefs.defaultAccount)
   }
+
   const feed = useMarketFeed(market, tickers[symbol])
   const ticker = feed.ticker ?? tickers[symbol] ?? null
   const last = feed.last ?? ticker?.price ?? null
+  const equity = accountEquity(state, tickers, derivs)
+  const dailyPnlPercent = autoBot && autoBot.baseEquity > 0 ? ((equity - autoBot.baseEquity) / autoBot.baseEquity) * 100 : 0
+  const autoBotStatus: AutoTradeStatus | null = autoBot
+    ? { settings: autoBot.settings, tradesToday: autoBot.tradesToday, dailyPnlPercent, lastEvent: autoBot.lastEvent }
+    : null
+
+  const startAutoBot = async (settings: AutoTradeSettings) => {
+    if (!state?.authenticated) throw new Error("Entre na sua conta antes de ativar o bot")
+    if (settings.account !== account || settings.symbol !== symbol) throw new Error("A conta ou o ativo mudou. Abra o pop-up novamente")
+    if (settings.marginUsd * (1 + settings.leverage * 0.001) > state.balance) {
+      throw new Error("A margem e a reserva de taxas excedem o saldo disponível")
+    }
+    if (equity <= 0) throw new Error("Não foi possível calcular o patrimônio da conta")
+    const current = autoBotRef.current
+    const session: AutoBotSession = current && current.settings.account === settings.account && current.settings.symbol === settings.symbol
+      ? { ...current, settings }
+      : {
+          settings,
+          startedAt: Date.now(),
+          dayKey: currentDayKey(),
+          baseEquity: equity,
+          tradesToday: 0,
+          lastEvent: "Aguardando sinal CALL/PUT confirmado no fechamento da vela",
+        }
+    processedSignalRef.current = ""
+    autoBotRef.current = session
+    setAutoBot(session)
+    toast.success(`Automação iniciada na conta ${account === "demo" ? "Demo" : "Real"}`)
+  }
+
+  const logAutoEvent = useCallback((message: string) => {
+    const current = autoBotRef.current
+    if (!current || current.lastEvent === message) return
+    const next = { ...current, lastEvent: message }
+    autoBotRef.current = next
+    setAutoBot(next)
+  }, [])
+
+  const handleAutoSignal = useCallback(async (signal: AutoTradeSignal) => {
+    let session = autoBotRef.current
+    if (!session || autoInFlightRef.current) return
+    if (signal.timeframe !== session.settings.timeframe) return
+    // Uma entrada por vela fechada e direção.
+    const candleKey = `${signal.time}:${signal.side}`
+    if (processedSignalRef.current === candleKey) return
+    if (session.settings.account !== account || session.settings.symbol !== symbol) {
+      stopAutoBot("Automação parada porque a conta ou o ativo mudou")
+      return
+    }
+    if (!state?.authenticated || !market || !last || !Number.isFinite(signal.price) || signal.price <= 0) return
+
+    const day = currentDayKey()
+    if (session.dayKey !== day) {
+      session = { ...session, dayKey: day, baseEquity: equity, tradesToday: 0 }
+      autoBotRef.current = session
+      setAutoBot(session)
+    }
+
+    const sideLabel = signal.side === "buy" ? "CALL" : "PUT"
+    if (state.positions.some((p) => p.symbol === session.settings.symbol) || state.openOrders.some((o) => o.symbol === session.settings.symbol)) {
+      logAutoEvent(`Sinal ${sideLabel} confirmado · aguardando a posição atual fechar (SL/TP)`)
+      return
+    }
+
+    const pnlPct = session.baseEquity > 0 ? ((equity - session.baseEquity) / session.baseEquity) * 100 : 0
+    if (pnlPct >= session.settings.dailyTargetPercent) {
+      stopAutoBot(`Meta diária de ${session.settings.dailyTargetPercent}% atingida. Novas entradas paradas.`)
+      return
+    }
+    if (pnlPct <= -session.settings.dailyLossPercent) {
+      stopAutoBot(`Limite de perda diária de ${session.settings.dailyLossPercent}% atingido. Novas entradas paradas.`)
+      return
+    }
+    if (session.tradesToday >= session.settings.maxTradesPerDay) {
+      stopAutoBot("Limite de entradas diárias atingido. Automação parada.")
+      return
+    }
+
+    const livePrice = last
+    if (Math.abs(livePrice - signal.price) / signal.price > 0.01) {
+      processedSignalRef.current = candleKey
+      logAutoEvent(`Sinal ${sideLabel} ignorado: preço se afastou mais de 1% do fechamento da vela`)
+      return
+    }
+
+    const unitUsd = market.contractSize * livePrice * quoteToUsd(market, livePrice)
+    // Margens pequenas podem render menos que o lote mínimo (ex.: US$ 25 × 2x em BTC); usa o mínimo do mercado.
+    const qty = Math.min(
+      market.maxQty,
+      Math.max(market.minQty, roundToStep((session.settings.marginUsd * session.settings.leverage) / unitUsd, market.qtyStep)),
+    )
+    const requiredMargin = (qty * unitUsd) / session.settings.leverage
+    if (requiredMargin * (1 + session.settings.leverage * 0.001) > state.balance) {
+      stopAutoBot(
+        `Saldo insuficiente: o lote mínimo de ${market.symbol} exige cerca de US$ ${requiredMargin.toFixed(2)} de margem com ${session.settings.leverage}x`,
+      )
+      return
+    }
+
+    const factor = 10 ** market.priceDecimals
+    const slFactor = session.settings.stopLossPercent / 100
+    const tpFactor = session.settings.takeProfitPercent / 100
+    const takeProfit = Math.round(livePrice * (signal.side === "buy" ? 1 + tpFactor : 1 - tpFactor) * factor) / factor
+    const stopLoss = Math.round(livePrice * (signal.side === "buy" ? 1 - slFactor : 1 + slFactor) * factor) / factor
+
+    autoInFlightRef.current = true
+    processedSignalRef.current = candleKey
+    try {
+      await futuresApi.placeOrder({
+        account,
+        symbol: session.settings.symbol,
+        side: signal.side,
+        orderType: "market",
+        qty,
+        leverage: session.settings.leverage,
+        marginMode: "isolated",
+        takeProfit,
+        stopLoss,
+      })
+      const time = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+      const updated = {
+        ...session,
+        tradesToday: session.tradesToday + 1,
+        lastEvent: `${time} · ${sideLabel} executado (${qty} ${market.qtyUnit}, margem ~US$ ${requiredMargin.toFixed(2)}) · SL ${stopLoss} · TP ${takeProfit}`,
+      }
+      toast.success(`${signal.side === "buy" ? "CALL / compra" : "PUT / venda"} executado em ${market.symbol} com SL/TP configurados`)
+      if (updated.tradesToday >= session.settings.maxTradesPerDay) {
+        autoBotRef.current = null
+        setAutoBot(null)
+        toast("Limite diário de entradas atingido. Novas operações foram paradas.")
+      } else {
+        autoBotRef.current = updated
+        setAutoBot(updated)
+      }
+      refresh()
+    } catch (e) {
+      const message = (e as Error).message
+      toast.error(`Automação: ${message}`)
+      logAutoEvent(`Falha ao enviar ${sideLabel}: ${message}`)
+    } finally {
+      autoInFlightRef.current = false
+    }
+  }, [account, symbol, state, market, last, equity, stopAutoBot, refresh, logAutoEvent])
+
+  useEffect(() => {
+    if (!autoBot) return
+    if (autoBot.settings.account !== account || autoBot.settings.symbol !== symbol) {
+      stopAutoBot("Automação parada: a conta ou o ativo mudou")
+      return
+    }
+    if (!state?.authenticated) {
+      stopAutoBot("Automação parada: sessão encerrada")
+      return
+    }
+    const day = currentDayKey()
+    if (autoBot.dayKey !== day) {
+      const reset = { ...autoBot, dayKey: day, baseEquity: equity, tradesToday: 0, startedAt: Date.now() }
+      autoBotRef.current = reset
+      setAutoBot(reset)
+      return
+    }
+    const pnl = autoBot.baseEquity > 0 ? ((equity - autoBot.baseEquity) / autoBot.baseEquity) * 100 : 0
+    if (pnl >= autoBot.settings.dailyTargetPercent) {
+      stopAutoBot(`Meta diária de ${autoBot.settings.dailyTargetPercent}% atingida. Novas entradas paradas.`)
+    } else if (pnl <= -autoBot.settings.dailyLossPercent) {
+      stopAutoBot(`Limite de perda diária de ${autoBot.settings.dailyLossPercent}% atingido. Novas entradas paradas.`)
+    }
+  }, [autoBot, account, symbol, state?.authenticated, equity, stopAutoBot])
+
+  const changeAccount = (next: AccountMode) => {
+    if (next !== account && autoBotRef.current) stopAutoBot("Automação parada ao trocar de conta")
+    setAccount(next)
+  }
 
   const selectMarket = (s: string) => {
+    if (s !== symbol && autoBotRef.current) stopAutoBot("Automação parada ao trocar de ativo")
     setLimitPrice("")
     router.replace(`/futures?symbol=${s}`, { scroll: false })
+  }
+
+  const handleIntervalChange = (next: string) => {
+    const active = autoBotRef.current
+    if (active && next !== active.settings.timeframe) stopAutoBot("Automação parada porque o período do gráfico mudou")
+  }
+
+  const changeChartView = (next: ChartView) => {
+    if (next === "depth" && autoBotRef.current) stopAutoBot("Automação parada ao sair do gráfico de candles")
+    setChartView(next)
   }
 
   return (
@@ -161,7 +389,7 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
         theme={theme}
         onToggleTheme={toggleTheme}
         account={account}
-        onAccountChange={setAccount}
+        onAccountChange={changeAccount}
         authenticated={!!state?.authenticated}
         email={state?.email}
         balances={state?.balances ?? { real: 0, demo: 0 }}
@@ -185,13 +413,22 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
                     positions={state?.positions ?? []}
                     openOrders={state?.openOrders ?? []}
                     onLineDrag={dragLine}
-                    toolbarExtra={<ChartViewToggle value={chartView} onChange={setChartView} />}
+                    toolbarExtra={<ChartViewToggle value={chartView} onChange={changeChartView} />}
                     toolbarEnd={expandButton}
+                    account={account}
+                    availableBalance={state?.balance ?? 0}
+                    authenticated={!!state?.authenticated}
+                    autoBotActive={!!autoBot}
+                    autoBotStatus={autoBotStatus}
+                    onStartAuto={startAutoBot}
+                    onAutoSignal={handleAutoSignal}
+                    onStopAuto={() => stopAutoBot("Automação parada pelo usuário")}
+                    onIntervalChange={handleIntervalChange}
                   />
                 ) : (
                   <>
                     <div className="flex h-10 shrink-0 items-center justify-between border-b border-term-line px-3">
-                      <ChartViewToggle value={chartView} onChange={setChartView} />
+                      <ChartViewToggle value={chartView} onChange={changeChartView} />
                       {expandButton}
                     </div>
                     <div className="min-h-0 flex-1">

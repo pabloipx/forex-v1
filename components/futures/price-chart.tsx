@@ -30,7 +30,8 @@ import {
 import { cn } from "@/lib/utils"
 import { formatPrice, type FuturesMarket } from "@/lib/futures/markets"
 import { INTERVALS, INTERVAL_SECONDS, type Candle, type ChartInterval } from "@/lib/futures/chart-intervals"
-import type { Order, Position } from "@/lib/futures/types"
+import type { Order, Position, AccountMode } from "@/lib/futures/types"
+import type { AutoTradeSettings, AutoTradeSignal, AutoTradeStatus } from "@/lib/futures/auto-trading"
 import { CHART_THEMES, type ChartTheme, type TermTheme } from "@/lib/futures/term-theme"
 
 function chartLayoutOptions(t: ChartTheme) {
@@ -49,11 +50,12 @@ import { DrawingLayer, DrawingToolbar, useDrawingState } from "./chart-drawings"
 import { useChartScripts } from "@/hooks/use-chart-scripts"
 import { ScriptEditor } from "./script-editor"
 import { useScriptOverlay } from "./use-script-overlay"
+import { isTraderSignalPro } from "@/lib/futures/script-runtime"
 import { ChartDisplayMenu, DEFAULT_DISPLAY_SETTINGS, type ChartDisplaySettings } from "./chart-display-menu"
 
 const COLORS = {
-  up: "#089981",
-  down: "#f23645",
+  up: "#20b26c",
+  down: "#ef454a",
   accent: "#2190ff",
   liq: "#ff9800",
 }
@@ -81,6 +83,15 @@ interface PriceChartProps {
   onLineDrag?: (positionId: string, kind: "tp" | "sl", price: number) => void
   toolbarExtra?: React.ReactNode
   toolbarEnd?: React.ReactNode
+  account: AccountMode
+  availableBalance: number
+  authenticated: boolean
+  autoBotActive: boolean
+  autoBotStatus: AutoTradeStatus | null
+  onStartAuto: (settings: AutoTradeSettings) => Promise<void>
+  onAutoSignal: (signal: AutoTradeSignal) => void
+  onStopAuto: () => void
+  onIntervalChange: (interval: ChartInterval) => void
 }
 
 interface LineSpec {
@@ -100,7 +111,25 @@ const fetcher = async (url: string) => {
   return json.candles as Candle[]
 }
 
-function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag, toolbarExtra, toolbarEnd }: PriceChartProps) {
+function PriceChartImpl({
+  market,
+  theme,
+  last,
+  positions,
+  openOrders,
+  onLineDrag,
+  toolbarExtra,
+  toolbarEnd,
+  account,
+  availableBalance,
+  authenticated,
+  autoBotActive,
+  autoBotStatus,
+  onStartAuto,
+  onAutoSignal,
+  onStopAuto,
+  onIntervalChange,
+}: PriceChartProps) {
   const palette = CHART_THEMES[theme]
   const paletteRef = useRef(palette)
   paletteRef.current = palette
@@ -156,6 +185,7 @@ function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag
   const scriptStore = useChartScripts()
   const getMain = useCallback(() => candleRef.current, [])
   const [panelOpen, setPanelOpen] = useState(true)
+  const [autoPanelExpanded, setAutoPanelExpanded] = useState(false)
   const { errors: scriptErrors, panels: scriptPanels } = useScriptOverlay({
     chart: chartApi,
     getMain,
@@ -163,8 +193,16 @@ function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag
     scripts: scriptStore.scripts,
     dataVersion: candles,
     decimals: market.priceDecimals,
+    timeframe: interval,
+    onSignal: onAutoSignal,
   })
   const activeScripts = scriptStore.scripts.filter((s) => s.enabled)
+
+  useEffect(() => {
+    if (autoBotActive && !activeScripts.some((s) => isTraderSignalPro(s.code))) {
+      onStopAuto()
+    }
+  }, [autoBotActive, activeScripts, onStopAuto])
 
   const renderLegend = (c: Candle | null) => {
     const el = legendRef.current
@@ -568,7 +606,16 @@ function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag
         <div className="flex min-w-0 items-center gap-1 overflow-x-auto [scrollbar-width:none]">
           <div role="radiogroup" aria-label="Intervalo" className="flex shrink-0 items-center gap-0.5">
             {INTERVALS.map((i) => (
-              <button key={i} role="radio" aria-checked={interval === i} onClick={() => setIntervalValue(i)} className={textBtn(interval === i)}>
+              <button
+                key={i}
+                role="radio"
+                aria-checked={interval === i}
+                onClick={() => {
+                  setIntervalValue(i)
+                  onIntervalChange(i)
+                }}
+                className={textBtn(interval === i)}
+              >
                 {INTERVAL_LABEL[i]}
               </button>
             ))}
@@ -612,7 +659,23 @@ function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag
           </button>
         </div>
       </div>
-      <ScriptEditor open={editorOpen} onOpenChange={setEditorOpen} store={scriptStore} errors={scriptErrors} />
+      <ScriptEditor
+        open={editorOpen}
+        onOpenChange={setEditorOpen}
+        store={scriptStore}
+        errors={scriptErrors}
+        account={account}
+        symbol={market.symbol}
+        availableBalance={availableBalance}
+        authenticated={authenticated}
+        interval={interval}
+        initialSettings={autoBotStatus?.settings}
+        onSelectInterval={(next) => {
+          setIntervalValue(next)
+          onIntervalChange(next)
+        }}
+        onStartAuto={onStartAuto}
+      />
 
       <div className="flex min-h-0 flex-1">
       <DrawingToolbar
@@ -623,6 +686,54 @@ function PriceChartImpl({ market, theme, last, positions, openOrders, onLineDrag
         }}
       />
       <div className="relative min-h-0 min-w-0 flex-1">
+        {autoBotStatus && (
+          <aside aria-label="Painel do robô automático" className="pointer-events-auto absolute right-2 top-10 z-30 w-64 max-w-[calc(100%-1rem)] rounded-lg border border-term-up/30 bg-term-panel/95 p-3 text-xs text-term-text shadow-lg backdrop-blur-sm">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="font-semibold text-term-up">TRADER SIGNAL PRO · Ativo</p>
+                <p className="mt-0.5 truncate text-term-muted">
+                  {autoBotStatus.settings.symbol} · {autoBotStatus.settings.timeframe.toUpperCase()} · {autoBotStatus.settings.account === "demo" ? "Demo" : "Real"}
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAutoPanelExpanded((v) => !v)}
+                  className="text-term-muted underline underline-offset-2 hover:text-term-text sm:hidden"
+                  aria-expanded={autoPanelExpanded}
+                >
+                  {autoPanelExpanded ? "Menos" : "Detalhes"}
+                </button>
+                <button type="button" onClick={() => setEditorOpen(true)} className="text-term-muted underline underline-offset-2 hover:text-term-text">
+                  Configurar
+                </button>
+              </div>
+            </div>
+            <div className={cn("mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]", autoPanelExpanded ? "grid" : "hidden sm:grid")}>
+              <span className="text-term-muted">Margem · alavancagem</span>
+              <span className="text-right font-mono">{autoBotStatus.settings.marginUsd} · {autoBotStatus.settings.leverage}x</span>
+              <span className="text-term-muted">Stop · alvo</span>
+              <span className="text-right font-mono">{autoBotStatus.settings.stopLossPercent}% · {autoBotStatus.settings.takeProfitPercent}%</span>
+              <span className="text-term-muted">Resultado / meta diária</span>
+              <span className={cn("text-right font-mono", autoBotStatus.dailyPnlPercent >= 0 ? "text-term-up" : "text-term-down")}>
+                {autoBotStatus.dailyPnlPercent >= 0 ? "+" : ""}{autoBotStatus.dailyPnlPercent.toFixed(2)}% / {autoBotStatus.settings.dailyTargetPercent}%
+              </span>
+              <span className="text-term-muted">Perda máxima diária</span>
+              <span className="text-right font-mono">−{autoBotStatus.settings.dailyLossPercent}%</span>
+              <span className="text-term-muted">Entradas hoje</span>
+              <span className="text-right font-mono">{autoBotStatus.tradesToday}/{autoBotStatus.settings.maxTradesPerDay}</span>
+            </div>
+            {autoBotStatus.lastEvent && (
+              <p aria-live="polite" className="mt-2 rounded bg-term-bg/70 px-2 py-1.5 text-[11px] leading-snug text-term-text">
+                <span className="text-term-muted">Último evento: </span>
+                {autoBotStatus.lastEvent}
+              </p>
+            )}
+            <button type="button" onClick={onStopAuto} className="mt-2 w-full rounded border border-term-line py-1.5 font-semibold text-term-muted hover:bg-term-line hover:text-term-text">
+              Parar automação
+            </button>
+          </aside>
+        )}
         {chartApi && (
           <DrawingLayer
             state={drawing}

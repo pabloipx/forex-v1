@@ -37,6 +37,7 @@ export interface ScriptOutput {
   hlines: ScriptHLine[]
   markers: ScriptMarker[]
   panels: ScriptPanel[]
+  setup?: { index: number; buy: boolean; sell: boolean } | null
 }
 
 export type ScriptResult = { ok: true; output: ScriptOutput } | { ok: false; error: string }
@@ -84,13 +85,17 @@ const ta = {
   crossunder(a, b) { const bv = (x, i) => Array.isArray(x) ? x[i] : x;
     return a.map((v, i) => i > 0 && v != null && bv(b, i) != null && a[i - 1] != null && bv(b, i - 1) != null && v < bv(b, i) && a[i - 1] >= bv(b, i - 1)); },
 };
-let open, high, low, close, volume, time, hl2, hlc3;
+let open, high, low, close, volume, time, hl2, hlc3, timeframe;
 self.onmessage = (e) => {
-  const { id, code, bars } = e.data;
+  const { id, code, bars, timeframe: frame } = e.data;
+  timeframe = frame || "15m";
   open = bars.map((b) => b.open); high = bars.map((b) => b.high); low = bars.map((b) => b.low);
   close = bars.map((b) => b.close); volume = bars.map((b) => b.volume); time = bars.map((b) => b.time);
   hl2 = bars.map((b) => (b.high + b.low) / 2); hlc3 = bars.map((b) => (b.high + b.low + b.close) / 3);
-  const out = { plots: [], hlines: [], markers: [], panels: [] };
+  const out = { plots: [], hlines: [], markers: [], panels: [], setup: null };
+  // Estado da última vela FECHADA (penúltima barra), usado pela automação.
+  const autoSetup = (buy, sell) => { const i = bars.length - 2; if (i < 0) return;
+    out.setup = { index: i, buy: !!(Array.isArray(buy) && buy[i]), sell: !!(Array.isArray(sell) && sell[i]) }; };
   const toSeries = (v) => Array.isArray(v) ? v.map(num) : new Array(bars.length).fill(num(v));
   const plot = (series, o = {}) => { if (out.plots.length >= MAX_PLOTS) throw new Error("Limite de " + MAX_PLOTS + " plots por script");
     out.plots.push({ title: String(o.title ?? "Plot " + (out.plots.length + 1)).slice(0, 40), color: String(o.color ?? "#2962ff"),
@@ -114,8 +119,8 @@ self.onmessage = (e) => {
       value: String((Array.isArray(r) ? r[1] : r?.value) ?? "").slice(0, 24),
       color: String((Array.isArray(r) ? r[2] : r?.color) ?? "#eaecef") })) }); };
   try {
-    const fn = new Function("open", "high", "low", "close", "volume", "time", "hl2", "hlc3", "bars", "ta", "plot", "hline", "signal", "panel", "Math", code);
-    fn(open, high, low, close, volume, time, hl2, hlc3, bars, ta, plot, hline, signal, panel, Math);
+    const fn = new Function("open", "high", "low", "close", "volume", "time", "hl2", "hlc3", "bars", "ta", "plot", "hline", "signal", "panel", "timeframe", "autoSetup", "Math", code);
+    fn(open, high, low, close, volume, time, hl2, hlc3, bars, ta, plot, hline, signal, panel, timeframe, autoSetup, Math);
     self.postMessage({ id, ok: true, output: out });
   } catch (err) {
     self.postMessage({ id, ok: false, error: err && err.message ? String(err.message) : String(err) });
@@ -152,10 +157,70 @@ export function looksLikePine(code: string): boolean {
 }
 
 export const PINE_ERROR =
-  "Isto é Pine Script (TradingView) e não roda aqui. Este gráfico usa JavaScript com ta, plot, hline e signal — envie o script para conversão ou use um modelo."
+  "Este editor aceita JavaScript e converte somente os modelos Pine Script compatíveis. O TRADER SIGNAL PRO - 1M é compatível; outros scripts Pine precisam ser convertidos."
+
+export function isTraderSignalPro(code: string): boolean {
+  const title = code.match(/\b(?:indicator|strategy|study)\s*\(\s*["']([^"']*)/i)?.[1] ?? ""
+  return (
+    /^TRADER SIGNAL PRO\b/i.test(title.trim()) &&
+    /\bcallScore\s*=/.test(code) &&
+    /\bputScore\s*=/.test(code) &&
+    /table\.new\s*\(/.test(code) &&
+    /alertcondition\s*\(/.test(code)
+  )
+}
+
+const TRADER_SIGNAL_PRO_JS = `// Conversão do TRADER SIGNAL PRO - 1M para o gráfico Kryptobit
+const emaFast = ta.ema(close, 9)
+const emaSlow = ta.ema(close, 21)
+const rsiValue = ta.rsi(close, 14)
+const { macd, signal: macdSignalLine } = ta.macd(close, 12, 26, 9)
+const n = close.length
+const callSetup = new Array(n).fill(false)
+const putSetup = new Array(n).fill(false)
+const callSignal = new Array(n).fill(false)
+const putSignal = new Array(n).fill(false)
+let lastSignal = "AGUARDANDO"
+let lastSignalTime = null
+
+for (let i = 1; i < n; i++) {
+  if (emaFast[i] == null || emaSlow[i] == null || rsiValue[i] == null || macd[i] == null || macdSignalLine[i] == null) continue
+  const up = emaFast[i] > emaSlow[i] && close[i] > emaFast[i] && rsiValue[i] > 55 && macd[i] > macdSignalLine[i]
+  const down = emaFast[i] < emaSlow[i] && close[i] < emaFast[i] && rsiValue[i] < 45 && macd[i] < macdSignalLine[i]
+  callSetup[i] = up
+  putSetup[i] = down
+  // A última vela ainda está formando; só a vela anterior pode emitir entrada.
+  if (i < n - 1) {
+    callSignal[i] = up && !callSetup[i - 1]
+    putSignal[i] = down && !putSetup[i - 1]
+    if (callSignal[i]) { lastSignal = "CALL"; lastSignalTime = time[i] }
+    if (putSignal[i]) { lastSignal = "PUT"; lastSignalTime = time[i] }
+  }
+}
+
+plot(emaFast, { title: "EMA 9", color: "#16be73", width: 2 })
+plot(emaSlow, { title: "EMA 21", color: "#eb4650", width: 2 })
+signal(callSignal, { side: "buy", text: "CALL", color: "#16be73" })
+signal(putSignal, { side: "sell", text: "PUT", color: "#eb4650" })
+autoSetup(callSetup, putSetup)
+
+const u = n - 1
+const currentStatus = callSetup[u] ? "CALL CONFIRMADO" : putSetup[u] ? "PUT CONFIRMADO" : "ANALISANDO"
+const signalColor = lastSignal === "CALL" ? "#16be73" : lastSignal === "PUT" ? "#eb4650" : "#919baa"
+panel([
+  ["TRADER SIGNAL", "ONLINE", "#ffffff"],
+  ["ÚLTIMO SINAL", lastSignal, signalColor],
+  ["STATUS", currentStatus, signalColor],
+  ["ATIVO", "GRÁFICO ATUAL", "#ffffff"],
+  ["PERÍODO", timeframe.toUpperCase(), "#ffffff"],
+  ["CONFLUÊNCIA", callSetup[u] ? "4/4 CALL" : putSetup[u] ? "4/4 PUT" : "ANALISANDO", "#ffffff"],
+  ["HORÁRIO UTC", lastSignalTime == null ? "--:--" : new Date(lastSignalTime * 1000).toISOString().slice(11, 16), "#ffffff"],
+])
+`
 
 export function convertPine(code: string): { name: string; code: string } | null {
   if (!looksLikePine(code)) return null
+  if (isTraderSignalPro(code)) return { name: "TRADER SIGNAL PRO - 1M", code: TRADER_SIGNAL_PRO_JS }
   const title = code.match(/\b(?:indicator|strategy|study)\s*\(\s*["']([^"']*)/)?.[1] ?? code.slice(0, 400)
   if (!/SNIPER/i.test(title)) return null
   const name = /\bV\s*7\b/i.test(title) ? "Sniper Pro V7" : "Sniper Pro V8"
@@ -190,7 +255,7 @@ function getWorker() {
   return worker
 }
 
-export function runScript(code: string, bars: Candle[]): Promise<ScriptResult> {
+export function runScript(code: string, bars: Candle[], timeframe = "15m"): Promise<ScriptResult> {
   const source = looksLikePine(code) ? convertPine(code)?.code : code
   if (!source) return Promise.resolve({ ok: false, error: PINE_ERROR })
   if (timedOut.has(source)) {
@@ -211,7 +276,7 @@ export function runScript(code: string, bars: Candle[]): Promise<ScriptResult> {
       const syntaxError = !result.ok && /unexpected|missing|is not defined/i.test(result.error ?? "")
       resolve(syntaxError && PINE_MARKERS.some((re) => re.test(code)) ? { ok: false, error: PINE_ERROR } : result)
     })
-    getWorker().postMessage({ id, code: source, bars })
+    getWorker().postMessage({ id, code: source, bars, timeframe })
   })
 }
 

@@ -1,11 +1,15 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Plus, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Switch } from "@/components/ui/switch"
-import { PINE_ERROR, SCRIPT_TEMPLATES, convertPine, looksLikePine } from "@/lib/futures/script-runtime"
+import { PINE_ERROR, SCRIPT_TEMPLATES, convertPine, isTraderSignalPro, looksLikePine } from "@/lib/futures/script-runtime"
+import { AutoTradeDialog } from "./auto-trade-dialog"
+import type { AutoTradeSettings } from "@/lib/futures/auto-trading"
+import type { AccountMode } from "@/lib/futures/types"
+import type { ChartInterval } from "@/lib/futures/chart-intervals"
 import type { ChartScript, useChartScripts } from "@/hooks/use-chart-scripts"
 
 interface ScriptEditorProps {
@@ -13,6 +17,14 @@ interface ScriptEditorProps {
   onOpenChange: (open: boolean) => void
   store: ReturnType<typeof useChartScripts>
   errors: Record<string, string>
+  account: AccountMode
+  symbol: string
+  availableBalance: number
+  authenticated: boolean
+  interval: ChartInterval
+  initialSettings?: AutoTradeSettings
+  onSelectInterval: (interval: ChartInterval) => void
+  onStartAuto: (settings: AutoTradeSettings) => Promise<void>
 }
 
 const BLANK = `// Variáveis: open, high, low, close, volume, time, hl2, hlc3 (arrays)
@@ -25,13 +37,28 @@ const BLANK = `// Variáveis: open, high, low, close, volume, time, hl2, hlc3 (a
 plot(ta.sma(close, 50), { title: "SMA 50", color: "#f7a600" })
 `
 
-export function ScriptEditor({ open, onOpenChange, store, errors }: ScriptEditorProps) {
+export function ScriptEditor({
+  open,
+  onOpenChange,
+  store,
+  errors,
+  account,
+  symbol,
+  availableBalance,
+  authenticated,
+  interval,
+  initialSettings,
+  onSelectInterval,
+  onStartAuto,
+}: ScriptEditorProps) {
   const { scripts, error, isLoading, create, update, remove } = store
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [name, setName] = useState("")
   const [code, setCode] = useState("")
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [autoDialogOpen, setAutoDialogOpen] = useState(false)
+  const promptedScriptRef = useRef<string | null>(null)
 
   const selected = scripts.find((s) => s.id === selectedId) ?? null
 
@@ -48,6 +75,17 @@ export function ScriptEditor({ open, onOpenChange, store, errors }: ScriptEditor
     setMessage(null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected?.id])
+
+  useEffect(() => {
+    if (!open || !selected || !isTraderSignalPro(code)) {
+      promptedScriptRef.current = null
+      return
+    }
+    if (promptedScriptRef.current !== selected.id) {
+      promptedScriptRef.current = selected.id
+      setAutoDialogOpen(true)
+    }
+  }, [open, selected?.id, code])
 
   const run = async (fn: () => Promise<unknown>, ok?: string) => {
     setBusy(true)
@@ -69,8 +107,28 @@ export function ScriptEditor({ open, onOpenChange, store, errors }: ScriptEditor
     })
 
   const isPine = looksLikePine(code)
+  const autoTraderPine = isTraderSignalPro(code)
   const sniperTemplate = isPine ? convertPine(code) : null
-  const isSniperPine = !!sniperTemplate
+  const isSniperPine = !!sniperTemplate && !autoTraderPine
+
+  const activateAutomation = async (settings: AutoTradeSettings) => {
+    if (!selected || !autoTraderPine) throw new Error("Cole o TRADER SIGNAL PRO - 1M em um script selecionado")
+    setBusy(true)
+    setMessage(null)
+    try {
+      const scriptName = "TRADER SIGNAL PRO - 1M"
+      await update(selected.id, { name: scriptName, code, enabled: true })
+      setName(scriptName)
+      await onStartAuto(settings)
+      setMessage("Script salvo e automação iniciada")
+      onOpenChange(false)
+    } catch (err) {
+      setMessage((err as Error).message)
+      throw err
+    } finally {
+      setBusy(false)
+    }
+  }
 
   const replaceWithConverted = () => {
     if (!selected || !sniperTemplate) return
@@ -97,6 +155,7 @@ export function ScriptEditor({ open, onOpenChange, store, errors }: ScriptEditor
   }
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex h-[80vh] max-h-[720px] flex-col gap-0 overflow-hidden border-term-line bg-term-panel p-0 text-term-text sm:max-w-4xl">
         <DialogHeader className="border-b border-term-line px-4 py-3">
@@ -219,11 +278,22 @@ export function ScriptEditor({ open, onOpenChange, store, errors }: ScriptEditor
                   <div className="flex min-h-9 items-center gap-2 border-t border-term-line px-3 py-2 font-mono text-[11px]">
                   {isPine ? (
                     <>
-                      <span className={isSniperPine ? "text-term-up" : "text-term-down"}>
-                        {isSniperPine
-                          ? `Pine Script reconhecido: roda no gráfico como ${sniperTemplate!.name}. Converta para editar em JavaScript.`
-                          : PINE_ERROR}
+                      <span className={isSniperPine || autoTraderPine ? "text-term-up" : "text-term-down"}>
+                        {autoTraderPine
+                          ? "TRADER SIGNAL PRO reconhecido. CALL/PUT são confirmados no fechamento do período selecionado; configure a automação no pop-up."
+                          : isSniperPine
+                            ? `Pine Script reconhecido: roda no gráfico como ${sniperTemplate!.name}. Converta para editar em JavaScript.`
+                            : PINE_ERROR}
                       </span>
+                      {autoTraderPine && (
+                        <button
+                          type="button"
+                          onClick={() => setAutoDialogOpen(true)}
+                          className="ml-auto shrink-0 rounded bg-term-accent px-2.5 py-1 font-sans text-xs font-semibold text-term-bg"
+                        >
+                          Configurar automação
+                        </button>
+                      )}
                       {isSniperPine && sniperTemplate && (
                         <button
                           onClick={replaceWithConverted}
@@ -253,5 +323,18 @@ export function ScriptEditor({ open, onOpenChange, store, errors }: ScriptEditor
         )}
       </DialogContent>
     </Dialog>
+    <AutoTradeDialog
+      open={autoDialogOpen}
+      onOpenChange={setAutoDialogOpen}
+      account={account}
+      symbol={symbol}
+      availableBalance={availableBalance}
+      authenticated={authenticated}
+      interval={interval}
+      initialSettings={initialSettings}
+      onSelectInterval={onSelectInterval}
+      onStart={activateAutomation}
+    />
+    </>
   )
 }

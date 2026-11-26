@@ -14,9 +14,10 @@ import {
   type Time,
   type UTCTimestamp,
 } from "lightweight-charts"
-import type { Candle } from "@/lib/futures/chart-intervals"
+import { INTERVAL_SECONDS, type Candle, type ChartInterval } from "@/lib/futures/chart-intervals"
 import type { ChartScript } from "@/hooks/use-chart-scripts"
-import { runScript, type ScriptOutput, type ScriptPanel } from "@/lib/futures/script-runtime"
+import { isTraderSignalPro, runScript, type ScriptOutput, type ScriptPanel } from "@/lib/futures/script-runtime"
+import type { AutoTradeSignal } from "@/lib/futures/auto-trading"
 
 type AnySeries = ISeriesApi<"Line"> | ISeriesApi<"Histogram">
 
@@ -27,13 +28,17 @@ interface Options {
   scripts: ChartScript[]
   dataVersion: unknown
   decimals: number
+  timeframe: ChartInterval
+  onSignal?: (signal: AutoTradeSignal) => void
 }
 
 const REFRESH_MS = 2000
 
-export function useScriptOverlay({ chart, getMain, barsRef, scripts, dataVersion, decimals }: Options) {
+export function useScriptOverlay({ chart, getMain, barsRef, scripts, dataVersion, decimals, timeframe, onSignal }: Options) {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [panels, setPanels] = useState<ScriptPanel[]>([])
+  const onSignalRef = useRef(onSignal)
+  onSignalRef.current = onSignal
   const hlineSigRef = useRef("")
   const markerSigRef = useRef("")
   const plotSigRef = useRef<string[]>([])
@@ -226,7 +231,7 @@ export function useScriptOverlay({ chart, getMain, barsRef, scripts, dataVersion
       const runId = ++runIdRef.current
       const snapshot = bars.map((b) => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close, volume: b.volume }))
       const results = snapshot.length
-        ? await Promise.all(list.map(async (s) => ({ id: s.id, res: await runScript(s.code, snapshot) })))
+        ? await Promise.all(list.map(async (s) => ({ id: s.id, res: await runScript(s.code, snapshot, timeframe) })))
         : []
       if (runId !== runIdRef.current) return
 
@@ -236,6 +241,26 @@ export function useScriptOverlay({ chart, getMain, barsRef, scripts, dataVersion
         if (r.res.ok) ok.push({ id: r.id, output: r.res.output })
         else nextErrors[r.id] = r.res.error
       }
+
+      if (snapshot.length > 1) {
+        for (const r of results) {
+          const script = list.find((s) => s.id === r.id)
+          if (!script || !isTraderSignalPro(script.code) || !r.res.ok) continue
+          const setup = r.res.output.setup
+          if (!setup || (!setup.buy && !setup.sell)) continue
+          const confirmed = snapshot[setup.index]
+          if (!confirmed) continue
+          // Repassa a cada atualização; o terminal deduplica por vela e só age com o robô ativo.
+          onSignalRef.current?.({
+            scriptId: r.id,
+            side: setup.buy ? "buy" : "sell",
+            timeframe,
+            time: confirmed.time + INTERVAL_SECONDS[timeframe],
+            price: confirmed.close,
+          })
+        }
+      }
+
       setErrors((prev) => (JSON.stringify(prev) === JSON.stringify(nextErrors) ? prev : nextErrors))
       render(ok, snapshot)
     }
@@ -246,7 +271,7 @@ export function useScriptOverlay({ chart, getMain, barsRef, scripts, dataVersion
       clearInterval(timer)
       runIdRef.current++
     }
-  }, [chart, getMain, barsRef, scriptsSig, dataVersion, decimals])
+  }, [chart, getMain, barsRef, scriptsSig, dataVersion, decimals, timeframe])
 
   useEffect(() => {
     if (scriptsSig === "[]") setPanels([])
