@@ -26,4 +26,5 @@ export interface AutoTradeStatus {
   settings: AutoTradeSettings
   tradesToday: number
   dailyPnlPercent: number
+  lastEvent?: string
 }

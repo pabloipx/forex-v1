@@ -30,6 +30,7 @@ interface AutoBotSession {
   dayKey: string
   baseEquity: number
   tradesToday: number
+  lastEvent?: string
 }
 
 const currentDayKey = () => {
@@ -92,6 +93,7 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
   const [autoBot, setAutoBot] = useState<AutoBotSession | null>(null)
   const autoBotRef = useRef<AutoBotSession | null>(null)
   const processedSignalRef = useRef("")
+  const autoInFlightRef = useRef(false)
   autoBotRef.current = autoBot
 
   const toggleTheme = useCallback(() => {
@@ -187,7 +189,7 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
   const equity = accountEquity(state, tickers, derivs)
   const dailyPnlPercent = autoBot && autoBot.baseEquity > 0 ? ((equity - autoBot.baseEquity) / autoBot.baseEquity) * 100 : 0
   const autoBotStatus: AutoTradeStatus | null = autoBot
-    ? { settings: autoBot.settings, tradesToday: autoBot.tradesToday, dailyPnlPercent }
+    ? { settings: autoBot.settings, tradesToday: autoBot.tradesToday, dailyPnlPercent, lastEvent: autoBot.lastEvent }
     : null
 
   const startAutoBot = async (settings: AutoTradeSettings) => {
@@ -206,6 +208,7 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
           dayKey: currentDayKey(),
           baseEquity: equity,
           tradesToday: 0,
+          lastEvent: "Aguardando sinal CALL/PUT confirmado no fechamento da vela",
         }
     processedSignalRef.current = ""
     autoBotRef.current = session
@@ -213,14 +216,21 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
     toast.success(`Automação iniciada na conta ${account === "demo" ? "Demo" : "Real"}`)
   }
 
+  const logAutoEvent = useCallback((message: string) => {
+    const current = autoBotRef.current
+    if (!current || current.lastEvent === message) return
+    const next = { ...current, lastEvent: message }
+    autoBotRef.current = next
+    setAutoBot(next)
+  }, [])
+
   const handleAutoSignal = useCallback(async (signal: AutoTradeSignal) => {
-    const session = autoBotRef.current
-    if (!session) return
-    const eventKey = `${signal.scriptId}:${signal.time}:${signal.side}`
-    if (eventKey === processedSignalRef.current) return
-    processedSignalRef.current = eventKey
-    if (signal.time * 1000 <= session.startedAt) return
+    let session = autoBotRef.current
+    if (!session || autoInFlightRef.current) return
     if (signal.timeframe !== session.settings.timeframe) return
+    // Uma entrada por vela fechada e direção.
+    const candleKey = `${signal.time}:${signal.side}`
+    if (processedSignalRef.current === candleKey) return
     if (session.settings.account !== account || session.settings.symbol !== symbol) {
       stopAutoBot("Automação parada porque a conta ou o ativo mudou")
       return
@@ -229,9 +239,14 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
 
     const day = currentDayKey()
     if (session.dayKey !== day) {
-      const reset = { ...session, dayKey: day, baseEquity: equity, tradesToday: 0, startedAt: Date.now() }
-      autoBotRef.current = reset
-      setAutoBot(reset)
+      session = { ...session, dayKey: day, baseEquity: equity, tradesToday: 0 }
+      autoBotRef.current = session
+      setAutoBot(session)
+    }
+
+    const sideLabel = signal.side === "buy" ? "CALL" : "PUT"
+    if (state.positions.some((p) => p.symbol === session.settings.symbol) || state.openOrders.some((o) => o.symbol === session.settings.symbol)) {
+      logAutoEvent(`Sinal ${sideLabel} confirmado · aguardando a posição atual fechar (SL/TP)`)
       return
     }
 
@@ -248,25 +263,25 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
       stopAutoBot("Limite de entradas diárias atingido. Automação parada.")
       return
     }
-    if (state.positions.some((p) => p.symbol === session.settings.symbol) || state.openOrders.some((o) => o.symbol === session.settings.symbol)) return
 
     const livePrice = last
     if (Math.abs(livePrice - signal.price) / signal.price > 0.01) {
-      toast.warning("Sinal ignorado: o preço atual se afastou mais de 1% do fechamento do sinal")
+      processedSignalRef.current = candleKey
+      logAutoEvent(`Sinal ${sideLabel} ignorado: preço se afastou mais de 1% do fechamento da vela`)
       return
     }
 
-    const targetNotionalUsd = session.settings.marginUsd * session.settings.leverage
-    const qty = roundToStep(
-      targetNotionalUsd / (market.contractSize * livePrice * quoteToUsd(market, livePrice)),
-      market.qtyStep,
+    const unitUsd = market.contractSize * livePrice * quoteToUsd(market, livePrice)
+    // Margens pequenas podem render menos que o lote mínimo (ex.: US$ 25 × 2x em BTC); usa o mínimo do mercado.
+    const qty = Math.min(
+      market.maxQty,
+      Math.max(market.minQty, roundToStep((session.settings.marginUsd * session.settings.leverage) / unitUsd, market.qtyStep)),
     )
-    if (qty < market.minQty || qty > market.maxQty) {
-      stopAutoBot(`Tamanho calculado fora do limite do mercado ${market.symbol}. Automação parada.`)
-      return
-    }
-    if (session.settings.marginUsd * (1 + session.settings.leverage * 0.001) > state.balance) {
-      stopAutoBot("Saldo disponível insuficiente para a margem e as taxas estimadas")
+    const requiredMargin = (qty * unitUsd) / session.settings.leverage
+    if (requiredMargin * (1 + session.settings.leverage * 0.001) > state.balance) {
+      stopAutoBot(
+        `Saldo insuficiente: o lote mínimo de ${market.symbol} exige cerca de US$ ${requiredMargin.toFixed(2)} de margem com ${session.settings.leverage}x`,
+      )
       return
     }
 
@@ -276,6 +291,8 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
     const takeProfit = Math.round(livePrice * (signal.side === "buy" ? 1 + tpFactor : 1 - tpFactor) * factor) / factor
     const stopLoss = Math.round(livePrice * (signal.side === "buy" ? 1 - slFactor : 1 + slFactor) * factor) / factor
 
+    autoInFlightRef.current = true
+    processedSignalRef.current = candleKey
     try {
       await futuresApi.placeOrder({
         account,
@@ -288,7 +305,12 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
         takeProfit,
         stopLoss,
       })
-      const updated = { ...session, tradesToday: session.tradesToday + 1 }
+      const time = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+      const updated = {
+        ...session,
+        tradesToday: session.tradesToday + 1,
+        lastEvent: `${time} · ${sideLabel} executado (${qty} ${market.qtyUnit}, margem ~US$ ${requiredMargin.toFixed(2)}) · SL ${stopLoss} · TP ${takeProfit}`,
+      }
       toast.success(`${signal.side === "buy" ? "CALL / compra" : "PUT / venda"} executado em ${market.symbol} com SL/TP configurados`)
       if (updated.tradesToday >= session.settings.maxTradesPerDay) {
         autoBotRef.current = null
@@ -300,9 +322,13 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
       }
       refresh()
     } catch (e) {
-      toast.error(`Automação: ${(e as Error).message}`)
+      const message = (e as Error).message
+      toast.error(`Automação: ${message}`)
+      logAutoEvent(`Falha ao enviar ${sideLabel}: ${message}`)
+    } finally {
+      autoInFlightRef.current = false
     }
-  }, [account, symbol, state, market, last, equity, stopAutoBot, refresh])
+  }, [account, symbol, state, market, last, equity, stopAutoBot, refresh, logAutoEvent])
 
   useEffect(() => {
     if (!autoBot) return

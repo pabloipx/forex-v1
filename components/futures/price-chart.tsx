@@ -723,6 +723,12 @@ function PriceChartImpl({
               <span className="text-term-muted">Entradas hoje</span>
               <span className="text-right font-mono">{autoBotStatus.tradesToday}/{autoBotStatus.settings.maxTradesPerDay}</span>
             </div>
+            {autoBotStatus.lastEvent && (
+              <p aria-live="polite" className="mt-2 rounded bg-term-bg/70 px-2 py-1.5 text-[11px] leading-snug text-term-text">
+                <span className="text-term-muted">Último evento: </span>
+                {autoBotStatus.lastEvent}
+              </p>
+            )}
             <button type="button" onClick={onStopAuto} className="mt-2 w-full rounded border border-term-line py-1.5 font-semibold text-term-muted hover:bg-term-line hover:text-term-text">
               Parar automação
             </button>

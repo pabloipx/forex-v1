@@ -37,7 +37,6 @@ const REFRESH_MS = 2000
 export function useScriptOverlay({ chart, getMain, barsRef, scripts, dataVersion, decimals, timeframe, onSignal }: Options) {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [panels, setPanels] = useState<ScriptPanel[]>([])
-  const lastAutoSignalRef = useRef("")
   const onSignalRef = useRef(onSignal)
   onSignalRef.current = onSignal
   const hlineSigRef = useRef("")
@@ -243,22 +242,18 @@ export function useScriptOverlay({ chart, getMain, barsRef, scripts, dataVersion
         else nextErrors[r.id] = r.res.error
       }
 
-      if (timeframe === "1m" && snapshot.length > 1) {
-        const signalIndex = snapshot.length - 2
-        const confirmed = snapshot[signalIndex]
+      if (snapshot.length > 1) {
         for (const r of results) {
           const script = list.find((s) => s.id === r.id)
           if (!script || !isTraderSignalPro(script.code) || !r.res.ok) continue
-          const marker = r.res.output.markers.find(
-            (m) => m.index === signalIndex && (m.text === "CALL" || m.text === "PUT"),
-          )
-          if (!marker) continue
-          const eventKey = `${r.id}:${confirmed.time}:${marker.text}`
-          if (eventKey === lastAutoSignalRef.current) continue
-          lastAutoSignalRef.current = eventKey
+          const setup = r.res.output.setup
+          if (!setup || (!setup.buy && !setup.sell)) continue
+          const confirmed = snapshot[setup.index]
+          if (!confirmed) continue
+          // Repassa a cada atualização; o terminal deduplica por vela e só age com o robô ativo.
           onSignalRef.current?.({
             scriptId: r.id,
-            side: marker.text === "CALL" ? "buy" : "sell",
+            side: setup.buy ? "buy" : "sell",
             timeframe,
             time: confirmed.time + INTERVAL_SECONDS[timeframe],
             price: confirmed.close,

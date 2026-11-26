@@ -37,6 +37,7 @@ export interface ScriptOutput {
   hlines: ScriptHLine[]
   markers: ScriptMarker[]
   panels: ScriptPanel[]
+  setup?: { index: number; buy: boolean; sell: boolean } | null
 }
 
 export type ScriptResult = { ok: true; output: ScriptOutput } | { ok: false; error: string }
@@ -91,7 +92,10 @@ self.onmessage = (e) => {
   open = bars.map((b) => b.open); high = bars.map((b) => b.high); low = bars.map((b) => b.low);
   close = bars.map((b) => b.close); volume = bars.map((b) => b.volume); time = bars.map((b) => b.time);
   hl2 = bars.map((b) => (b.high + b.low) / 2); hlc3 = bars.map((b) => (b.high + b.low + b.close) / 3);
-  const out = { plots: [], hlines: [], markers: [], panels: [] };
+  const out = { plots: [], hlines: [], markers: [], panels: [], setup: null };
+  // Estado da última vela FECHADA (penúltima barra), usado pela automação.
+  const autoSetup = (buy, sell) => { const i = bars.length - 2; if (i < 0) return;
+    out.setup = { index: i, buy: !!(Array.isArray(buy) && buy[i]), sell: !!(Array.isArray(sell) && sell[i]) }; };
   const toSeries = (v) => Array.isArray(v) ? v.map(num) : new Array(bars.length).fill(num(v));
   const plot = (series, o = {}) => { if (out.plots.length >= MAX_PLOTS) throw new Error("Limite de " + MAX_PLOTS + " plots por script");
     out.plots.push({ title: String(o.title ?? "Plot " + (out.plots.length + 1)).slice(0, 40), color: String(o.color ?? "#2962ff"),
@@ -115,8 +119,8 @@ self.onmessage = (e) => {
       value: String((Array.isArray(r) ? r[1] : r?.value) ?? "").slice(0, 24),
       color: String((Array.isArray(r) ? r[2] : r?.color) ?? "#eaecef") })) }); };
   try {
-    const fn = new Function("open", "high", "low", "close", "volume", "time", "hl2", "hlc3", "bars", "ta", "plot", "hline", "signal", "panel", "timeframe", "Math", code);
-    fn(open, high, low, close, volume, time, hl2, hlc3, bars, ta, plot, hline, signal, panel, timeframe, Math);
+    const fn = new Function("open", "high", "low", "close", "volume", "time", "hl2", "hlc3", "bars", "ta", "plot", "hline", "signal", "panel", "timeframe", "autoSetup", "Math", code);
+    fn(open, high, low, close, volume, time, hl2, hlc3, bars, ta, plot, hline, signal, panel, timeframe, autoSetup, Math);
     self.postMessage({ id, ok: true, output: out });
   } catch (err) {
     self.postMessage({ id, ok: false, error: err && err.message ? String(err.message) : String(err) });
@@ -158,7 +162,7 @@ export const PINE_ERROR =
 export function isTraderSignalPro(code: string): boolean {
   const title = code.match(/\b(?:indicator|strategy|study)\s*\(\s*["']([^"']*)/i)?.[1] ?? ""
   return (
-    /^TRADER SIGNAL PRO\s*-\s*1M$/i.test(title.trim()) &&
+    /^TRADER SIGNAL PRO\b/i.test(title.trim()) &&
     /\bcallScore\s*=/.test(code) &&
     /\bputScore\s*=/.test(code) &&
     /table\.new\s*\(/.test(code) &&
@@ -198,6 +202,7 @@ plot(emaFast, { title: "EMA 9", color: "#16be73", width: 2 })
 plot(emaSlow, { title: "EMA 21", color: "#eb4650", width: 2 })
 signal(callSignal, { side: "buy", text: "CALL", color: "#16be73" })
 signal(putSignal, { side: "sell", text: "PUT", color: "#eb4650" })
+autoSetup(callSetup, putSetup)
 
 const u = n - 1
 const currentStatus = callSetup[u] ? "CALL CONFIRMADO" : putSetup[u] ? "PUT CONFIRMADO" : "ANALISANDO"
