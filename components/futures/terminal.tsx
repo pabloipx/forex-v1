@@ -412,6 +412,7 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
                     last={last}
                     positions={state?.positions ?? []}
                     openOrders={state?.openOrders ?? []}
+                    fills={state?.fills ?? []}
                     onLineDrag={dragLine}
                     toolbarExtra={<ChartViewToggle value={chartView} onChange={changeChartView} />}
                     toolbarEnd={expandButton}
