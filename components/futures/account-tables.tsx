@@ -48,6 +48,8 @@ const CLOSE_REASON: Record<string, string> = {
   liquidation: "Liquidação",
   trailing_stop: "Trailing stop",
   reduce: "Ordem",
+  close: "Fechamento",
+  admin_close: "Fechada pelo admin",
 }
 
 const time = (iso: string) =>
@@ -268,16 +270,18 @@ function LeverageDialog({ position, onClose, onSaved }: { position: Position; on
 function CloseDialog({
   position,
   mark,
+  initialMode = "market",
   onClose,
   onDone,
 }: {
   position: Position
   mark: number | null
+  initialMode?: "market" | "limit"
   onClose: () => void
   onDone: () => void
 }) {
   const market = MARKET_MAP[position.symbol]
-  const [mode, setMode] = useState<"market" | "limit">("market")
+  const [mode, setMode] = useState<"market" | "limit">(initialMode)
   const [price, setPrice] = useState(mark != null ? mark.toFixed(market?.priceDecimals ?? 2) : "")
   const [busy, setBusy] = useState(false)
   if (!market) return null
@@ -528,6 +532,125 @@ function OrderCard({ o, onCancel }: { o: Order; onCancel: (id: string) => void }
 
 const cardGrid = "grid gap-3 p-3 xl:grid-cols-2 min-[1800px]:grid-cols-3 phone:grid-cols-1 phone:gap-2 phone:p-2"
 
+const rowBtn =
+  "rounded border border-term-line px-2.5 py-1 text-xs font-semibold text-term-text transition-colors hover:border-term-muted hover:bg-term-line/60 disabled:opacity-50"
+
+function PositionTableRow({
+  p,
+  mark,
+  onEditTpSl,
+  onEditLeverage,
+  onCloseLimit,
+  onShare,
+  onChanged,
+}: {
+  p: Position
+  mark: number | null
+  onEditTpSl: () => void
+  onEditLeverage: () => void
+  onCloseLimit: () => void
+  onShare: (roi: number) => void
+  onChanged: () => void
+}) {
+  const [busy, setBusy] = useState(false)
+  const market = MARKET_MAP[p.symbol]
+  if (!market) return null
+  const d = market.priceDecimals
+  const pnl = mark != null ? unrealizedPnl(market, p.side, p.qty, p.entry_price, mark) : 0
+  const roi = p.margin > 0 ? (pnl / p.margin) * 100 : 0
+  const up = pnl >= 0
+  const long = p.side === "long"
+
+  const closeMarket = async () => {
+    if (!window.confirm(`Fechar ${p.symbol} (${long ? "Long" : "Short"} ${p.leverage}x) a mercado agora?`)) return
+    setBusy(true)
+    try {
+      await futuresApi.closePosition(p.id)
+      toast.success(`Posição ${p.symbol} fechada a mercado`)
+      onChanged()
+    } catch (e) {
+      toast.error((e as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <tr className="border-t border-term-line/60 align-top text-term-text hover:bg-term-line/30">
+      <td className="whitespace-nowrap px-3 py-2.5">
+        <span className="flex items-center gap-2">
+          <span className={cn("h-8 w-0.5 shrink-0 rounded-full", long ? "bg-long" : "bg-short")} aria-hidden="true" />
+          <span className="flex flex-col leading-tight">
+            <span className="text-[13px] font-bold">{p.symbol}</span>
+            <button
+              type="button"
+              onClick={onEditLeverage}
+              className={cn("inline-flex items-center gap-1 text-[11px] font-semibold", long ? "text-long" : "text-short")}
+            >
+              {long ? "Long" : "Short"} {p.leverage}x
+              <span className="font-normal text-term-muted">· {p.margin_mode === "cross" ? "Cruzada" : "Isolada"}</span>
+              <Pencil className="size-2.5 text-term-muted" aria-hidden="true" />
+              <span className="sr-only">Ajustar alavancagem</span>
+            </button>
+          </span>
+        </span>
+      </td>
+      <Td right className={long ? "text-long" : "text-short"}>
+        {long ? "" : "-"}
+        {p.qty.toFixed(market.qtyDecimals)} {market.qtyUnit}
+      </Td>
+      <Td right>{formatUsd(mark != null ? notionalUsd(market, p.qty, mark) : null)} USD</Td>
+      <Td right>{formatPrice(p.entry_price, d)}</Td>
+      <td className="whitespace-nowrap px-3 py-2.5 text-right font-mono">
+        <span className="inline-flex items-start gap-1.5">
+          <span className={cn("flex flex-col items-end leading-tight", up ? "text-long" : "text-short")}>
+            <span className="font-semibold">
+              {up ? "+" : ""}
+              {formatUsd(pnl)} USD
+            </span>
+            <span className="text-[11px]">
+              ({roi >= 0 ? "+" : ""}
+              {roi.toFixed(2)}%)
+            </span>
+          </span>
+          <button
+            type="button"
+            onClick={() => onShare(roi)}
+            aria-label={`Compartilhar P&L de ${p.symbol}`}
+            className="text-term-muted hover:text-term-text"
+          >
+            <Share2 className="size-3.5" aria-hidden="true" />
+          </button>
+        </span>
+      </td>
+      <Td right>{formatPrice(mark, d)}</Td>
+      <Td right className="text-term-accent">
+        {formatPrice(p.liquidation_price, d)}
+      </Td>
+      <Td right>{formatUsd(p.margin)} USD</Td>
+      <Td right>
+        <button type="button" onClick={onEditTpSl} className="inline-flex items-center gap-1 hover:text-term-accent">
+          <span className={p.take_profit ? "text-long" : "text-term-muted"}>{p.take_profit ? formatPrice(p.take_profit, d) : "--"}</span>
+          <span className="text-term-muted">/</span>
+          <span className={p.stop_loss ? "text-short" : "text-term-muted"}>{p.stop_loss ? formatPrice(p.stop_loss, d) : "--"}</span>
+          <Pencil className="size-3 text-term-muted" aria-hidden="true" />
+          <span className="sr-only">Editar TP/SL</span>
+        </button>
+      </Td>
+      <td className="sticky right-0 whitespace-nowrap bg-term-panel px-3 py-2.5 text-right shadow-[-8px_0_8px_-8px_rgba(0,0,0,0.35)]">
+        <span className="inline-flex gap-1.5">
+          <button type="button" onClick={onCloseLimit} disabled={busy} className={rowBtn}>
+            Limite
+          </button>
+          <button type="button" onClick={closeMarket} disabled={busy} className={rowBtn}>
+            {busy ? "..." : "Mercado"}
+          </button>
+        </span>
+      </td>
+    </tr>
+  )
+}
+
 function OrdersTable({ orders, onCancel }: { orders: Order[]; onCancel?: (id: string) => void }) {
   return (
     <table className="w-full text-xs">
@@ -553,9 +676,17 @@ function OrdersTable({ orders, onCancel }: { orders: Order[]; onCancel?: (id: st
             <tr key={o.id} className="border-t border-term-line/60 text-term-text hover:bg-term-line/30">
               <Td className="font-sans font-semibold">
                 {o.symbol}
+                {o.source === "robo" && (
+                  <span className="ml-1.5 rounded bg-term-accent/15 px-1 py-px text-[10px] font-semibold text-term-accent">Robô</span>
+                )}
                 {o.reduce_only && <span className="ml-1.5 text-[10px] font-normal text-primary">Reduzir</span>}
               </Td>
-              <Td className="font-sans">{ORDER_TYPE[o.order_type]}</Td>
+              <Td className="font-sans">
+                {ORDER_TYPE[o.order_type]}
+                {o.exec_type && o.exec_type !== "trade" && (
+                  <span className="ml-1 text-term-muted">· {CLOSE_REASON[o.exec_type] ?? (o.exec_type === "close" ? "Fechamento" : o.exec_type)}</span>
+                )}
+              </Td>
               <Td className="font-sans">
                 <SideLabel side={o.side} />
               </Td>
@@ -595,7 +726,7 @@ export function AccountTables({ state, account, marks, derivs, liveSymbol, liveP
   const [tab, setTab] = useState<Tab>("positions")
   const [editing, setEditing] = useState<Position | null>(null)
   const [editingLev, setEditingLev] = useState<Position | null>(null)
-  const [closing, setClosing] = useState<Position | null>(null)
+  const [closing, setClosing] = useState<{ position: Position; mode: "market" | "limit" } | null>(null)
   const [sharing, setSharing] = useState<PnlShareData | null>(null)
   const [closingAll, setClosingAll] = useState(false)
   const positions = state?.positions ?? []
@@ -605,6 +736,18 @@ export function AccountTables({ state, account, marks, derivs, liveSymbol, liveP
   // PnL e risco usam o preço de marcação; o último negócio é só fallback.
   const markOf = (symbol: string) =>
     derivs?.[symbol]?.markPrice ?? (symbol === liveSymbol && livePrice ? livePrice : (marks[symbol]?.price ?? null))
+
+  const sharePosition = (p: Position, roi: number) =>
+    setSharing({
+      symbol: p.symbol,
+      side: p.side,
+      leverage: p.leverage,
+      roi,
+      entry: p.entry_price,
+      current: markOf(p.symbol) ?? p.entry_price,
+      decimals: MARKET_MAP[p.symbol]?.priceDecimals ?? 2,
+      demo: account === "demo",
+    })
 
   const closeAll = async () => {
     if (!window.confirm(`Fechar todas as ${positions.length} posições a mercado?`)) return
@@ -694,41 +837,68 @@ export function AccountTables({ state, account, marks, derivs, liveSymbol, liveP
           positions.length === 0 ? (
             <Empty text="Nenhuma posição aberta." />
           ) : (
-            <div className={cardGrid}>
-              {positions.map((p) => (
-                <PositionCard
-                  key={p.id}
-                  p={p}
-                  mark={markOf(p.symbol)}
-                  onEditTpSl={() => setEditing(p)}
-                  onEditLeverage={() => setEditingLev(p)}
-                  onClosePosition={() => setClosing(p)}
-                  onShare={(roi) => {
-                    const m = MARKET_MAP[p.symbol]
-                    setSharing({
-                      symbol: p.symbol,
-                      side: p.side,
-                      leverage: p.leverage,
-                      roi,
-                      entry: p.entry_price,
-                      current: markOf(p.symbol) ?? p.entry_price,
-                      decimals: m?.priceDecimals ?? 2,
-                      demo: account === "demo",
-                    })
-                  }}
-                />
-              ))}
-            </div>
+            <>
+              <table className="hidden w-full text-xs lg:table phone:hidden">
+                <thead>
+                  <tr>
+                    <Th>Contrato</Th>
+                    <Th right>Qtd</Th>
+                    <Th right>Valor</Th>
+                    <Th right>Preço de entrada</Th>
+                    <Th right>P&L não realizado (ROI)</Th>
+                    <Th right>Preço de marcação</Th>
+                    <Th right>Preço liq.</Th>
+                    <Th right>Margem</Th>
+                    <Th right>TP/SL</Th>
+                    <th scope="col" className="sticky right-0 whitespace-nowrap bg-term-panel px-3 py-2 text-right font-normal text-term-muted">
+                      Fechar por
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {positions.map((p) => (
+                    <PositionTableRow
+                      key={p.id}
+                      p={p}
+                      mark={markOf(p.symbol)}
+                      onEditTpSl={() => setEditing(p)}
+                      onEditLeverage={() => setEditingLev(p)}
+                      onCloseLimit={() => setClosing({ position: p, mode: "limit" })}
+                      onShare={(roi) => sharePosition(p, roi)}
+                      onChanged={onChanged}
+                    />
+                  ))}
+                </tbody>
+              </table>
+              <div className={cn(cardGrid, "lg:hidden phone:grid")}>
+                {positions.map((p) => (
+                  <PositionCard
+                    key={p.id}
+                    p={p}
+                    mark={markOf(p.symbol)}
+                    onEditTpSl={() => setEditing(p)}
+                    onEditLeverage={() => setEditingLev(p)}
+                    onClosePosition={() => setClosing({ position: p, mode: "market" })}
+                    onShare={(roi) => sharePosition(p, roi)}
+                  />
+                ))}
+              </div>
+            </>
           )
         ) : tab === "orders" ? (
           openOrders.length === 0 ? (
             <Empty text="Nenhuma ordem em aberto." />
           ) : (
-            <div className={cardGrid}>
-              {openOrders.map((o) => (
-                <OrderCard key={o.id} o={o} onCancel={cancel} />
-              ))}
-            </div>
+            <>
+              <div className="hidden lg:block phone:hidden">
+                <OrdersTable orders={openOrders} onCancel={cancel} />
+              </div>
+              <div className={cn(cardGrid, "lg:hidden phone:grid")}>
+                {openOrders.map((o) => (
+                  <OrderCard key={o.id} o={o} onCancel={cancel} />
+                ))}
+              </div>
+            </>
           )
         ) : tab === "history" ? (
           (state?.orderHistory.length ?? 0) === 0 ? <Empty text="Sem histórico de ordens." /> : <OrdersTable orders={state!.orderHistory} />
@@ -881,7 +1051,13 @@ export function AccountTables({ state, account, marks, derivs, liveSymbol, liveP
       )}
       {editingLev && <LeverageDialog position={editingLev} onClose={() => setEditingLev(null)} onSaved={onChanged} />}
       {closing && (
-        <CloseDialog position={closing} mark={markOf(closing.symbol)} onClose={() => setClosing(null)} onDone={onChanged} />
+        <CloseDialog
+          position={closing.position}
+          mark={markOf(closing.position.symbol)}
+          initialMode={closing.mode}
+          onClose={() => setClosing(null)}
+          onDone={onChanged}
+        />
       )}
       {sharing && <PnlShareDialog data={sharing} onClose={() => setSharing(null)} />}
     </section>

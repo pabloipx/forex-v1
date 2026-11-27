@@ -1,8 +1,8 @@
 import { createClient, createAdminClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
-import { CRYPTO_MIN_USD, CRYPTO_OPTIONS, USD_TO_BRL, isCryptoType } from "@/lib/deposit/crypto"
-import { getUsdBrlRate } from "@/lib/fx"
+import { CRYPTO_OPTIONS, USD_TO_BRL, isCryptoType } from "@/lib/deposit/crypto"
+import { getCryptoMinUsd, getUsdBrlRate } from "@/lib/fx"
 
 export async function POST(request: Request) {
   try {
@@ -27,8 +27,9 @@ export async function POST(request: Request) {
 
     // Validations
     const numAmount = Number(amountUsd)
-    if (!numAmount || numAmount < CRYPTO_MIN_USD) {
-      return NextResponse.json({ error: `Valor minimo e $${CRYPTO_MIN_USD} USD` }, { status: 400 })
+    const minUsd = await getCryptoMinUsd(createAdminClient())
+    if (!numAmount || numAmount < minUsd) {
+      return NextResponse.json({ error: `Valor mínimo é $${minUsd} USD` }, { status: 400 })
     }
 
     if (typeof txHash !== "string" || txHash.trim().length < 10 || txHash.trim().length > 200) {

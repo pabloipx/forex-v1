@@ -89,6 +89,42 @@ interface FillArgs {
   orderId?: string | null
   execType?: string
   isMaker?: boolean
+  /** Para execuções sem ordem prévia: como registrar no histórico de ordens. */
+  orderType?: "market" | "limit"
+  limitPrice?: number | null
+  source?: OrderSource
+}
+
+type OrderSource = "manual" | "robo" | "sistema"
+
+/**
+ * Execuções imediatas (mercado, limite executável, fechamentos, TP/SL, liquidação) não passam por
+ * futures_orders; grava uma ordem "filled" para que tudo apareça no Histórico de ordens.
+ */
+async function recordFilledOrder(admin: SupabaseClient, a: FillArgs, fee: number) {
+  const { error } = await admin.from("futures_orders").insert({
+    user_id: a.userId,
+    is_demo: a.isDemo,
+    symbol: a.market.symbol,
+    side: a.side,
+    order_type: a.orderType ?? "market",
+    price: a.orderType === "limit" ? (a.limitPrice ?? a.price) : null,
+    qty: a.qty,
+    leverage: Math.max(1, Math.floor(a.leverage)),
+    margin_mode: a.marginMode,
+    contract_size: a.market.contractSize,
+    reduce_only: a.reduceOnly ?? false,
+    take_profit: a.takeProfit ?? null,
+    stop_loss: a.stopLoss ?? null,
+    status: "filled",
+    filled_price: a.price,
+    filled_qty: a.qty,
+    fee: Number(fee) || 0,
+    source: a.source ?? "manual",
+    exec_type: a.execType ?? "trade",
+  })
+  // A execução já aconteceu; uma falha aqui só afeta o histórico.
+  if (error) console.error("[futures] falha ao registrar ordem executada", error.message)
 }
 
 async function rpcFill(admin: SupabaseClient, a: FillArgs) {
@@ -112,7 +148,9 @@ async function rpcFill(admin: SupabaseClient, a: FillArgs) {
     p_is_maker: a.isMaker ?? false,
   })
   if (error) throw rpcError(error)
-  return data as { position_id: string; balance: number; realized_pnl: number; fee: number }
+  const result = data as { position_id: string; balance: number; realized_pnl: number; fee: number }
+  if (!a.orderId) await recordFilledOrder(admin, a, result?.fee ?? 0)
+  return result
 }
 
 async function getOpenPosition(admin: SupabaseClient, userId: string, symbol: string, isDemo: boolean) {
@@ -188,6 +226,8 @@ export async function placeOrder(userId: string, input: PlaceOrderInput) {
       reduceOnly: input.reduceOnly,
       takeProfit: input.takeProfit,
       stopLoss: input.stopLoss,
+      orderType: "market",
+      source: input.source ?? "manual",
     })
   }
 
@@ -214,6 +254,9 @@ export async function placeOrder(userId: string, input: PlaceOrderInput) {
         reduceOnly: input.reduceOnly,
         takeProfit: input.takeProfit,
         stopLoss: input.stopLoss,
+        orderType: "limit",
+        limitPrice: price,
+        source: input.source ?? "manual",
       })
     }
     if (tif === "IOC" || tif === "FOK") {
@@ -303,7 +346,13 @@ export async function cancelAllOrders(userId: string, isDemo: boolean, symbol?: 
   return { cancelled: data?.length ?? 0 }
 }
 
-export async function closePosition(userId: string, positionId: string, qty?: number, limitPrice?: number) {
+export async function closePosition(
+  userId: string,
+  positionId: string,
+  qty?: number,
+  limitPrice?: number,
+  by: "user" | "admin" = "user",
+) {
   if (isTestUser(userId)) return testEngine.closePosition(positionId, qty, limitPrice)
   const admin = createAdminClient()
   const { data } = await admin
@@ -353,7 +402,9 @@ export async function closePosition(userId: string, positionId: string, qty?: nu
     marginMode: pos.margin_mode,
     feeRate: paramsFor(market.symbol).takerFee,
     reduceOnly: true,
-    execType: "close",
+    execType: by === "admin" ? "admin_close" : "close",
+    orderType: "market",
+    source: by === "admin" ? "sistema" : "manual",
   })
 }
 
@@ -667,6 +718,8 @@ export async function sweep(userId?: string) {
         feeRate,
         reduceOnly: true,
         execType,
+        orderType: "market",
+        source: "sistema",
       })
       processed++
     } catch (e) {

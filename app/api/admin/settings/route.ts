@@ -29,18 +29,13 @@ export async function GET(request: Request) {
   }
 }
 
+// setting_key é a chave primária. O update+insert anterior dependia de `count`, que o Supabase só
+// devolve quando pedido; vinha null, o insert nunca rodava e chaves novas eram perdidas em silêncio.
 async function upsertSetting(adminClient: any, key: string, value: string) {
-  const { error: updateError, count } = await adminClient
+  const { error } = await adminClient
     .from("platform_settings")
-    .update({ setting_value: value, updated_at: new Date().toISOString() })
-    .eq("setting_key", key)
-    .select()
-
-  if (updateError || count === 0) {
-    await adminClient
-      .from("platform_settings")
-      .insert({ setting_key: key, setting_value: value })
-  }
+    .upsert({ setting_key: key, setting_value: value, updated_at: new Date().toISOString() }, { onConflict: "setting_key" })
+  if (error) throw new Error(`Falha ao salvar "${key}": ${error.message}`)
 }
 
 export async function POST(request: Request) {
@@ -92,7 +87,15 @@ export async function POST(request: Request) {
     if (minUsd !== undefined) await upsertSetting(adminClient, "deposit_min_usd", String(Math.round(minUsd * 100) / 100))
     if (maxUsd !== undefined) await upsertSetting(adminClient, "deposit_max_usd", String(Math.round(maxUsd * 100) / 100))
 
-    if (body.withdraw_min_usd !== undefined) {
+    if (body.crypto_min_usd !== undefined) {
+    const cryptoMin = Number(body.crypto_min_usd)
+    if (!Number.isFinite(cryptoMin) || cryptoMin < 1 || cryptoMin > 100000) {
+      return NextResponse.json({ error: "O depósito mínimo em cripto deve ficar entre US$ 1 e US$ 100.000." }, { status: 400 })
+    }
+    await upsertSetting(adminClient, "crypto_min_usd", String(Math.round(cryptoMin * 100) / 100))
+  }
+
+  if (body.withdraw_min_usd !== undefined) {
       const minWithdraw = Number(body.withdraw_min_usd)
       if (!Number.isFinite(minWithdraw) || minWithdraw < 1 || minWithdraw > 100000) {
         return NextResponse.json({ error: "O saque minimo deve ficar entre US$ 1 e US$ 100.000." }, { status: 400 })
@@ -122,8 +125,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("Error updating settings:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  console.error("Error updating settings:", error)
+  return NextResponse.json({ error: (error as Error)?.message || "Não foi possível salvar as configurações" }, { status: 500 })
   }
 }
 

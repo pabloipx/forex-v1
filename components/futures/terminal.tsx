@@ -304,6 +304,7 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
         marginMode: "isolated",
         takeProfit,
         stopLoss,
+        source: "robo",
       })
       const time = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
       const updated = {
@@ -412,6 +413,7 @@ export function FuturesTerminal({ symbol, initialTheme }: { symbol: string; init
                     last={last}
                     positions={state?.positions ?? []}
                     openOrders={state?.openOrders ?? []}
+                    fills={state?.fills ?? []}
                     onLineDrag={dragLine}
                     toolbarExtra={<ChartViewToggle value={chartView} onChange={changeChartView} />}
                     toolbarEnd={expandButton}

@@ -9,10 +9,17 @@ import { cn } from "@/lib/utils"
 import { ErrorNote, Panel } from "./ui"
 
 type Settings = Record<string, string>
-type FieldKey = "deposit_min_usd" | "deposit_max_usd" | "pix_fx_spread_percent" | "withdraw_min_usd" | "withdrawal_processing_hours"
+type FieldKey =
+  | "deposit_min_usd"
+  | "deposit_max_usd"
+  | "pix_fx_spread_percent"
+  | "crypto_min_usd"
+  | "withdraw_min_usd"
+  | "withdrawal_processing_hours"
 
 const DEFAULTS: Record<FieldKey, string> = {
   deposit_min_usd: "100",
+  crypto_min_usd: "20",
   deposit_max_usd: "20000",
   pix_fx_spread_percent: "0",
   withdraw_min_usd: "100",
@@ -81,7 +88,15 @@ export function LimitsSection() {
           action={<GroupIcon icon={ArrowDownToLine} tone="up" />}
         >
           <div className="grid gap-4 p-4 sm:grid-cols-2">
-            <Field id="dep-min" label="Mínimo" prefix="US$" value={val("deposit_min_usd")} onChange={set("deposit_min_usd")} hint={brlHint(depMin)} />
+            <Field id="dep-min" label="Mínimo PIX" prefix="US$" value={val("deposit_min_usd")} onChange={set("deposit_min_usd")} hint={brlHint(depMin)} />
+            <Field
+              id="dep-crypto-min"
+              label="Mínimo criptomoeda"
+              prefix="US$"
+              value={val("crypto_min_usd")}
+              onChange={set("crypto_min_usd")}
+              hint="Vale para USDT, BTC, ETH e SOL"
+            />
             <Field id="dep-max" label="Máximo" prefix="US$" value={val("deposit_max_usd")} onChange={set("deposit_max_usd")} hint="Por depósito" />
             <Field
               id="dep-spread"
@@ -95,7 +110,7 @@ export function LimitsSection() {
           <Footer
             busy={saving === "deposit"}
             disabled={!data}
-            onSave={() => save("deposit", ["deposit_min_usd", "deposit_max_usd", "pix_fx_spread_percent"])}
+            onSave={() => save("deposit", ["deposit_min_usd", "crypto_min_usd", "deposit_max_usd", "pix_fx_spread_percent"])}
           />
         </Panel>
 

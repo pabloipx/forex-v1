@@ -11,10 +11,13 @@ import {
   LineStyle,
   PriceScaleMode,
   createChart,
+  createSeriesMarkers,
   createTextWatermark,
   type IChartApi,
   type IPriceLine,
   type ISeriesApi,
+  type ISeriesMarkersPluginApi,
+  type SeriesMarker,
   type UTCTimestamp,
   type Time,
 } from "lightweight-charts"
@@ -30,7 +33,7 @@ import {
 import { cn } from "@/lib/utils"
 import { formatPrice, type FuturesMarket } from "@/lib/futures/markets"
 import { INTERVALS, INTERVAL_SECONDS, type Candle, type ChartInterval } from "@/lib/futures/chart-intervals"
-import type { Order, Position, AccountMode } from "@/lib/futures/types"
+import type { Fill, Order, Position, AccountMode } from "@/lib/futures/types"
 import type { AutoTradeSettings, AutoTradeSignal, AutoTradeStatus } from "@/lib/futures/auto-trading"
 import { CHART_THEMES, type ChartTheme, type TermTheme } from "@/lib/futures/term-theme"
 
@@ -80,6 +83,7 @@ interface PriceChartProps {
   last: number | null
   positions: Position[]
   openOrders: Order[]
+  fills?: Fill[]
   onLineDrag?: (positionId: string, kind: "tp" | "sl", price: number) => void
   toolbarExtra?: React.ReactNode
   toolbarEnd?: React.ReactNode
@@ -103,6 +107,7 @@ interface LineSpec {
 }
 
 const DRAG_HIT_PX = 6
+const NO_FILLS: Fill[] = []
 
 const fetcher = async (url: string) => {
   const res = await fetch(url)
@@ -117,6 +122,7 @@ function PriceChartImpl({
   last,
   positions,
   openOrders,
+  fills = NO_FILLS,
   onLineDrag,
   toolbarExtra,
   toolbarEnd,
@@ -327,6 +333,67 @@ function PriceChartImpl({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Incrementa quando barsRef é substituído pelas velas do período atual; as marcas dependem disso.
+  const [barsVersion, setBarsVersion] = useState(0)
+  const tradeMarkersRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null)
+  useEffect(() => {
+    const main = candleRef.current
+    if (!chartApi || !main) return
+    tradeMarkersRef.current = createSeriesMarkers(main, [])
+    return () => {
+      try {
+        tradeMarkersRef.current?.detach()
+      } catch {}
+      tradeMarkersRef.current = null
+    }
+  }, [chartApi])
+
+  // Marcas B/S de cada execução (manual ou do robô) na vela em que aconteceu.
+  const fillsSig = fills.map((f) => f.id).join(",")
+  useEffect(() => {
+    const plugin = tradeMarkersRef.current
+    if (!plugin) return
+    const bars = barsRef.current
+    if (!displaySettings.tradeHistory || !bars.length) {
+      plugin.setMarkers([])
+      return
+    }
+    const step = INTERVAL_SECONDS[interval]
+    const barTimeFor = (t: number) => {
+      let lo = 0
+      let hi = bars.length - 1
+      if (t < bars[0].time || t >= bars[hi].time + step) return null
+      while (lo < hi) {
+        const mid = (lo + hi + 1) >> 1
+        if (bars[mid].time <= t) lo = mid
+        else hi = mid - 1
+      }
+      return bars[lo].time
+    }
+    const seen = new Set<string>()
+    const markers: SeriesMarker<Time>[] = []
+    for (const f of fills) {
+      if (f.symbol !== market.symbol) continue
+      const barTime = barTimeFor(Math.floor(new Date(f.created_at).getTime() / 1000))
+      if (barTime == null) continue
+      const key = `${barTime}:${f.side}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      const buy = f.side === "buy"
+      markers.push({
+        time: barTime as UTCTimestamp,
+        position: buy ? "belowBar" : "aboveBar",
+        shape: buy ? "arrowUp" : "arrowDown",
+        color: buy ? COLORS.up : COLORS.down,
+        text: buy ? "B" : "S",
+        size: 1,
+      })
+    }
+    markers.sort((a, b) => (a.time as number) - (b.time as number))
+    plugin.setMarkers(markers)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fillsSig, displaySettings.tradeHistory, barsVersion, market.symbol, chartApi])
+
   // Layout effects: o canvas troca de cor no mesmo frame que o CSS, sem piscar o tema antigo.
   useLayoutEffect(() => {
     watermarkRef.current?.applyOptions({
@@ -367,6 +434,7 @@ function PriceChartImpl({
     )
     lastCandleRef.current = candles.at(-1) ? { ...candles.at(-1)! } : null
     barsRef.current = candles.map((c) => ({ ...c }))
+    setBarsVersion((v) => v + 1)
     if (!hoverRef.current) renderLegend(lastCandleRef.current)
     if (loadedKeyRef.current !== key) {
       loadedKeyRef.current = key
@@ -474,7 +542,7 @@ function PriceChartImpl({
     const el = containerRef.current
     const chart = chartApi
     if (!el || !chart) return
-    let dragging: { index: number; price: number } | null = null
+    let dragging: { index: number; price: number; startY: number; moved: boolean } | null = null
 
     const hit = (y: number) => {
       const series = candleRef.current
@@ -488,12 +556,15 @@ function PriceChartImpl({
     const localY = (e: PointerEvent) => e.clientY - el.getBoundingClientRect().top
 
     const onDown = (e: PointerEvent) => {
-      if (e.button !== 0) return
-      const index = hit(localY(e))
+      // No toque, rolar/aproximar o gráfico perto da linha arrastava o SL até o preço atual e
+      // fechava a posição. Arraste só com mouse/caneta; no celular o TP/SL é editado pelo botão.
+      if (e.button !== 0 || e.pointerType === "touch") return
+      const y = localY(e)
+      const index = hit(y)
       if (index < 0) return
       e.stopPropagation()
       e.preventDefault()
-      dragging = { index, price: lineSpecsRef.current[index].price }
+      dragging = { index, price: lineSpecsRef.current[index].price, startY: y, moved: false }
       chart.applyOptions({ handleScroll: false, handleScale: false })
       el.setPointerCapture(e.pointerId)
     }
@@ -504,6 +575,8 @@ function PriceChartImpl({
         return
       }
       e.stopPropagation()
+      if (!dragging.moved && Math.abs(y - dragging.startY) < 4) return
+      dragging.moved = true
       const price = candleRef.current?.coordinateToPrice(y)
       if (price == null || price <= 0) return
       const rounded = Number(price.toFixed(decimalsRef.current))
@@ -514,27 +587,52 @@ function PriceChartImpl({
         title: `${spec.drag?.kind === "tp" ? "TP" : "SL"} ${formatPrice(rounded, decimalsRef.current)}`,
       })
     }
-    const onUp = (e: PointerEvent) => {
+    const restore = (index: number) => {
+      const spec = lineSpecsRef.current[index]
+      if (!spec) return
+      priceLinesRef.current[index]?.applyOptions({ price: spec.price, title: spec.title })
+    }
+    const finish = (e: PointerEvent, apply: boolean) => {
       if (!dragging) return
       e.stopPropagation()
-      const spec = lineSpecsRef.current[dragging.index]
-      const { price } = dragging
+      const { index, price, moved } = dragging
+      const spec = lineSpecsRef.current[index]
       dragging = null
       el.style.cursor = ""
       chart.applyOptions({ handleScroll: true, handleScale: true })
       if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId)
-      if (spec?.drag && price !== spec.price) onLineDragRef.current?.(spec.drag.positionId, spec.drag.kind, price)
+      if (!apply || !moved || !spec?.drag || price === spec.price) {
+        restore(index)
+        return
+      }
+      const kind = spec.drag.kind === "tp" ? "Take profit" : "Stop loss"
+      const current = lastCandleRef.current?.close
+      const d = decimalsRef.current
+      const near = current != null && Math.abs(price - current) / current < 0.001
+      const ok = window.confirm(
+        `Mover ${kind} para ${formatPrice(price, d)}?` +
+          (current != null ? `\nPreço atual: ${formatPrice(current, d)}.` : "") +
+          (near ? "\n\nAtenção: está muito perto do preço atual e pode fechar a posição imediatamente." : ""),
+      )
+      if (!ok) {
+        restore(index)
+        return
+      }
+      onLineDragRef.current?.(spec.drag.positionId, spec.drag.kind, price)
     }
+    const onUp = (e: PointerEvent) => finish(e, true)
+    // Gesto interrompido pelo navegador: nunca grava o preço onde o dedo/ponteiro parou.
+    const onCancel = (e: PointerEvent) => finish(e, false)
 
     el.addEventListener("pointerdown", onDown, true)
     el.addEventListener("pointermove", onMove, true)
     el.addEventListener("pointerup", onUp, true)
-    el.addEventListener("pointercancel", onUp, true)
+    el.addEventListener("pointercancel", onCancel, true)
     return () => {
       el.removeEventListener("pointerdown", onDown, true)
       el.removeEventListener("pointermove", onMove, true)
       el.removeEventListener("pointerup", onUp, true)
-      el.removeEventListener("pointercancel", onUp, true)
+      el.removeEventListener("pointercancel", onCancel, true)
     }
   }, [chartApi])
 

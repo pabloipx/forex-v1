@@ -22,6 +22,7 @@ const orderSchema = z.object({
   timeInForce: z.enum(["GTC", "IOC", "FOK", "PostOnly"]).optional(),
   takeProfit: positive.nullish(),
   stopLoss: positive.nullish(),
+  source: z.enum(["manual", "robo"]).optional(),
 })
 
 export async function POST(request: NextRequest) {
