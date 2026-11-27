@@ -140,6 +140,19 @@ export async function getDepositSettings(admin: SupabaseClient): Promise<Deposit
   }
 }
 
+export const DEFAULT_CRYPTO_MIN_USD = 20
+
+/** Depósito mínimo em criptomoeda (USD) configurado no admin (`crypto_min_usd`). */
+export async function getCryptoMinUsd(admin: SupabaseClient): Promise<number> {
+  const { data } = await admin
+    .from("platform_settings")
+    .select("setting_value")
+    .eq("setting_key", "crypto_min_usd")
+    .maybeSingle()
+  const v = parseSettingNumber(data?.setting_value)
+  return v && v > 0 ? v : DEFAULT_CRYPTO_MIN_USD
+}
+
 export const DEFAULT_MIN_WITHDRAW_USD = 100
 
 /** Saque mínimo em dólar configurado no admin (`withdraw_min_usd`). */

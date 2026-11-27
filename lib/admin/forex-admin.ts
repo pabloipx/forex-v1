@@ -137,7 +137,7 @@ export async function listOpenOrders(): Promise<AdminOrder[]> {
 
 export async function forceClosePosition(userId: string, positionId: string) {
   if (testMode()) return demo.closePosition(positionId)
-  return engine.closePosition(userId, positionId)
+  return engine.closePosition(userId, positionId, undefined, undefined, "admin")
 }
 
 export async function forceCancelOrder(userId: string, orderId: string) {

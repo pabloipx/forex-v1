@@ -18,13 +18,14 @@ export function AdminDepositSettings() {
   const { data: settings, mutate } = useSWR<SettingsMap>("/api/admin/settings", fetcher, { revalidateOnFocus: false })
   const { data: quote } = useUsdBrlQuote()
 
-  const [draft, setDraft] = useState<{ min?: string; max?: string; spread?: string }>({})
+  const [draft, setDraft] = useState<{ min?: string; max?: string; spread?: string; cryptoMin?: string }>({})
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null)
 
   const min = draft.min ?? clean(settings?.deposit_min_usd, "100")
   const max = draft.max ?? clean(settings?.deposit_max_usd, "20000")
   const spread = draft.spread ?? clean(settings?.pix_fx_spread_percent, "0")
+  const cryptoMin = draft.cryptoMin ?? clean(settings?.crypto_min_usd, "20")
 
   const minNum = Number(min.replace(",", "."))
   const spreadNum = Number(spread.replace(",", "."))
@@ -42,6 +43,7 @@ export function AdminDepositSettings() {
           deposit_min_usd: Number(min.replace(",", ".")),
           deposit_max_usd: Number(max.replace(",", ".")),
           pix_fx_spread_percent: Number(spread.replace(",", ".")),
+          crypto_min_usd: Number(cryptoMin.replace(",", ".")),
         }),
       })
       const data = await res.json().catch(() => ({}))
@@ -124,6 +126,23 @@ export function AdminDepositSettings() {
             {previewRate ? `US$ ${fmtUsd(100)} = R$ ${fmtBrl(usdToBrlClient(100, previewRate))}` : "—"}
           </span>
         </span>
+      </div>
+
+      <div className="flex flex-col gap-4 border-t border-adm-line p-6">
+        <div>
+          <h4 className="text-sm font-semibold text-adm-fg">Depósito em criptomoeda</h4>
+          <p className="text-sm text-adm-muted">Vale para USDT, BTC, ETH e SOL.</p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          <Field
+            id="crypto-min-usd"
+            label="Depósito mínimo cripto"
+            prefix="US$"
+            value={cryptoMin}
+            onChange={(v) => setDraft((d) => ({ ...d, cryptoMin: v }))}
+            hint="Valor mínimo aceito em cada depósito por cripto"
+          />
+        </div>
       </div>
 
       <footer className="flex flex-wrap items-center gap-3 border-t border-adm-line px-6 py-4">

@@ -92,7 +92,15 @@ export async function POST(request: Request) {
     if (minUsd !== undefined) await upsertSetting(adminClient, "deposit_min_usd", String(Math.round(minUsd * 100) / 100))
     if (maxUsd !== undefined) await upsertSetting(adminClient, "deposit_max_usd", String(Math.round(maxUsd * 100) / 100))
 
-    if (body.withdraw_min_usd !== undefined) {
+    if (body.crypto_min_usd !== undefined) {
+    const cryptoMin = Number(body.crypto_min_usd)
+    if (!Number.isFinite(cryptoMin) || cryptoMin < 1 || cryptoMin > 100000) {
+      return NextResponse.json({ error: "O depósito mínimo em cripto deve ficar entre US$ 1 e US$ 100.000." }, { status: 400 })
+    }
+    await upsertSetting(adminClient, "crypto_min_usd", String(Math.round(cryptoMin * 100) / 100))
+  }
+
+  if (body.withdraw_min_usd !== undefined) {
       const minWithdraw = Number(body.withdraw_min_usd)
       if (!Number.isFinite(minWithdraw) || minWithdraw < 1 || minWithdraw > 100000) {
         return NextResponse.json({ error: "O saque minimo deve ficar entre US$ 1 e US$ 100.000." }, { status: 400 })

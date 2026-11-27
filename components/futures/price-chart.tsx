@@ -542,7 +542,7 @@ function PriceChartImpl({
     const el = containerRef.current
     const chart = chartApi
     if (!el || !chart) return
-    let dragging: { index: number; price: number } | null = null
+    let dragging: { index: number; price: number; startY: number; moved: boolean } | null = null
 
     const hit = (y: number) => {
       const series = candleRef.current
@@ -556,12 +556,15 @@ function PriceChartImpl({
     const localY = (e: PointerEvent) => e.clientY - el.getBoundingClientRect().top
 
     const onDown = (e: PointerEvent) => {
-      if (e.button !== 0) return
-      const index = hit(localY(e))
+      // No toque, rolar/aproximar o gráfico perto da linha arrastava o SL até o preço atual e
+      // fechava a posição. Arraste só com mouse/caneta; no celular o TP/SL é editado pelo botão.
+      if (e.button !== 0 || e.pointerType === "touch") return
+      const y = localY(e)
+      const index = hit(y)
       if (index < 0) return
       e.stopPropagation()
       e.preventDefault()
-      dragging = { index, price: lineSpecsRef.current[index].price }
+      dragging = { index, price: lineSpecsRef.current[index].price, startY: y, moved: false }
       chart.applyOptions({ handleScroll: false, handleScale: false })
       el.setPointerCapture(e.pointerId)
     }
@@ -572,6 +575,8 @@ function PriceChartImpl({
         return
       }
       e.stopPropagation()
+      if (!dragging.moved && Math.abs(y - dragging.startY) < 4) return
+      dragging.moved = true
       const price = candleRef.current?.coordinateToPrice(y)
       if (price == null || price <= 0) return
       const rounded = Number(price.toFixed(decimalsRef.current))
@@ -582,27 +587,52 @@ function PriceChartImpl({
         title: `${spec.drag?.kind === "tp" ? "TP" : "SL"} ${formatPrice(rounded, decimalsRef.current)}`,
       })
     }
-    const onUp = (e: PointerEvent) => {
+    const restore = (index: number) => {
+      const spec = lineSpecsRef.current[index]
+      if (!spec) return
+      priceLinesRef.current[index]?.applyOptions({ price: spec.price, title: spec.title })
+    }
+    const finish = (e: PointerEvent, apply: boolean) => {
       if (!dragging) return
       e.stopPropagation()
-      const spec = lineSpecsRef.current[dragging.index]
-      const { price } = dragging
+      const { index, price, moved } = dragging
+      const spec = lineSpecsRef.current[index]
       dragging = null
       el.style.cursor = ""
       chart.applyOptions({ handleScroll: true, handleScale: true })
       if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId)
-      if (spec?.drag && price !== spec.price) onLineDragRef.current?.(spec.drag.positionId, spec.drag.kind, price)
+      if (!apply || !moved || !spec?.drag || price === spec.price) {
+        restore(index)
+        return
+      }
+      const kind = spec.drag.kind === "tp" ? "Take profit" : "Stop loss"
+      const current = lastCandleRef.current?.close
+      const d = decimalsRef.current
+      const near = current != null && Math.abs(price - current) / current < 0.001
+      const ok = window.confirm(
+        `Mover ${kind} para ${formatPrice(price, d)}?` +
+          (current != null ? `\nPreço atual: ${formatPrice(current, d)}.` : "") +
+          (near ? "\n\nAtenção: está muito perto do preço atual e pode fechar a posição imediatamente." : ""),
+      )
+      if (!ok) {
+        restore(index)
+        return
+      }
+      onLineDragRef.current?.(spec.drag.positionId, spec.drag.kind, price)
     }
+    const onUp = (e: PointerEvent) => finish(e, true)
+    // Gesto interrompido pelo navegador: nunca grava o preço onde o dedo/ponteiro parou.
+    const onCancel = (e: PointerEvent) => finish(e, false)
 
     el.addEventListener("pointerdown", onDown, true)
     el.addEventListener("pointermove", onMove, true)
     el.addEventListener("pointerup", onUp, true)
-    el.addEventListener("pointercancel", onUp, true)
+    el.addEventListener("pointercancel", onCancel, true)
     return () => {
       el.removeEventListener("pointerdown", onDown, true)
       el.removeEventListener("pointermove", onMove, true)
       el.removeEventListener("pointerup", onUp, true)
-      el.removeEventListener("pointercancel", onUp, true)
+      el.removeEventListener("pointercancel", onCancel, true)
     }
   }, [chartApi])
 

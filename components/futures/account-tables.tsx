@@ -48,6 +48,8 @@ const CLOSE_REASON: Record<string, string> = {
   liquidation: "Liquidação",
   trailing_stop: "Trailing stop",
   reduce: "Ordem",
+  close: "Fechamento",
+  admin_close: "Fechada pelo admin",
 }
 
 const time = (iso: string) =>
@@ -560,6 +562,7 @@ function PositionTableRow({
   const long = p.side === "long"
 
   const closeMarket = async () => {
+    if (!window.confirm(`Fechar ${p.symbol} (${long ? "Long" : "Short"} ${p.leverage}x) a mercado agora?`)) return
     setBusy(true)
     try {
       await futuresApi.closePosition(p.id)

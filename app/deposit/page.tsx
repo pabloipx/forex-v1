@@ -16,6 +16,7 @@ const QUICK_AMOUNTS = [50, 100, 500, 1000, 5000, 10000, 50000, 100000]
 
 interface DepositMethodsResponse {
   pix_enabled?: boolean
+  crypto_min_usd?: number
   min_deposit_usd?: number
   max_deposit_usd?: number
 }
@@ -79,6 +80,7 @@ export default function DepositPage() {
   const { data: fxQuote, error: fxError, isLoading: fxLoading, mutate: refreshQuote } = useUsdBrlQuote()
   const minDepositUsd = fxQuote?.min_deposit_usd ?? methodsData?.min_deposit_usd ?? 100
   const maxDepositUsd = fxQuote?.max_deposit_usd ?? methodsData?.max_deposit_usd ?? 20000
+  const cryptoMinUsd = methodsData?.crypto_min_usd ?? CRYPTO_MIN_USD
   const [pixAmountUsd, setPixAmountUsd] = useState("100.00")
   const parsedPixUsd = Number(pixAmountUsd.replace(/,/g, "")) || 0
   const pixAmountBrl = fxQuote && parsedPixUsd > 0 ? usdToBrlClient(parsedPixUsd, fxQuote.rate) : 0
@@ -404,8 +406,8 @@ export default function DepositPage() {
   // Show crypto QR code after validating amount
   const handleShowCryptoQR = () => {
     const numAmount = Number(cryptoAmountUsd)
-    if (!numAmount || numAmount < CRYPTO_MIN_USD) {
-      setError(`Valor minimo de $${CRYPTO_MIN_USD} USD (R$ ${(CRYPTO_MIN_USD * USD_TO_BRL).toFixed(2)})`)
+    if (!numAmount || numAmount < cryptoMinUsd) {
+      setError(`Valor mínimo de $${cryptoMinUsd} USD (R$ ${(cryptoMinUsd * USD_TO_BRL).toFixed(2)})`)
       return
     }
     setError(null)
@@ -414,8 +416,8 @@ export default function DepositPage() {
 
   const handleCryptoDeposit = async () => {
     const numAmount = Number(cryptoAmountUsd)
-    if (!numAmount || numAmount < CRYPTO_MIN_USD) {
-      setError(`Valor minimo de $${CRYPTO_MIN_USD} USD`)
+    if (!numAmount || numAmount < cryptoMinUsd) {
+      setError(`Valor mínimo de $${cryptoMinUsd} USD`)
       return
     }
 
@@ -815,7 +817,7 @@ export default function DepositPage() {
                 </span>
                 <span className="flex min-w-0 flex-col gap-1">
                   <span className="truncate text-base font-medium text-white">Criptomoeda</span>
-                  <span className="text-sm leading-snug text-[#9CA3AF]">USDT, BTC, ETH ou SOL · mín. US$ 20</span>
+                  <span className="text-sm leading-snug text-[#9CA3AF]">{`USDT, BTC, ETH ou SOL · mín. US$ ${cryptoMinUsd.toLocaleString("en-US")}`}</span>
                 </span>
                 {method === "crypto" && (
                   <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-[#2190ff]">
@@ -1050,6 +1052,7 @@ export default function DepositPage() {
         {/* Crypto deposit section */}
         {method === "crypto" && (
           <CryptoDeposit
+            minUsd={cryptoMinUsd}
             cryptoType={cryptoType}
             onCryptoTypeChange={setCryptoType}
             amountUsd={cryptoAmountUsd}

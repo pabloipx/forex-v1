@@ -346,7 +346,13 @@ export async function cancelAllOrders(userId: string, isDemo: boolean, symbol?: 
   return { cancelled: data?.length ?? 0 }
 }
 
-export async function closePosition(userId: string, positionId: string, qty?: number, limitPrice?: number) {
+export async function closePosition(
+  userId: string,
+  positionId: string,
+  qty?: number,
+  limitPrice?: number,
+  by: "user" | "admin" = "user",
+) {
   if (isTestUser(userId)) return testEngine.closePosition(positionId, qty, limitPrice)
   const admin = createAdminClient()
   const { data } = await admin
@@ -396,9 +402,9 @@ export async function closePosition(userId: string, positionId: string, qty?: nu
     marginMode: pos.margin_mode,
     feeRate: paramsFor(market.symbol).takerFee,
     reduceOnly: true,
-    execType: "close",
+    execType: by === "admin" ? "admin_close" : "close",
     orderType: "market",
-    source: "manual",
+    source: by === "admin" ? "sistema" : "manual",
   })
 }
 

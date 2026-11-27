@@ -20,6 +20,8 @@ interface CryptoDepositProps {
   loading: boolean
   success: boolean
   onFinish: () => void
+  /** Mínimo configurado no admin; cai no padrão enquanto carrega. */
+  minUsd?: number
 }
 
 export function CryptoDeposit({
@@ -37,6 +39,7 @@ export function CryptoDeposit({
   loading,
   success,
   onFinish,
+  minUsd = CRYPTO_MIN_USD,
 }: CryptoDepositProps) {
   const [copied, setCopied] = useState(false)
   const crypto = CRYPTO_OPTIONS[cryptoType]
@@ -107,7 +110,7 @@ export function CryptoDeposit({
                   <span className="flex min-w-0 flex-col gap-1">
                     <span className="truncate text-base font-medium text-white">{option.name}</span>
                     <span className="text-sm leading-snug text-[#9CA3AF]">
-                      {option.symbol} · Rede {option.network} · mín. US$ {CRYPTO_MIN_USD}
+                      {option.symbol} · Rede {option.network} · mín. US$ {minUsd}
                     </span>
                   </span>
                   {active && (
@@ -136,11 +139,11 @@ export function CryptoDeposit({
               id="crypto-amount"
               type="number"
               inputMode="decimal"
-              min={CRYPTO_MIN_USD}
+              min={minUsd}
               step="1"
               value={amountUsd}
               onChange={(e) => onAmountUsdChange(e.target.value)}
-              placeholder={`Mínimo $${CRYPTO_MIN_USD}`}
+              placeholder={`Mínimo $${minUsd}`}
               className="w-full rounded-xl border border-[#1F2933] bg-[#0B0F14] py-4 pl-10 pr-4 text-xl font-semibold text-white placeholder:text-[#4B5563] focus:border-[#2190ff] focus:outline-none"
             />
           </div>
@@ -152,14 +155,14 @@ export function CryptoDeposit({
             <p className="text-2xl font-bold text-white">R$ {amountBrl}</p>
           </div>
           <span className="text-xs text-[#9CA3AF]">
-            Mínimo ${CRYPTO_MIN_USD} (R$ {(CRYPTO_MIN_USD * USD_TO_BRL).toFixed(2)})
+            Mínimo ${minUsd} (R$ {(minUsd * USD_TO_BRL).toFixed(2)})
           </span>
         </div>
 
         <button
           type="button"
           onClick={onShowQR}
-          disabled={Number(amountUsd) < CRYPTO_MIN_USD}
+          disabled={Number(amountUsd) < minUsd}
           className="w-full rounded-xl py-4 font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           style={{ backgroundColor: crypto.color }}
         >
